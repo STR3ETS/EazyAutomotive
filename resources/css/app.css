@@ -1,0 +1,27 @@
+@import "tailwindcss";
+
+@plugin "@tailwindcss/forms";
+
+@source "../../resources/**/*.blade.php";
+@source "../../resources/**/*.js";
+
+@theme {
+    --color-eazy: #0F9B9F;
+    --color-eazy-dark: #0B7A7D;
+    --color-eazy-darker: #215558;
+    --color-eazy-light: #E6F7F7;
+    --color-eazy-50: #F0FAFA;
+    --color-eazy-100: #D1F2F3;
+    --color-eazy-200: #A3E5E7;
+    --color-eazy-300: #6DD3D6;
+    --color-eazy-400: #3BBDC1;
+    --color-eazy-500: #0F9B9F;
+    --color-eazy-600: #0B7A7D;
+    --color-eazy-700: #215558;
+    --color-eazy-800: #1A4244;
+    --color-eazy-900: #132F30;
+
+    --font-sans: 'Inter Tight', ui-sans-serif, system-ui, sans-serif;
+    --font-display: 'Inter Tight', ui-sans-serif, system-ui, sans-serif;
+    --font-accent: 'Caveat', cursive;
+}
