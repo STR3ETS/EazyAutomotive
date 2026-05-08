@@ -43,7 +43,7 @@ class CompanySettingsController extends Controller
 
         $company->update($validated);
 
-        return back()->with('success', 'Bedrijfsinstellingen bijgewerkt!');
+        return back()->with('success', 'Instellingen opgeslagen!');
     }
 
     public function regenerateApiKey(Request $request)
@@ -51,14 +51,21 @@ class CompanySettingsController extends Controller
         $company = $request->user()->company;
         $company->update(['api_key' => Str::random(64)]);
 
-        return back()->with('success', 'API key opnieuw gegenereerd. Vergeet niet je embed code bij te werken!');
+        return back()->with('success', 'Nieuwe sleutel gegenereerd. Vergeet niet de code op je website te vervangen!');
     }
 
-    public function embedCode(Request $request)
+    public function ontwerpen(Request $request)
     {
         $company = $request->user()->company;
 
-        return view('company.embed', compact('company'));
+        return view('company.ontwerpen', compact('company'));
+    }
+
+    public function integratie(Request $request)
+    {
+        $company = $request->user()->company;
+
+        return view('company.integratie', compact('company'));
     }
 
     public function updateEmbedSettings(Request $request)
@@ -103,24 +110,54 @@ class CompanySettingsController extends Controller
             // Detail page overrides
             'detail_custom' => 'nullable|boolean',
             'detail_bg_color' => 'nullable|string|max:7',
+            'detail_border_color' => 'nullable|string|max:7',
             'detail_border_radius' => 'nullable|integer|min:0|max:30',
+            'detail_border_width' => 'nullable|integer|min:0|max:4',
             'detail_padding' => 'nullable|integer|min:0|max:60',
             'detail_title_size' => 'nullable|integer|min:14|max:36',
             'detail_title_color' => 'nullable|string|max:7',
+            'detail_subtitle_color' => 'nullable|string|max:7',
+            'detail_price_color' => 'nullable|string|max:7',
             'detail_price_size' => 'nullable|integer|min:14|max:42',
+            'detail_desc_color' => 'nullable|string|max:7',
+            'detail_desc_size' => 'nullable|integer|min:10|max:20',
             'detail_gallery_height' => 'nullable|integer|min:150|max:500',
-            'detail_spec_columns' => 'nullable|integer|min:1|max:3',
             'detail_overlay_opacity' => 'nullable|integer|min:20|max:90',
+            'detail_shadow' => 'nullable|in:none,sm,md,lg',
+
+            // Detail spec styling
+            'detail_spec_columns' => 'nullable|integer|min:1|max:3',
+            'detail_spec_bg_color' => 'nullable|string|max:7',
+            'detail_spec_label_color' => 'nullable|string|max:7',
+            'detail_spec_value_color' => 'nullable|string|max:7',
+            'detail_spec_radius' => 'nullable|integer|min:0|max:16',
+            'detail_spec_gap' => 'nullable|integer|min:0|max:16',
+
+            // Detail badge styling
+            'detail_badge_style' => 'nullable|in:pill,badge,outline',
+            'detail_badge_bg_color' => 'nullable|string|max:7',
+            'detail_badge_text_color' => 'nullable|string|max:7',
+            'detail_badge_radius' => 'nullable|integer|min:0|max:20',
+
+            // Detail visibility
+            'detail_show_subtitle' => 'nullable|boolean',
+            'detail_show_specs' => 'nullable|boolean',
+            'detail_show_description' => 'nullable|boolean',
+            'detail_show_options' => 'nullable|boolean',
         ]);
 
         $validated['show_price'] = $request->boolean('show_price');
         $validated['show_km'] = $request->boolean('show_km');
         $validated['show_fuel'] = $request->boolean('show_fuel');
         $validated['detail_custom'] = $request->boolean('detail_custom');
+        $validated['detail_show_subtitle'] = $request->boolean('detail_show_subtitle');
+        $validated['detail_show_specs'] = $request->boolean('detail_show_specs');
+        $validated['detail_show_description'] = $request->boolean('detail_show_description');
+        $validated['detail_show_options'] = $request->boolean('detail_show_options');
 
         $company = $request->user()->company;
         $company->update(['embed_settings' => $validated]);
 
-        return back()->with('success', 'Widget instellingen opgeslagen!');
+        return back()->with('success', 'Ontwerp opgeslagen!');
     }
 }

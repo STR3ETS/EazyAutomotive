@@ -4,6 +4,7 @@ use App\Http\Controllers\CarController;
 use App\Http\Controllers\CompanySettingsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\PublicerenController;
 use App\Http\Controllers\RdwLookupController;
 use Illuminate\Support\Facades\Route;
 
@@ -28,9 +29,19 @@ Route::middleware(['auth', 'verified', 'company.ownership'])->group(function () 
     Route::put('/settings', [CompanySettingsController::class, 'update'])->name('settings.update');
     Route::post('/settings/regenerate-api-key', [CompanySettingsController::class, 'regenerateApiKey'])->name('settings.regenerate-key');
 
-    // Embed Code Page
-    Route::get('/embed-code', [CompanySettingsController::class, 'embedCode'])->name('embed.index');
-    Route::put('/embed-code/settings', [CompanySettingsController::class, 'updateEmbedSettings'])->name('embed.settings');
+    // Ontwerpen (Widget Design)
+    Route::get('/ontwerpen', [CompanySettingsController::class, 'ontwerpen'])->name('ontwerpen');
+    Route::put('/ontwerpen', [CompanySettingsController::class, 'updateEmbedSettings'])->name('ontwerpen.update');
+
+    // Integratie (Embed Code + Guide)
+    Route::get('/integratie', [CompanySettingsController::class, 'integratie'])->name('integratie');
+
+    // Publiceren (Publishing to external platforms)
+    Route::get('/publiceren', [PublicerenController::class, 'index'])->name('publiceren');
+    Route::post('/publiceren/platform/{platform}/connect', [PublicerenController::class, 'connectPlatform'])->name('publiceren.connect');
+    Route::post('/publiceren/platform/{platform}/disconnect', [PublicerenController::class, 'disconnectPlatform'])->name('publiceren.disconnect');
+    Route::post('/publiceren/publish', [PublicerenController::class, 'publishCars'])->name('publiceren.publish');
+    Route::post('/publiceren/unpublish/{publication}', [PublicerenController::class, 'unpublishCar'])->name('publiceren.unpublish');
 });
 
 // Profile routes (from Breeze)

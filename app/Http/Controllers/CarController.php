@@ -14,7 +14,9 @@ class CarController extends Controller
 
     public function index(Request $request)
     {
-        $cars = Car::where('company_id', $request->user()->company_id)
+        $viewMode = $request->get('view', 'table');
+
+        $query = Car::where('company_id', $request->user()->company_id)
             ->with('primaryImage')
             ->when($request->status, fn ($q, $s) => $q->where('status', $s))
             ->when($request->search, fn ($q, $s) => $q->where(function ($q) use ($s) {
@@ -22,11 +24,31 @@ class CarController extends Controller
                     ->orWhere('handelsbenaming', 'like', "%{$s}%")
                     ->orWhere('kenteken', 'like', "%{$s}%");
             }))
-            ->latest()
-            ->paginate(20)
-            ->withQueryString();
+            ->latest();
 
-        return view('cars.index', compact('cars'));
+        if ($viewMode === 'kanban') {
+            $allCars = $query->get();
+            $kanbanColumns = [
+                'draft' => ['label' => 'Concept', 'icon' => 'fa-pencil', 'bg' => 'bg-gray-100', 'text' => 'text-gray-500', 'cars' => $allCars->where('status', 'draft')],
+                'active' => ['label' => 'Actief', 'icon' => 'fa-circle-check', 'bg' => 'bg-emerald-50', 'text' => 'text-emerald-600', 'cars' => $allCars->where('status', 'active')],
+                'reserved' => ['label' => 'Gereserveerd', 'icon' => 'fa-clock', 'bg' => 'bg-amber-50', 'text' => 'text-amber-600', 'cars' => $allCars->where('status', 'reserved')],
+                'sold' => ['label' => 'Verkocht', 'icon' => 'fa-flag-checkered', 'bg' => 'bg-red-50', 'text' => 'text-red-500', 'cars' => $allCars->where('status', 'sold')],
+            ];
+
+            return view('cars.index', [
+                'cars' => $allCars,
+                'kanbanColumns' => $kanbanColumns,
+                'viewMode' => $viewMode,
+            ]);
+        }
+
+        $cars = $query->paginate(20)->withQueryString();
+
+        return view('cars.index', [
+            'cars' => $cars,
+            'kanbanColumns' => [],
+            'viewMode' => $viewMode,
+        ]);
     }
 
     public function create()

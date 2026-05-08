@@ -52,4 +52,19 @@ class Company extends Model
     {
         return $this->hasMany(CarView::class);
     }
+
+    public function platformConnections(): HasMany
+    {
+        return $this->hasMany(PlatformConnection::class);
+    }
+
+    public function carPublications(): HasMany
+    {
+        return $this->hasMany(CarPublication::class);
+    }
+
+    public function publicationLogs(): HasMany
+    {
+        return $this->hasMany(PublicationLog::class);
+    }
 }

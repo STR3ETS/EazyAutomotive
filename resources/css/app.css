@@ -1,3 +1,4 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,100..900;1,100..900&display=swap');
 @import "tailwindcss";
 
 @plugin "@tailwindcss/forms";
@@ -20,8 +21,8 @@
     --color-eazy-700: #215558;
     --color-eazy-800: #1A4244;
     --color-eazy-900: #132F30;
+}
 
-    --font-sans: 'Inter Tight', ui-sans-serif, system-ui, sans-serif;
-    --font-display: 'Inter Tight', ui-sans-serif, system-ui, sans-serif;
-    --font-accent: 'Caveat', cursive;
+body {
+    font-family: 'Inter Tight';
 }

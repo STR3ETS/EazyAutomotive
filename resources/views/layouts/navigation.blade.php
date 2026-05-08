@@ -1,120 +1,79 @@
-<nav x-data="{ open: false }" class="bg-white border-b border-gray-100 shadow-sm">
-    <!-- Primary Navigation Menu -->
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-        <div class="flex justify-between h-16">
-            <div class="flex">
-                <!-- Logo -->
-                <div class="shrink-0 flex items-center">
-                    <a href="{{ route('dashboard') }}" class="flex items-center gap-1.5">
-                        <span class="text-xl font-bold text-eazy-darker">Eazy</span>
-                        <span class="text-xl font-light text-eazy">Automotive</span>
-                    </a>
-                </div>
+<aside :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
+       class="p-2 fixed top-4 bottom-4 left-4 w-[300px] bg-white border border-gray-200/60 rounded-2xl shadow-lg shadow-gray-200/50 z-30
+              transform transition-transform duration-200 ease-in-out lg:translate-x-0
+              flex flex-col overflow-hidden">
 
-                <!-- Navigation Links -->
-                <div class="hidden space-x-8 sm:-my-px sm:ms-10 sm:flex">
-                    <x-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                        Dashboard
-                    </x-nav-link>
-                    <x-nav-link :href="route('cars.index')" :active="request()->routeIs('cars.*')">
-                        Auto's
-                    </x-nav-link>
-                    <x-nav-link :href="route('embed.index')" :active="request()->routeIs('embed.*')">
-                        Embed Code
-                    </x-nav-link>
-                    <x-nav-link :href="route('settings.edit')" :active="request()->routeIs('settings.*')">
-                        Instellingen
-                    </x-nav-link>
-                </div>
-            </div>
-
-            <!-- Settings Dropdown -->
-            <div class="hidden sm:flex sm:items-center sm:ms-6">
-                <x-dropdown align="right" width="48">
-                    <x-slot name="trigger">
-                        <button class="inline-flex items-center px-3 py-2 border border-transparent text-sm leading-4 font-medium rounded-lg text-gray-500 bg-white hover:text-gray-700 focus:outline-none transition ease-in-out duration-150">
-                            <div class="flex flex-col items-end">
-                                <span class="text-sm font-medium text-gray-700">{{ Auth::user()->name }}</span>
-                                <span class="text-xs text-eazy">{{ Auth::user()->company?->name }}</span>
-                            </div>
-
-                            <div class="ms-2">
-                                <svg class="fill-current h-4 w-4 text-gray-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20">
-                                    <path fill-rule="evenodd" d="M5.293 7.293a1 1 0 011.414 0L10 10.586l3.293-3.293a1 1 0 111.414 1.414l-4 4a1 1 0 01-1.414 0l-4-4a1 1 0 010-1.414z" clip-rule="evenodd" />
-                                </svg>
-                            </div>
-                        </button>
-                    </x-slot>
-
-                    <x-slot name="content">
-                        <x-dropdown-link :href="route('profile.edit')">
-                            Profiel
-                        </x-dropdown-link>
-                        <x-dropdown-link :href="route('settings.edit')">
-                            Bedrijfsinstellingen
-                        </x-dropdown-link>
-
-                        <!-- Authentication -->
-                        <form method="POST" action="{{ route('logout') }}">
-                            @csrf
-                            <x-dropdown-link :href="route('logout')"
-                                    onclick="event.preventDefault(); this.closest('form').submit();">
-                                Uitloggen
-                            </x-dropdown-link>
-                        </form>
-                    </x-slot>
-                </x-dropdown>
-            </div>
-
-            <!-- Hamburger -->
-            <div class="-me-2 flex items-center sm:hidden">
-                <button @click="open = ! open" class="inline-flex items-center justify-center p-2 rounded-md text-gray-400 hover:text-eazy hover:bg-eazy-50 focus:outline-none focus:bg-eazy-50 focus:text-eazy transition duration-150 ease-in-out">
-                    <svg class="h-6 w-6" stroke="currentColor" fill="none" viewBox="0 0 24 24">
-                        <path :class="{'hidden': open, 'inline-flex': ! open }" class="inline-flex" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16M4 18h16" />
-                        <path :class="{'hidden': ! open, 'inline-flex': open }" class="hidden" stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
-                    </svg>
-                </button>
-            </div>
-        </div>
+    {{-- Logo + Close (mobile) --}}
+    <div class="flex items-center justify-between px-6 h-16 shrink-0">
+        <a href="{{ route('dashboard') }}" class="flex items-center gap-1.5">
+            <img src="/assets/logo.webp" class="max-h-8">
+        </a>
+        <button @click="sidebarOpen = false" class="cursor-pointer lg:hidden w-8 h-8 flex items-center justify-center rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 transition">
+            <i class="fa-solid fa-xmark"></i>
+        </button>
     </div>
 
-    <!-- Responsive Navigation Menu -->
-    <div :class="{'block': open, 'hidden': ! open}" class="hidden sm:hidden">
-        <div class="pt-2 pb-3 space-y-1">
-            <x-responsive-nav-link :href="route('dashboard')" :active="request()->routeIs('dashboard')">
-                Dashboard
-            </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('cars.index')" :active="request()->routeIs('cars.*')">
-                Auto's
-            </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('embed.index')" :active="request()->routeIs('embed.*')">
-                Embed Code
-            </x-responsive-nav-link>
-            <x-responsive-nav-link :href="route('settings.edit')" :active="request()->routeIs('settings.*')">
-                Instellingen
-            </x-responsive-nav-link>
+    {{-- Divider --}}
+    <div class="px-5"><div class="border-t border-gray-100"></div></div>
+
+    {{-- Navigation --}}
+    <nav class="flex-1 px-4 py-5 space-y-1 overflow-y-auto">
+        @php
+            $navItems = [
+                ['route' => 'dashboard', 'match' => 'dashboard', 'icon' => 'fa-house', 'label' => 'Dashboard'],
+                ['route' => 'cars.index', 'match' => 'cars.*', 'icon' => 'fa-car', 'label' => "Auto's"],
+                ['route' => 'ontwerpen', 'match' => 'ontwerpen', 'icon' => 'fa-palette', 'label' => 'Ontwerpen'],
+                ['route' => 'integratie', 'match' => 'integratie', 'icon' => 'fa-code', 'label' => 'Integratie'],
+                ['route' => 'publiceren', 'match' => 'publiceren*', 'icon' => 'fa-share-nodes', 'label' => 'Publiceren'],
+                ['route' => 'settings.edit', 'match' => 'settings.*', 'icon' => 'fa-gear', 'label' => 'Instellingen'],
+            ];
+        @endphp
+
+        @foreach($navItems as $item)
+            @php $active = request()->routeIs($item['match']); @endphp
+            <a href="{{ route($item['route']) }}"
+               @click="sidebarOpen = false"
+               class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150
+                      {{ $active
+                          ? 'bg-eazy-50 text-eazy-700'
+                          : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800' }}">
+                <div class="w-8 h-8 flex items-center justify-center rounded-lg
+                            {{ $active ? 'bg-eazy text-white' : 'bg-gray-100 text-gray-400' }}">
+                    <i class="fa-solid {{ $item['icon'] }} text-xs"></i>
+                </div>
+                <span>{{ $item['label'] }}</span>
+            </a>
+        @endforeach
+    </nav>
+
+    {{-- User section --}}
+    <div class="px-4 py-4 border-t border-gray-100 shrink-0">
+        {{-- User info --}}
+        <div class="flex items-center gap-3 px-3 py-2.5 mb-2">
+            <div class="w-9 h-9 rounded-full bg-gradient-to-br from-eazy to-eazy-dark flex items-center justify-center shrink-0">
+                <span class="text-xs font-bold text-white">{{ strtoupper(substr(Auth::user()->name, 0, 2)) }}</span>
+            </div>
+            <div class="flex-1 min-w-0">
+                <div class="text-sm font-semibold text-gray-800 truncate">{{ Auth::user()->name }}</div>
+                <div class="text-xs text-gray-400 truncate">{{ Auth::user()->company?->name }}</div>
+            </div>
         </div>
 
-        <!-- Responsive Settings Options -->
-        <div class="pt-4 pb-1 border-t border-gray-200">
-            <div class="px-4">
-                <div class="font-medium text-base text-gray-800">{{ Auth::user()->name }}</div>
-                <div class="font-medium text-sm text-eazy">{{ Auth::user()->company?->name }}</div>
-            </div>
+        {{-- Account links --}}
+        <a href="{{ route('profile.edit') }}"
+           @click="sidebarOpen = false"
+           class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-gray-500 hover:bg-gray-50 hover:text-gray-700 transition-colors">
+            <i class="fa-solid fa-user w-5 text-center text-xs text-gray-400"></i>
+            <span>Profiel</span>
+        </a>
 
-            <div class="mt-3 space-y-1">
-                <x-responsive-nav-link :href="route('profile.edit')">
-                    Profiel
-                </x-responsive-nav-link>
-
-                <form method="POST" action="{{ route('logout') }}">
-                    @csrf
-                    <x-responsive-nav-link :href="route('logout')"
-                            onclick="event.preventDefault(); this.closest('form').submit();">
-                        Uitloggen
-                    </x-responsive-nav-link>
-                </form>
-            </div>
-        </div>
+        <form method="POST" action="{{ route('logout') }}">
+            @csrf
+            <button type="submit"
+                    class="w-full flex items-center gap-3 px-3 py-2 rounded-xl text-sm text-gray-500 hover:bg-red-50 hover:text-red-600 transition-colors">
+                <i class="fa-solid fa-right-from-bracket w-5 text-center text-xs text-gray-400"></i>
+                <span>Uitloggen</span>
+            </button>
+        </form>
     </div>
-</nav>
+</aside>

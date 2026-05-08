@@ -64,6 +64,16 @@ class Car extends Model
         return $this->hasMany(CarView::class);
     }
 
+    public function publications(): HasMany
+    {
+        return $this->hasMany(CarPublication::class);
+    }
+
+    public function activePublications(): HasMany
+    {
+        return $this->hasMany(CarPublication::class)->where('status', 'published');
+    }
+
     public function scopeActive(Builder $query): Builder
     {
         return $query->where('status', 'active');

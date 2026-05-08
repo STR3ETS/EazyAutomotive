@@ -182,13 +182,6 @@
             color: #fff;
         }
 
-        /* ── Detail section disabled state ── */
-        .detail-fields-disabled {
-            opacity: 0.35;
-            pointer-events: none;
-            filter: grayscale(0.5);
-        }
-
         /* ── Shadow preview mini cards ── */
         .shadow-mini {
             width: 100%;
@@ -204,84 +197,54 @@
 
             {{-- Success Toast --}}
             @if(session('success'))
-                <div class="mb-6 flex items-center gap-3 bg-emerald-50 border border-emerald-200 text-emerald-700 px-5 py-3.5 rounded-xl shadow-sm" id="successToast">
+                <div class="mb-6 flex items-center gap-3 bg-emerald-50 border border-emerald-200 text-emerald-700 px-5 py-3.5 rounded-xl" id="successToast">
                     <i class="fa-solid fa-circle-check text-lg"></i>
                     <span class="text-sm font-medium">{{ session('success') }}</span>
-                    <button onclick="document.getElementById('successToast').remove()" class="ml-auto text-emerald-400 hover:text-emerald-600 transition">
+                    <button onclick="document.getElementById('successToast').remove()" class="cursor-pointer ml-auto text-emerald-400 hover:text-emerald-600 transition">
                         <i class="fa-solid fa-xmark"></i>
                     </button>
                 </div>
             @endif
 
             {{-- Page Header --}}
-            <div class="mb-6">
-                <h1 class="text-2xl font-black text-[#215558]">Widget Designer</h1>
-                <p class="text-sm text-[#215558] opacity-50 font-medium mt-0.5">Pas het uiterlijk van je widget aan en integreer het op je website</p>
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
+                <div>
+                    <h1 class="text-2xl font-black text-[#215558]">Ontwerpen</h1>
+                    <p class="text-sm text-[#215558] opacity-50 font-medium mt-0.5">Pas het uiterlijk van je autowidget aan</p>
+                </div>
+                <a href="{{ route('integratie') }}" class="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 bg-[#215558] text-white rounded-full text-sm font-bold hover:bg-eazy-darker transition">
+                    <i class="fa-solid fa-code text-xs"></i> Plaatsen op je website
+                </a>
             </div>
 
-            {{-- Top Row: Embed Code + API Key --}}
-            <div class="grid grid-cols-1 gap-6 mb-8">
-
-                {{-- Embed Code --}}
-                <div class="bg-white rounded-2xl border border-[#215558]/10 p-6 relative overflow-hidden">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="section-icon bg-violet-50 text-violet-500">
-                            <i class="fa-solid fa-code"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-sm font-bold text-[#215558]">Embed Code</h3>
-                            <p class="text-xs text-[#215558] opacity-50">Kopieer en plak op je website</p>
-                        </div>
-                    </div>
-                    <div class="relative">
-                        <pre class="bg-gray-900 text-green-400 rounded-lg p-4 text-xs overflow-x-auto leading-relaxed" id="embedCode">&lt;!-- EazyAutomotive Widget --&gt;
-&lt;div id="eazy-automotive-widget"&gt;&lt;/div&gt;
-&lt;script
-  src="{{ url('/embed/v1/widget.js') }}"
-  data-api-key="{{ $company->api_key }}"
-  data-base-url="{{ url('/') }}"
-  defer&gt;
-&lt;/script&gt;</pre>
-                        <button onclick="copyEmbedCode()" class="absolute top-3 right-3 inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-700 text-gray-300 rounded-lg text-xs hover:bg-gray-600 transition" id="copyBtn">
-                            <i class="fa-regular fa-copy"></i> Kopieer
-                        </button>
-                    </div>
-                </div>
-
-                {{-- API Key --}}
-                <div class="bg-white rounded-2xl border border-[#215558]/10 p-6 relative overflow-hidden">
-                    <div class="flex items-center gap-3 mb-4">
-                        <div class="section-icon bg-amber-50 text-amber-500">
-                            <i class="fa-solid fa-key"></i>
-                        </div>
-                        <div>
-                            <h3 class="text-sm font-bold text-[#215558]">API Key</h3>
-                            <p class="text-xs text-[#215558] opacity-50">Identificeert jouw bedrijf</p>
-                        </div>
-                    </div>
-                    <code class="block bg-gray-50 px-4 py-3 rounded-lg text-xs font-mono text-gray-500 break-all mb-4 border border-gray-100">{{ $company->api_key }}</code>
-                    <form method="POST" action="{{ route('settings.regenerate-key') }}" onsubmit="return confirm('Weet je zeker? Je bestaande embed code stopt met werken.')">
-                        @csrf
-                        <button type="submit" class="inline-flex items-center gap-2 px-4 py-2 bg-red-50 text-red-600 rounded-lg text-xs font-semibold hover:bg-red-100 transition">
-                            <i class="fa-solid fa-rotate"></i> Opnieuw genereren
-                        </button>
-                    </form>
-                </div>
-
-            </div>
-
-            {{-- ═══════════════════════════════════════════════ --}}
             {{-- Widget Settings Form --}}
-            {{-- ═══════════════════════════════════════════════ --}}
             @php $s = $company->embed_settings ?? []; @endphp
 
-            <form method="POST" action="{{ route('embed.settings') }}" id="settingsForm">
+            {{-- Tab Switcher --}}
+            <div class="flex gap-1 bg-white rounded-full border border-[#215558]/10 p-1 mb-6 w-fit" x-data x-ref="tabBar">
+                <button type="button" @click="$dispatch('switch-tab', { tab: 'card' })"
+                    class="cursor-pointer tab-btn inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm font-bold transition-all"
+                    :class="$store.designTab.active === 'card' ? 'bg-eazy text-white shadow-md shadow-eazy/20' : 'text-[#215558]/60 hover:text-[#215558] hover:bg-[#ebf2f2]/50'">
+                    <i class="fa-solid fa-id-card text-xs"></i> Kaart
+                </button>
+                <button type="button" @click="$dispatch('switch-tab', { tab: 'detail' })"
+                    class="cursor-pointer tab-btn inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm font-bold transition-all"
+                    :class="$store.designTab.active === 'detail' ? 'bg-eazy text-white shadow-md shadow-eazy/20' : 'text-[#215558]/60 hover:text-[#215558] hover:bg-[#ebf2f2]/50'">
+                    <i class="fa-solid fa-expand text-xs"></i> Detailpagina
+                </button>
+            </div>
+
+            <form method="POST" action="{{ route('ontwerpen.update') }}" id="settingsForm">
                 @csrf
                 @method('PUT')
 
+                {{-- ═══════════════════════════════════════ --}}
+                {{-- CARD TAB --}}
+                {{-- ═══════════════════════════════════════ --}}
+                <div x-show="$store.designTab.active === 'card'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0">
                 <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
 
-                    {{-- ═══ LEFT COLUMN: Settings (3/5) ═══ --}}
+                    {{-- LEFT COLUMN: Settings (3/5) --}}
                     <div class="lg:col-span-3 space-y-6">
 
                         {{-- ── LAYOUT ── --}}
@@ -292,12 +255,12 @@
                                 </div>
                                 <div>
                                     <h4 class="text-sm font-bold text-[#215558]">Layout</h4>
-                                    <p class="text-xs text-[#215558] opacity-50">Kolommen, foto positie & hoogte</p>
+                                    <p class="text-xs text-[#215558] opacity-50">Hoe worden je auto's weergegeven?</p>
                                 </div>
                             </div>
 
                             {{-- Columns --}}
-                            <label class="text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-2 block">Kolommen</label>
+                            <label class="text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-2 block">Aantal kolommen</label>
                             <input type="hidden" name="columns" id="columns" value="{{ $s['columns'] ?? 3 }}">
                             <div class="grid grid-cols-3 gap-3 mb-5" data-selector-group="columns">
                                 @foreach([2, 3, 4] as $col)
@@ -354,8 +317,8 @@
                                     <i class="fa-solid fa-palette"></i>
                                 </div>
                                 <div>
-                                    <h4 class="text-sm font-bold text-[#215558]">Card Styling</h4>
-                                    <p class="text-xs text-[#215558] opacity-50">Kleuren, randen, schaduw & hover</p>
+                                    <h4 class="text-sm font-bold text-[#215558]">Uiterlijk</h4>
+                                    <p class="text-xs text-[#215558] opacity-50">Kleuren, randen en effecten</p>
                                 </div>
                             </div>
 
@@ -438,8 +401,8 @@
                                     <i class="fa-solid fa-font"></i>
                                 </div>
                                 <div>
-                                    <h4 class="text-sm font-bold text-[#215558]">Typografie</h4>
-                                    <p class="text-xs text-[#215558] opacity-50">Lettertype, groottes & kleuren</p>
+                                    <h4 class="text-sm font-bold text-[#215558]">Tekst</h4>
+                                    <p class="text-xs text-[#215558] opacity-50">Lettertype, groottes en kleuren</p>
                                 </div>
                             </div>
 
@@ -515,8 +478,8 @@
                                     <i class="fa-solid fa-tags"></i>
                                 </div>
                                 <div>
-                                    <h4 class="text-sm font-bold text-[#215558]">Labels</h4>
-                                    <p class="text-xs text-[#215558] opacity-50">Stijl, kleuren & spacing van spec-labels</p>
+                                    <h4 class="text-sm font-bold text-[#215558]">Kenmerken</h4>
+                                    <p class="text-xs text-[#215558] opacity-50">Hoe worden bouwjaar, km, brandstof etc. getoond?</p>
                                 </div>
                             </div>
 
@@ -603,8 +566,8 @@
                                     <i class="fa-solid fa-eye"></i>
                                 </div>
                                 <div>
-                                    <h4 class="text-sm font-bold text-[#215558]">Zichtbaarheid</h4>
-                                    <p class="text-xs text-[#215558] opacity-50">Welke informatie tonen op de card</p>
+                                    <h4 class="text-sm font-bold text-[#215558]">Tonen / verbergen</h4>
+                                    <p class="text-xs text-[#215558] opacity-50">Wat is zichtbaar op de autokaart?</p>
                                 </div>
                             </div>
 
@@ -629,110 +592,24 @@
                             </div>
                         </div>
 
-                        {{-- ── DETAIL PAGE ── --}}
-                        <div class="bg-white rounded-2xl border border-[#215558]/10 p-6 relative overflow-hidden">
-                            <div class="section-header">
-                                <div class="section-icon bg-purple-50 text-purple-500">
-                                    <i class="fa-solid fa-expand"></i>
-                                </div>
-                                <div>
-                                    <h4 class="text-sm font-bold text-[#215558]">Detail pagina</h4>
-                                    <p class="text-xs text-[#215558] opacity-50">Styling wanneer een auto wordt geopend</p>
-                                </div>
-                            </div>
-
-                            {{-- Toggle --}}
-                            <div class="flex items-center justify-between py-3 px-4 bg-gray-50 rounded-xl mb-5">
-                                <div class="flex items-center gap-3">
-                                    <i class="fa-solid fa-sliders text-gray-400"></i>
-                                    <div>
-                                        <span class="text-sm font-semibold text-gray-700 block">Eigen detail styling</span>
-                                        <span class="text-xs text-[#215558] opacity-50">Standaard neemt hij card styling over</span>
-                                    </div>
-                                </div>
-                                <label class="toggle-switch">
-                                    <input type="hidden" name="detail_custom" value="0">
-                                    <input type="checkbox" name="detail_custom" value="1" {{ ($s['detail_custom'] ?? false) ? 'checked' : '' }} id="detail_custom">
-                                    <span class="toggle-track"></span>
-                                </label>
-                            </div>
-
-                            <div id="detailFields" class="{{ ($s['detail_custom'] ?? false) ? '' : 'detail-fields-disabled' }}">
-                                {{-- Detail Colors --}}
-                                <div class="grid grid-cols-2 gap-4 mb-5">
-                                    <div>
-                                        <label class="text-xs font-medium text-[#215558] opacity-70 mb-1.5 block">Achtergrondkleur</label>
-                                        <div class="flex items-center gap-2">
-                                            <input type="color" name="detail_bg_color" id="detail_bg_color" value="{{ $s['detail_bg_color'] ?? ($s['card_bg_color'] ?? '#ffffff') }}" class="w-10 h-10 rounded-xl border-2 border-gray-200 hover:border-eazy transition">
-                                            <code class="text-[10px] text-gray-400 font-mono" id="detail_bg_color_text">{{ $s['detail_bg_color'] ?? ($s['card_bg_color'] ?? '#ffffff') }}</code>
-                                        </div>
-                                    </div>
-                                    <div>
-                                        <label class="text-xs font-medium text-[#215558] opacity-70 mb-1.5 block">Titelkleur</label>
-                                        <div class="flex items-center gap-2">
-                                            <input type="color" name="detail_title_color" id="detail_title_color" value="{{ $s['detail_title_color'] ?? ($s['title_color'] ?? '#111827') }}" class="w-10 h-10 rounded-xl border-2 border-gray-200 hover:border-eazy transition">
-                                            <code class="text-[10px] text-gray-400 font-mono" id="detail_title_color_text">{{ $s['detail_title_color'] ?? ($s['title_color'] ?? '#111827') }}</code>
-                                        </div>
-                                    </div>
-                                </div>
-
-                                {{-- Detail Sliders --}}
-                                <div class="grid grid-cols-2 gap-x-6 gap-y-4 mb-5">
-                                    @foreach([
-                                        ['detail_border_radius', 'Ronde hoeken', 0, 30, $s['card_border_radius'] ?? 12, 'px'],
-                                        ['detail_padding', 'Padding', 0, 60, $s['card_padding'] ?? 24, 'px'],
-                                        ['detail_title_size', 'Titel grootte', 14, 36, 24, 'px'],
-                                        ['detail_price_size', 'Prijs grootte', 14, 42, 24, 'px'],
-                                        ['detail_gallery_height', 'Foto hoogte', 150, 500, 350, 'px'],
-                                        ['detail_overlay_opacity', 'Overlay donkerheid', 20, 90, 60, '%'],
-                                    ] as [$name, $label, $min, $max, $default, $unit])
-                                    <div>
-                                        <div class="flex items-center justify-between mb-1.5">
-                                            <label class="text-xs font-medium text-[#215558] opacity-70">{{ $label }}</label>
-                                            <span class="text-xs font-bold text-eazy bg-eazy-50 px-2 py-0.5 rounded-full tabular-nums" id="{{ $name }}_val">{{ $s[$name] ?? $default }}{{ $unit }}</span>
-                                        </div>
-                                        <input type="range" name="{{ $name }}" id="{{ $name }}" min="{{ $min }}" max="{{ $max }}" value="{{ $s[$name] ?? $default }}">
-                                    </div>
-                                    @endforeach
-                                </div>
-
-                                {{-- Detail Spec Columns --}}
-                                <label class="text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-2 block">Spec kolommen</label>
-                                <input type="hidden" name="detail_spec_columns" id="detail_spec_columns" value="{{ $s['detail_spec_columns'] ?? 2 }}">
-                                <div class="grid grid-cols-3 gap-2" data-selector-group="detail_spec_columns">
-                                    @foreach([1, 2, 3] as $col)
-                                    <div class="opt-card {{ ($s['detail_spec_columns'] ?? 2) == $col ? 'selected' : '' }}" data-value="{{ $col }}">
-                                        <i class="fa-solid fa-check opt-check"></i>
-                                        <div class="flex gap-0.5 justify-center mb-1">
-                                            @for($i = 0; $i < $col; $i++)
-                                            <div class="h-4 rounded bg-purple-100 border border-purple-200" style="width: {{ 40 / $col }}px;"></div>
-                                            @endfor
-                                        </div>
-                                        <span class="text-[10px] font-semibold text-gray-500">{{ $col }} {{ $col === 1 ? 'kolom' : 'kolommen' }}</span>
-                                    </div>
-                                    @endforeach
-                                </div>
-                            </div>
-                        </div>
-
-                        {{-- Submit --}}
+                        {{-- Submit (Card Tab) --}}
                         <div class="flex justify-end">
-                            <button type="submit" class="inline-flex items-center gap-2 px-8 py-3 bg-eazy border border-transparent rounded-xl font-bold text-sm text-white hover:bg-eazy-dark shadow-lg shadow-eazy/25 hover:shadow-eazy/40 transition-all">
-                                <i class="fa-solid fa-floppy-disk"></i> Instellingen opslaan
+                            <button type="submit" class="cursor-pointer inline-flex items-center gap-2 px-8 py-3 bg-eazy border border-transparent rounded-full font-bold text-sm text-white hover:bg-eazy-dark shadow-lg shadow-eazy/25 hover:shadow-eazy/40 transition-all">
+                                <i class="fa-solid fa-floppy-disk"></i> Ontwerp opslaan
                             </button>
                         </div>
 
                     </div>
 
-                    {{-- ═══ RIGHT COLUMN: Live Preview (2/5) ═══ --}}
+                    {{-- RIGHT COLUMN: Card Live Preview (2/5) --}}
                     <div class="lg:col-span-2">
                         <div class="lg:sticky lg:top-6">
                             <div class="flex items-center gap-2 mb-3">
                                 <i class="fa-solid fa-eye text-xs text-[#215558] opacity-50"></i>
-                                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Live preview</label>
+                                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Live voorbeeld — Kaart</label>
                             </div>
-                            <div class="border border-[#215558]/10 rounded-2xl p-6 bg-[#ebf2f2]/50" id="previewContainer">
-                                <div id="previewCard" style="max-width:320px;margin:0 auto;overflow:hidden;transition:all 0.2s ease;">
+                            <div class="rounded-2xl bg-[#ebf2f2]/50" id="previewContainer">
+                                <div id="previewCard" style="overflow:hidden;transition:all 0.2s ease;">
                                     <div id="previewImgTop">
                                         <div id="previewImgPlaceholder" style="width:100%;background:linear-gradient(135deg,#dbeafe 0%,#bfdbfe 50%,#93c5fd 100%);display:flex;align-items:center;justify-content:center;">
                                             <i class="fa-solid fa-image text-blue-300 text-3xl"></i>
@@ -764,63 +641,409 @@
                                 </div>
                             </div>
                             <p class="text-[10px] text-gray-400 mt-2 text-center flex items-center justify-center gap-1">
-                                <i class="fa-solid fa-hand-pointer"></i> Hover over de card voor het hover-effect
+                                <i class="fa-solid fa-hand-pointer"></i> Hover over de kaart voor het hover-effect
                             </p>
                         </div>
                     </div>
 
                 </div>
+                </div>{{-- /Card Tab --}}
+
+                {{-- ═══════════════════════════════════════ --}}
+                {{-- DETAIL TAB --}}
+                {{-- ═══════════════════════════════════════ --}}
+                <div x-show="$store.designTab.active === 'detail'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" style="display:none;">
+                <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
+
+                    {{-- LEFT COLUMN: Detail Settings (3/5) --}}
+                    <div class="lg:col-span-3 space-y-6">
+
+                        {{-- ── KLEUREN ── --}}
+                        <div class="bg-white rounded-2xl border border-[#215558]/10 p-6 relative overflow-hidden">
+                            <div class="section-header">
+                                <div class="section-icon bg-purple-50 text-purple-500">
+                                    <i class="fa-solid fa-palette"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-bold text-[#215558]">Kleuren</h4>
+                                    <p class="text-xs text-[#215558] opacity-50">Achtergrond, randen en tekstkleuren</p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-4 mb-4">
+                                @foreach([
+                                    ['detail_bg_color', 'Achtergrond', '#ffffff'],
+                                    ['detail_border_color', 'Randkleur', '#e5e7eb'],
+                                    ['detail_title_color', 'Titelkleur', '#111827'],
+                                ] as [$name, $label, $default])
+                                <div>
+                                    <label class="text-xs font-medium text-[#215558] opacity-70 mb-1.5 block">{{ $label }}</label>
+                                    <div class="flex items-center gap-2">
+                                        <input type="color" name="{{ $name }}" id="{{ $name }}" value="{{ $s[$name] ?? $default }}" class="w-10 h-10 rounded-xl border-2 border-gray-200 hover:border-eazy transition">
+                                        <code class="text-[10px] text-gray-400 font-mono" id="{{ $name }}_text">{{ $s[$name] ?? $default }}</code>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                            <div class="grid grid-cols-3 gap-4">
+                                @foreach([
+                                    ['detail_subtitle_color', 'Ondertitel', '#9ca3af'],
+                                    ['detail_price_color', 'Prijskleur', $s['primary_color'] ?? '#0F9B9F'],
+                                    ['detail_desc_color', 'Beschrijving', '#6b7280'],
+                                ] as [$name, $label, $default])
+                                <div>
+                                    <label class="text-xs font-medium text-[#215558] opacity-70 mb-1.5 block">{{ $label }}</label>
+                                    <div class="flex items-center gap-2">
+                                        <input type="color" name="{{ $name }}" id="{{ $name }}" value="{{ $s[$name] ?? $default }}" class="w-10 h-10 rounded-xl border-2 border-gray-200 hover:border-eazy transition">
+                                        <code class="text-[10px] text-gray-400 font-mono" id="{{ $name }}_text">{{ $s[$name] ?? $default }}</code>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        {{-- ── AFMETINGEN ── --}}
+                        <div class="bg-white rounded-2xl border border-[#215558]/10 p-6 relative overflow-hidden">
+                            <div class="section-header">
+                                <div class="section-icon bg-indigo-50 text-indigo-500">
+                                    <i class="fa-solid fa-ruler-combined"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-bold text-[#215558]">Afmetingen</h4>
+                                    <p class="text-xs text-[#215558] opacity-50">Grootte van tekst, foto's en spacing</p>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-x-6 gap-y-4">
+                                @foreach([
+                                    ['detail_border_radius', 'Ronde hoeken', 0, 30, 12, 'px'],
+                                    ['detail_border_width', 'Randdikte', 0, 4, 1, 'px'],
+                                    ['detail_padding', 'Padding', 0, 60, 24, 'px'],
+                                    ['detail_title_size', 'Titel grootte', 14, 36, 24, 'px'],
+                                    ['detail_price_size', 'Prijs grootte', 14, 42, 24, 'px'],
+                                    ['detail_desc_size', 'Beschrijving grootte', 10, 20, 14, 'px'],
+                                    ['detail_gallery_height', 'Foto hoogte', 150, 500, 350, 'px'],
+                                    ['detail_overlay_opacity', 'Overlay donkerheid', 20, 90, 60, '%'],
+                                ] as [$name, $label, $min, $max, $default, $unit])
+                                <div>
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        <label class="text-xs font-medium text-[#215558] opacity-70">{{ $label }}</label>
+                                        <span class="text-xs font-bold text-eazy bg-eazy-50 px-2 py-0.5 rounded-full tabular-nums" id="{{ $name }}_val">{{ $s[$name] ?? $default }}{{ $unit }}</span>
+                                    </div>
+                                    <input type="range" name="{{ $name }}" id="{{ $name }}" min="{{ $min }}" max="{{ $max }}" value="{{ $s[$name] ?? $default }}">
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        {{-- ── SCHADUW ── --}}
+                        <div class="bg-white rounded-2xl border border-[#215558]/10 p-6 relative overflow-hidden">
+                            <div class="section-header">
+                                <div class="section-icon bg-pink-50 text-pink-500">
+                                    <i class="fa-solid fa-clone"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-bold text-[#215558]">Schaduw</h4>
+                                    <p class="text-xs text-[#215558] opacity-50">Schaduweffect van de modal</p>
+                                </div>
+                            </div>
+
+                            <input type="hidden" name="detail_shadow" id="detail_shadow" value="{{ $s['detail_shadow'] ?? 'lg' }}">
+                            <div class="grid grid-cols-4 gap-2" data-selector-group="detail_shadow">
+                                @foreach([
+                                    ['none', 'Geen', 'none'],
+                                    ['sm', 'Klein', '0 4px 12px rgba(0,0,0,0.1)'],
+                                    ['md', 'Medium', '0 10px 25px rgba(0,0,0,0.18)'],
+                                    ['lg', 'Groot', '0 25px 50px rgba(0,0,0,0.25)'],
+                                ] as [$val, $label, $shadow])
+                                <div class="opt-card {{ ($s['detail_shadow'] ?? 'lg') === $val ? 'selected' : '' }}" data-value="{{ $val }}">
+                                    <i class="fa-solid fa-check opt-check"></i>
+                                    <div class="shadow-mini" style="box-shadow: {{ $shadow }}; {{ $val === 'none' ? 'border: 1px dashed #d1d5db;' : '' }}"></div>
+                                    <span class="text-[10px] font-semibold text-gray-500">{{ $label }}</span>
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        {{-- ── SPECIFICATIES ── --}}
+                        <div class="bg-white rounded-2xl border border-[#215558]/10 p-6 relative overflow-hidden">
+                            <div class="section-header">
+                                <div class="section-icon bg-green-50 text-green-500">
+                                    <i class="fa-solid fa-table-list"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-bold text-[#215558]">Specificaties</h4>
+                                    <p class="text-xs text-[#215558] opacity-50">Stijl van de specificatierijen</p>
+                                </div>
+                            </div>
+
+                            <label class="text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-2 block">Kolommen</label>
+                            <input type="hidden" name="detail_spec_columns" id="detail_spec_columns" value="{{ $s['detail_spec_columns'] ?? 2 }}">
+                            <div class="grid grid-cols-3 gap-2 mb-5" data-selector-group="detail_spec_columns">
+                                @foreach([1, 2, 3] as $col)
+                                <div class="opt-card {{ ($s['detail_spec_columns'] ?? 2) == $col ? 'selected' : '' }}" data-value="{{ $col }}">
+                                    <i class="fa-solid fa-check opt-check"></i>
+                                    <div class="flex gap-0.5 justify-center mb-1">
+                                        @for($i = 0; $i < $col; $i++)
+                                        <div class="h-4 rounded bg-purple-100 border border-purple-200" style="width: {{ 40 / $col }}px;"></div>
+                                        @endfor
+                                    </div>
+                                    <span class="text-[10px] font-semibold text-gray-500">{{ $col }} {{ $col === 1 ? 'kolom' : 'kolommen' }}</span>
+                                </div>
+                                @endforeach
+                            </div>
+
+                            <div class="grid grid-cols-3 gap-4 mb-5">
+                                @foreach([
+                                    ['detail_spec_bg_color', 'Achtergrond', '#f9fafb'],
+                                    ['detail_spec_label_color', 'Labelkleur', '#6b7280'],
+                                    ['detail_spec_value_color', 'Waardekleur', '#374151'],
+                                ] as [$name, $label, $default])
+                                <div>
+                                    <label class="text-xs font-medium text-[#215558] opacity-70 mb-1.5 block">{{ $label }}</label>
+                                    <div class="flex items-center gap-2">
+                                        <input type="color" name="{{ $name }}" id="{{ $name }}" value="{{ $s[$name] ?? $default }}" class="w-10 h-10 rounded-xl border-2 border-gray-200 hover:border-eazy transition">
+                                        <code class="text-[10px] text-gray-400 font-mono" id="{{ $name }}_text">{{ $s[$name] ?? $default }}</code>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-x-6 gap-y-4">
+                                @foreach([
+                                    ['detail_spec_radius', 'Ronde hoeken', 0, 16, 6, 'px'],
+                                    ['detail_spec_gap', 'Tussenruimte', 0, 16, 6, 'px'],
+                                ] as [$name, $label, $min, $max, $default, $unit])
+                                <div>
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        <label class="text-xs font-medium text-[#215558] opacity-70">{{ $label }}</label>
+                                        <span class="text-xs font-bold text-eazy bg-eazy-50 px-2 py-0.5 rounded-full tabular-nums" id="{{ $name }}_val">{{ $s[$name] ?? $default }}{{ $unit }}</span>
+                                    </div>
+                                    <input type="range" name="{{ $name }}" id="{{ $name }}" min="{{ $min }}" max="{{ $max }}" value="{{ $s[$name] ?? $default }}">
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        {{-- ── OPTIES BADGES ── --}}
+                        <div class="bg-white rounded-2xl border border-[#215558]/10 p-6 relative overflow-hidden">
+                            <div class="section-header">
+                                <div class="section-icon bg-orange-50 text-orange-500">
+                                    <i class="fa-solid fa-tags"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-bold text-[#215558]">Opties</h4>
+                                    <p class="text-xs text-[#215558] opacity-50">Hoe worden extra opties weergegeven?</p>
+                                </div>
+                            </div>
+
+                            <label class="text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-2 block">Stijl</label>
+                            <input type="hidden" name="detail_badge_style" id="detail_badge_style" value="{{ $s['detail_badge_style'] ?? 'pill' }}">
+                            <div class="grid grid-cols-3 gap-2 mb-5" data-selector-group="detail_badge_style">
+                                <div class="opt-card {{ ($s['detail_badge_style'] ?? 'pill') === 'pill' ? 'selected' : '' }}" data-value="pill">
+                                    <i class="fa-solid fa-check opt-check"></i>
+                                    <div class="flex justify-center mb-2">
+                                        <span class="text-[10px] bg-gray-100 text-gray-600 px-2.5 py-0.5 rounded-full">Airco</span>
+                                    </div>
+                                    <span class="text-[10px] font-semibold text-gray-500">Pill</span>
+                                </div>
+                                <div class="opt-card {{ ($s['detail_badge_style'] ?? 'pill') === 'badge' ? 'selected' : '' }}" data-value="badge">
+                                    <i class="fa-solid fa-check opt-check"></i>
+                                    <div class="flex justify-center mb-2">
+                                        <span class="text-[10px] bg-gray-100 text-gray-600 px-2 py-0.5 rounded">Airco</span>
+                                    </div>
+                                    <span class="text-[10px] font-semibold text-gray-500">Badge</span>
+                                </div>
+                                <div class="opt-card {{ ($s['detail_badge_style'] ?? 'pill') === 'outline' ? 'selected' : '' }}" data-value="outline">
+                                    <i class="fa-solid fa-check opt-check"></i>
+                                    <div class="flex justify-center mb-2">
+                                        <span class="text-[10px] border border-gray-400 text-gray-600 px-2 py-0.5 rounded">Airco</span>
+                                    </div>
+                                    <span class="text-[10px] font-semibold text-gray-500">Outline</span>
+                                </div>
+                            </div>
+
+                            <div class="grid grid-cols-2 gap-4 mb-5">
+                                @foreach([
+                                    ['detail_badge_bg_color', 'Achtergrondkleur', '#f3f4f6'],
+                                    ['detail_badge_text_color', 'Tekstkleur', $s['detail_price_color'] ?? ($s['primary_color'] ?? '#0F9B9F')],
+                                ] as [$name, $label, $default])
+                                <div>
+                                    <label class="text-xs font-medium text-[#215558] opacity-70 mb-1.5 block">{{ $label }}</label>
+                                    <div class="flex items-center gap-2">
+                                        <input type="color" name="{{ $name }}" id="{{ $name }}" value="{{ $s[$name] ?? $default }}" class="w-10 h-10 rounded-xl border-2 border-gray-200 hover:border-eazy transition">
+                                        <code class="text-[10px] text-gray-400 font-mono" id="{{ $name }}_text">{{ $s[$name] ?? $default }}</code>
+                                    </div>
+                                </div>
+                                @endforeach
+                            </div>
+
+                            <div>
+                                <div class="flex items-center justify-between mb-1.5">
+                                    <label class="text-xs font-medium text-[#215558] opacity-70">Ronde hoeken</label>
+                                    <span class="text-xs font-bold text-eazy bg-eazy-50 px-2 py-0.5 rounded-full tabular-nums" id="detail_badge_radius_val">{{ $s['detail_badge_radius'] ?? 4 }}px</span>
+                                </div>
+                                <input type="range" name="detail_badge_radius" id="detail_badge_radius" min="0" max="20" value="{{ $s['detail_badge_radius'] ?? 4 }}">
+                            </div>
+                        </div>
+
+                        {{-- ── TONEN / VERBERGEN ── --}}
+                        <div class="bg-white rounded-2xl border border-[#215558]/10 p-6 relative overflow-hidden">
+                            <div class="section-header">
+                                <div class="section-icon bg-emerald-50 text-emerald-500">
+                                    <i class="fa-solid fa-eye"></i>
+                                </div>
+                                <div>
+                                    <h4 class="text-sm font-bold text-[#215558]">Tonen / verbergen</h4>
+                                    <p class="text-xs text-[#215558] opacity-50">Wat is zichtbaar op de detailpagina?</p>
+                                </div>
+                            </div>
+
+                            <div class="space-y-4">
+                                @foreach([
+                                    ['detail_show_subtitle', 'Ondertitel tonen', 'fa-text-height', true],
+                                    ['detail_show_specs', 'Specificaties tonen', 'fa-list', true],
+                                    ['detail_show_description', 'Beschrijving tonen', 'fa-align-left', true],
+                                    ['detail_show_options', 'Opties tonen', 'fa-tags', true],
+                                ] as [$name, $label, $icon, $default])
+                                <div class="flex items-center justify-between py-2 {{ !$loop->last ? 'border-b border-[#215558]/5' : '' }}">
+                                    <div class="flex items-center gap-3">
+                                        <i class="fa-solid {{ $icon }} text-gray-300 w-4 text-center"></i>
+                                        <span class="text-sm font-medium text-gray-700">{{ $label }}</span>
+                                    </div>
+                                    <label class="toggle-switch">
+                                        <input type="hidden" name="{{ $name }}" value="0">
+                                        <input type="checkbox" name="{{ $name }}" value="1" {{ ($s[$name] ?? $default) ? 'checked' : '' }} id="{{ $name }}">
+                                        <span class="toggle-track"></span>
+                                    </label>
+                                </div>
+                                @endforeach
+                            </div>
+                        </div>
+
+                        {{-- Hidden: keep detail_custom always on --}}
+                        <input type="hidden" name="detail_custom" value="1">
+
+                        {{-- Submit (Detail Tab) --}}
+                        <div class="flex justify-end">
+                            <button type="submit" class="cursor-pointer inline-flex items-center gap-2 px-8 py-3 bg-eazy border border-transparent rounded-full font-bold text-sm text-white hover:bg-eazy-dark shadow-lg shadow-eazy/25 hover:shadow-eazy/40 transition-all">
+                                <i class="fa-solid fa-floppy-disk"></i> Ontwerp opslaan
+                            </button>
+                        </div>
+                    </div>
+
+                    {{-- RIGHT COLUMN: Detail Live Preview (2/5) --}}
+                    <div class="lg:col-span-2">
+                        <div class="lg:sticky lg:top-6">
+                            <div class="flex items-center gap-2 mb-3">
+                                <i class="fa-solid fa-eye text-xs text-[#215558] opacity-50"></i>
+                                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Live voorbeeld — Detail</label>
+                            </div>
+                            <div class="rounded-2xl overflow-hidden" id="detailPreviewContainer">
+                                {{-- Detail Preview Mock --}}
+                                <div id="detailPreviewModal" style="transition:all 0.2s ease;overflow:hidden;">
+                                    {{-- Gallery --}}
+                                    <div id="detailPreviewOverlay" style="position:relative;">
+                                        <div id="detailPreviewGallery" style="width:100%;background:linear-gradient(135deg,#dbeafe 0%,#bfdbfe 50%,#93c5fd 100%);display:flex;align-items:center;justify-content:center;position:relative;">
+                                            <i class="fa-solid fa-images text-blue-300 text-3xl"></i>
+                                            <div style="position:absolute;bottom:8px;left:50%;transform:translateX(-50%);display:flex;gap:4px;">
+                                                <div style="width:28px;height:20px;background:rgba(255,255,255,0.9);border-radius:4px;border:2px solid white;"></div>
+                                                <div style="width:28px;height:20px;background:rgba(255,255,255,0.5);border-radius:4px;"></div>
+                                                <div style="width:28px;height:20px;background:rgba(255,255,255,0.5);border-radius:4px;"></div>
+                                            </div>
+                                            <div style="position:absolute;top:8px;right:8px;width:24px;height:24px;background:rgba(0,0,0,0.4);border-radius:50%;display:flex;align-items:center;justify-content:center;">
+                                                <i class="fa-solid fa-xmark text-white text-[10px]"></i>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    {{-- Content --}}
+                                    <div id="detailPreviewBody">
+                                        <div id="detailPreviewTitle" style="font-weight:700;line-height:1.2;margin-bottom:0.25rem;">Volkswagen Golf</div>
+                                        <div id="detailPreviewSubtitle" style="font-size:11px;color:#9ca3af;margin-bottom:0.75rem;">2021 &middot; Benzine &middot; 45.230 km</div>
+                                        <div id="detailPreviewPrice" style="font-weight:800;margin-bottom:1rem;">€ 24.950</div>
+
+                                        {{-- Specs --}}
+                                        <div id="detailPreviewSpecTitle" class="detail-preview-section-title" style="font-size:10px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Specificaties</div>
+                                        <div id="detailPreviewSpecs" style="display:grid;gap:6px;margin-bottom:1rem;">
+                                            @foreach([
+                                                ['fa-calendar', 'Bouwjaar', '2021'],
+                                                ['fa-road', 'Kilometerstand', '45.230 km'],
+                                                ['fa-gas-pump', 'Brandstof', 'Benzine'],
+                                                ['fa-palette', 'Kleur', 'Zwart'],
+                                                ['fa-car', 'Carrosserie', 'Hatchback'],
+                                                ['fa-shield-halved', 'APK tot', '12-2025'],
+                                            ] as [$icon, $specLabel, $specValue])
+                                            <div class="detail-preview-spec" style="display:flex;align-items:center;justify-content:space-between;padding:5px 8px;background:#f9fafb;border-radius:6px;">
+                                                <span class="detail-preview-spec-label" style="display:flex;align-items:center;gap:6px;color:#6b7280;font-size:10px;">
+                                                    <i class="fa-solid {{ $icon }} detail-preview-spec-icon" style="width:12px;text-align:center;font-size:9px;color:#9ca3af;"></i> {{ $specLabel }}
+                                                </span>
+                                                <span class="detail-preview-spec-value" style="font-size:10px;font-weight:600;color:#374151;">{{ $specValue }}</span>
+                                            </div>
+                                            @endforeach
+                                        </div>
+
+                                        {{-- Description --}}
+                                        <div id="detailPreviewDescTitle" class="detail-preview-section-title" style="font-size:10px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:4px;">Beschrijving</div>
+                                        <div id="detailPreviewDesc" style="font-size:11px;color:#6b7280;line-height:1.5;margin-bottom:1rem;">
+                                            Nette Volkswagen Golf met lage kilometerstand. Voorzien van airco, navigatie en parkeersensoren. Onderhoudshistorie volledig aanwezig.
+                                        </div>
+
+                                        {{-- Options --}}
+                                        <div id="detailPreviewOptTitle" class="detail-preview-section-title" style="font-size:10px;font-weight:600;color:#9ca3af;text-transform:uppercase;letter-spacing:0.05em;margin-bottom:6px;">Opties</div>
+                                        <div id="detailPreviewOptWrap" style="display:flex;flex-wrap:wrap;gap:4px;">
+                                            @foreach(['Airco', 'Navigatie', 'Parkeersensoren', 'Cruise control', 'LED'] as $opt)
+                                            <span class="detail-preview-badge" style="font-size:9px;padding:3px 8px;border-radius:999px;font-weight:500;">{{ $opt }}</span>
+                                            @endforeach
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <p class="text-[10px] text-gray-400 mt-2 text-center flex items-center justify-center gap-1">
+                                <i class="fa-solid fa-expand"></i> Zo ziet de detailpagina eruit wanneer een bezoeker op een auto klikt
+                            </p>
+                        </div>
+                    </div>
+
+                </div>
+                </div>{{-- /Detail Tab --}}
+
             </form>
 
         </div>
     </div>
 
     <script>
-        /* ═══════════════════════════════════════════════════
-           UTILITIES
-           ═══════════════════════════════════════════════════ */
-        function copyEmbedCode() {
-            const code = document.getElementById('embedCode').textContent;
-            navigator.clipboard.writeText(code.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&'));
-            const btn = document.getElementById('copyBtn');
-            btn.innerHTML = '<i class="fa-solid fa-check"></i> Gekopieerd!';
-            setTimeout(() => btn.innerHTML = '<i class="fa-regular fa-copy"></i> Kopieer', 2000);
-        }
+        /* Alpine store for tab switching */
+        document.addEventListener('alpine:init', () => {
+            Alpine.store('designTab', { active: 'card' });
+        });
+        window.addEventListener('switch-tab', e => {
+            Alpine.store('designTab').active = e.detail.tab;
+            setTimeout(() => { updatePreview(); updateDetailPreview(); }, 50);
+        });
 
         const $ = id => document.getElementById(id);
         const SHADOWS = { none: 'none', sm: '0 1px 3px rgba(0,0,0,0.08)', md: '0 4px 12px rgba(0,0,0,0.1)', lg: '0 10px 30px rgba(0,0,0,0.15)' };
         const CURRENCIES = { EUR: '€', USD: '$', GBP: '£', none: '' };
         const SYSTEM_FONT = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
 
-        /* ═══════════════════════════════════════════════════
-           CARD SELECTORS (visual option pickers)
-           ═══════════════════════════════════════════════════ */
+        /* Card selectors */
         document.querySelectorAll('[data-selector-group]').forEach(container => {
             const inputId = container.dataset.selectorGroup;
             const input = document.getElementById(inputId);
             const cards = container.querySelectorAll('[data-value]');
-
             cards.forEach(card => {
                 card.addEventListener('click', () => {
                     cards.forEach(c => c.classList.remove('selected'));
                     card.classList.add('selected');
                     input.value = card.dataset.value;
                     updatePreview();
+                    updateDetailPreview();
                 });
             });
         });
 
-        /* ═══════════════════════════════════════════════════
-           DETAIL TOGGLE
-           ═══════════════════════════════════════════════════ */
-        $('detail_custom').addEventListener('change', function() {
-            const df = $('detailFields');
-            df.classList.toggle('detail-fields-disabled', !this.checked);
-        });
-
-        /* ═══════════════════════════════════════════════════
-           LIVE PREVIEW
-           ═══════════════════════════════════════════════════ */
+        /* Live Preview — Card */
         function updatePreview() {
             const card = $('previewCard');
             const body = $('previewBody');
@@ -830,7 +1053,6 @@
             const imgBottom = $('previewImgBottom');
             const labels = document.querySelectorAll('.preview-label');
 
-            /* Card */
             const primaryColor = $('primary_color').value;
             const bgColor = $('card_bg_color').value;
             const borderColor = $('card_border_color').value;
@@ -846,24 +1068,20 @@
             card.style.boxShadow = SHADOWS[shadow] || 'none';
             body.style.padding = padding + 'px';
 
-            /* Image position */
             const imgPos = $('image_position').value;
             imgTop.style.display = imgPos === 'top' ? 'block' : 'none';
             imgBottom.style.display = imgPos === 'bottom' ? 'block' : 'none';
             $('previewImgPlaceholder').style.height = imgHeight + 'px';
             $('previewImgPlaceholderBottom').style.height = imgHeight + 'px';
 
-            /* Font */
             const fontFamily = $('font_family').value;
             card.style.fontFamily = fontFamily === 'system' ? SYSTEM_FONT : `'${fontFamily}', ${SYSTEM_FONT}`;
 
-            /* Title */
             const titleSize = $('title_size').value;
             const titleColor = $('title_color').value;
             title.style.fontSize = titleSize + 'px';
             title.style.color = titleColor;
 
-            /* Price */
             const priceSize = $('price_size').value;
             const currency = $('currency').value;
             const symbol = CURRENCIES[currency] || '€';
@@ -872,7 +1090,6 @@
             price.textContent = symbol ? `${symbol} 24.950` : '24.950';
             price.style.display = $('show_price').checked ? 'block' : 'none';
 
-            /* Labels */
             const labelStyle = $('label_style').value;
             const labelBg = $('label_bg_color').value;
             const labelColor = $('label_text_color').value;
@@ -886,7 +1103,6 @@
                 l.style.color = labelColor;
                 l.style.padding = `${labelPadY}px ${labelPadX}px`;
                 l.style.border = 'none';
-
                 if (labelStyle === 'badge') {
                     l.style.background = labelBg;
                     l.style.borderRadius = labelRadius + 'px';
@@ -907,11 +1123,9 @@
             });
             $('previewSpecs').style.gap = labelGap + 'px';
 
-            /* Visibility */
             $('previewKm').style.display = $('show_km').checked ? 'inline-flex' : 'none';
             $('previewFuel').style.display = $('show_fuel').checked ? 'inline-flex' : 'none';
 
-            /* Hover effect */
             const hoverEffect = $('hover_effect').value;
             card.onmouseenter = () => {
                 if (hoverEffect === 'lift') { card.style.transform = 'translateY(-4px)'; card.style.boxShadow = '0 12px 30px rgba(0,0,0,0.12)'; }
@@ -924,8 +1138,7 @@
                 card.style.boxShadow = SHADOWS[shadow] || 'none';
             };
 
-            /* ── Value Displays ── */
-            // Colors
+            /* Value Displays */
             $('primary_color_text').textContent = primaryColor;
             $('card_bg_color_text').textContent = bgColor;
             $('card_border_color_text').textContent = borderColor;
@@ -933,7 +1146,6 @@
             $('label_bg_color_text').textContent = labelBg;
             $('label_text_color_text').textContent = labelColor;
 
-            // Range values
             $('card_border_width_val').textContent = borderWidth + 'px';
             $('card_border_radius_val').textContent = radius + 'px';
             $('card_padding_val').textContent = padding + 'px';
@@ -945,26 +1157,194 @@
             $('label_padding_y_val').textContent = labelPadY + 'px';
             $('label_gap_val').textContent = labelGap + 'px';
 
-            // Detail fields
-            if ($('detail_bg_color_text')) $('detail_bg_color_text').textContent = $('detail_bg_color').value;
-            if ($('detail_title_color_text')) $('detail_title_color_text').textContent = $('detail_title_color').value;
-            if ($('detail_border_radius_val')) $('detail_border_radius_val').textContent = $('detail_border_radius').value + 'px';
-            if ($('detail_padding_val')) $('detail_padding_val').textContent = $('detail_padding').value + 'px';
-            if ($('detail_title_size_val')) $('detail_title_size_val').textContent = $('detail_title_size').value + 'px';
-            if ($('detail_price_size_val')) $('detail_price_size_val').textContent = $('detail_price_size').value + 'px';
-            if ($('detail_gallery_height_val')) $('detail_gallery_height_val').textContent = $('detail_gallery_height').value + 'px';
-            if ($('detail_overlay_opacity_val')) $('detail_overlay_opacity_val').textContent = $('detail_overlay_opacity').value + '%';
         }
 
-        /* ═══════════════════════════════════════════════════
-           EVENT BINDINGS
-           ═══════════════════════════════════════════════════ */
+        /* Live Preview — Detail */
+        function updateDetailPreview() {
+            const modal = $('detailPreviewModal');
+            const body = $('detailPreviewBody');
+            const title = $('detailPreviewTitle');
+            const price = $('detailPreviewPrice');
+            const gallery = $('detailPreviewGallery');
+
+            if (!modal) return;
+
+            /* Colors */
+            const bgColor = $('detail_bg_color')?.value || '#ffffff';
+            const borderColor = $('detail_border_color')?.value || '#e5e7eb';
+            const titleColor = $('detail_title_color')?.value || '#111827';
+            const subtitleColor = $('detail_subtitle_color')?.value || '#9ca3af';
+            const priceColor = $('detail_price_color')?.value || ($('primary_color')?.value || '#0F9B9F');
+            const descColor = $('detail_desc_color')?.value || '#6b7280';
+
+            /* Sizes */
+            const radius = $('detail_border_radius')?.value || 12;
+            const borderWidth = $('detail_border_width')?.value || 1;
+            const padding = $('detail_padding')?.value || 24;
+            const titleSize = $('detail_title_size')?.value || 24;
+            const priceSize = $('detail_price_size')?.value || 24;
+            const descSize = $('detail_desc_size')?.value || 14;
+            const galleryHeight = $('detail_gallery_height')?.value || 350;
+            const overlayOpacity = $('detail_overlay_opacity')?.value || 60;
+
+            /* Shadow */
+            const shadowKey = $('detail_shadow')?.value || 'lg';
+            const MODAL_SHADOWS = { none: 'none', sm: '0 4px 12px rgba(0,0,0,0.1)', md: '0 10px 25px rgba(0,0,0,0.18)', lg: '0 25px 50px rgba(0,0,0,0.25)' };
+
+            /* Spec styling */
+            const specCols = $('detail_spec_columns')?.value || 2;
+            const specBg = $('detail_spec_bg_color')?.value || '#f9fafb';
+            const specLabelColor = $('detail_spec_label_color')?.value || '#6b7280';
+            const specValueColor = $('detail_spec_value_color')?.value || '#374151';
+            const specRadius = $('detail_spec_radius')?.value || 6;
+            const specGap = $('detail_spec_gap')?.value || 6;
+
+            /* Badge styling */
+            const badgeStyle = $('detail_badge_style')?.value || 'pill';
+            const badgeBg = $('detail_badge_bg_color')?.value || '#f3f4f6';
+            const badgeText = $('detail_badge_text_color')?.value || priceColor;
+            const badgeRadius = $('detail_badge_radius')?.value || 4;
+
+            /* Font */
+            const fontFamily = $('font_family')?.value || 'system';
+            modal.style.fontFamily = fontFamily === 'system' ? SYSTEM_FONT : `'${fontFamily}', ${SYSTEM_FONT}`;
+
+            /* Apply modal styles */
+            modal.style.background = bgColor;
+            modal.style.borderRadius = radius + 'px';
+            modal.style.border = `${borderWidth}px solid ${borderColor}`;
+            modal.style.boxShadow = MODAL_SHADOWS[shadowKey] || MODAL_SHADOWS.lg;
+            body.style.padding = padding + 'px';
+
+            /* Title */
+            title.style.fontSize = titleSize + 'px';
+            title.style.color = titleColor;
+
+            /* Subtitle */
+            const subtitle = $('detailPreviewSubtitle');
+            if (subtitle) {
+                subtitle.style.color = subtitleColor;
+                subtitle.style.display = $('detail_show_subtitle')?.checked !== false ? 'block' : 'none';
+            }
+
+            /* Price */
+            price.style.fontSize = priceSize + 'px';
+            price.style.color = priceColor;
+
+            /* Gallery */
+            gallery.style.height = Math.min(galleryHeight, 250) + 'px';
+
+            /* Specs grid */
+            const specsGrid = $('detailPreviewSpecs');
+            const showSpecs = $('detail_show_specs')?.checked !== false;
+            specsGrid.style.gridTemplateColumns = `repeat(${specCols}, 1fr)`;
+            specsGrid.style.gap = specGap + 'px';
+            specsGrid.style.display = showSpecs ? 'grid' : 'none';
+
+            const specSectionTitle = $('detailPreviewSpecTitle');
+            if (specSectionTitle) {
+                specSectionTitle.style.color = subtitleColor;
+                specSectionTitle.style.display = showSpecs ? 'block' : 'none';
+            }
+
+            /* Individual spec rows */
+            document.querySelectorAll('.detail-preview-spec').forEach(spec => {
+                spec.style.background = specBg;
+                spec.style.borderRadius = specRadius + 'px';
+            });
+            document.querySelectorAll('.detail-preview-spec-label').forEach(label => {
+                label.style.color = specLabelColor;
+            });
+            document.querySelectorAll('.detail-preview-spec-icon').forEach(icon => {
+                icon.style.color = specLabelColor;
+            });
+            document.querySelectorAll('.detail-preview-spec-value').forEach(val => {
+                val.style.color = specValueColor;
+            });
+
+            /* Description */
+            const showDesc = $('detail_show_description')?.checked !== false;
+            const desc = $('detailPreviewDesc');
+            const descTitle = $('detailPreviewDescTitle');
+            if (desc) {
+                desc.style.color = descColor;
+                desc.style.fontSize = descSize + 'px';
+                desc.style.display = showDesc ? 'block' : 'none';
+            }
+            if (descTitle) {
+                descTitle.style.color = subtitleColor;
+                descTitle.style.display = showDesc ? 'block' : 'none';
+            }
+
+            /* Options */
+            const showOpts = $('detail_show_options')?.checked !== false;
+            const optTitle = $('detailPreviewOptTitle');
+            const optWrap = $('detailPreviewOptWrap');
+            if (optTitle) {
+                optTitle.style.color = subtitleColor;
+                optTitle.style.display = showOpts ? 'block' : 'none';
+            }
+            if (optWrap) optWrap.style.display = showOpts ? 'flex' : 'none';
+
+            document.querySelectorAll('.detail-preview-badge').forEach(badge => {
+                badge.style.color = badgeText;
+                if (badgeStyle === 'pill') {
+                    badge.style.background = badgeBg;
+                    badge.style.borderRadius = '9999px';
+                    badge.style.border = 'none';
+                } else if (badgeStyle === 'badge') {
+                    badge.style.background = badgeBg;
+                    badge.style.borderRadius = badgeRadius + 'px';
+                    badge.style.border = 'none';
+                } else if (badgeStyle === 'outline') {
+                    badge.style.background = 'transparent';
+                    badge.style.border = `1px solid ${badgeText}`;
+                    badge.style.borderRadius = badgeRadius + 'px';
+                }
+            });
+
+            /* Section title colors */
+            document.querySelectorAll('.detail-preview-section-title').forEach(el => {
+                el.style.color = subtitleColor;
+            });
+
+            /* Value displays — Colors */
+            const colorTexts = {
+                'detail_bg_color': bgColor, 'detail_border_color': borderColor,
+                'detail_title_color': titleColor, 'detail_subtitle_color': subtitleColor,
+                'detail_price_color': priceColor, 'detail_desc_color': descColor,
+                'detail_spec_bg_color': specBg, 'detail_spec_label_color': specLabelColor,
+                'detail_spec_value_color': specValueColor, 'detail_badge_bg_color': badgeBg,
+                'detail_badge_text_color': badgeText,
+            };
+            for (const [key, val] of Object.entries(colorTexts)) {
+                const el = $(key + '_text');
+                if (el) el.textContent = val;
+            }
+
+            /* Value displays — Sliders */
+            const sliderVals = {
+                'detail_border_radius': [radius, 'px'], 'detail_border_width': [borderWidth, 'px'],
+                'detail_padding': [padding, 'px'], 'detail_title_size': [titleSize, 'px'],
+                'detail_price_size': [priceSize, 'px'], 'detail_desc_size': [descSize, 'px'],
+                'detail_gallery_height': [galleryHeight, 'px'], 'detail_overlay_opacity': [overlayOpacity, '%'],
+                'detail_spec_radius': [specRadius, 'px'], 'detail_spec_gap': [specGap, 'px'],
+                'detail_badge_radius': [badgeRadius, 'px'],
+            };
+            for (const [key, [val, unit]] of Object.entries(sliderVals)) {
+                const el = $(key + '_val');
+                if (el) el.textContent = val + unit;
+            }
+        }
+
+        /* Event bindings */
         document.querySelectorAll('#settingsForm input[type="range"], #settingsForm input[type="color"], #settingsForm input[type="checkbox"]').forEach(el => {
-            el.addEventListener('input', updatePreview);
-            el.addEventListener('change', updatePreview);
+            el.addEventListener('input', () => { updatePreview(); updateDetailPreview(); });
+            el.addEventListener('change', () => { updatePreview(); updateDetailPreview(); });
         });
 
         /* Initial render */
         updatePreview();
+        updateDetailPreview();
     </script>
 </x-app-layout>
