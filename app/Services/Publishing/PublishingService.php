@@ -12,14 +12,14 @@ class PublishingService
 {
     public function getPublisher(string $platform): PlatformPublisherInterface
     {
-        // Future: resolve real publishers per platform
-        // return match($platform) {
-        //     'marktplaats' => app(MarktplaatsPublisher::class),
-        //     'facebook' => app(FacebookPublisher::class),
-        //     default => new StubPublisher(),
-        // };
+        $delivery = config("platforms.{$platform}.delivery", 'feed');
 
-        return new StubPublisher();
+        return match ($delivery) {
+            // Feed-based platforms (Marktplaats, AutoTrack) pull our inventory feed.
+            'feed' => app(FeedPublisher::class),
+            // Direct-API platforms accept credentials but need a real integration.
+            default => app(ApiPublisher::class),
+        };
     }
 
     public function publish(Car $car, PlatformConnection $connection): CarPublication
@@ -47,6 +47,17 @@ class PublishingService
             ]);
 
             $this->log($car, $connection, 'publish', 'success', 'Auto gepubliceerd op ' . config("platforms.{$connection->platform}.name", $connection->platform));
+        } catch (PublisherNotConfiguredException $e) {
+            // Connection is ready but the direct integration isn't active yet,
+            // keep the car queued rather than marking it failed.
+            $publication->update([
+                'status' => 'pending',
+                'error_message' => $e->getMessage(),
+                'external_id' => null,
+                'external_url' => null,
+            ]);
+
+            $this->log($car, $connection, 'publish', 'pending', $e->getMessage());
         } catch (\Throwable $e) {
             $publication->update([
                 'status' => 'failed',

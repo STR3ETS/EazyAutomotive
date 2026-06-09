@@ -6,6 +6,7 @@ return [
         'description' => 'De grootste advertentiesite van Nederland',
         'icon' => 'fa-store',
         'color' => 'orange',
+        'delivery' => 'feed',
         'fields' => [
             ['name' => 'api_key', 'label' => 'API Key', 'type' => 'password', 'required' => true],
             ['name' => 'seller_id', 'label' => 'Verkoper ID', 'type' => 'text', 'required' => true],
@@ -25,6 +26,7 @@ return [
         'description' => 'Bereik miljoenen kopers via Facebook',
         'icon' => 'fa-brands fa-facebook',
         'color' => 'blue',
+        'delivery' => 'api',
         'fields' => [
             ['name' => 'page_id', 'label' => 'Pagina ID', 'type' => 'text', 'required' => true],
             ['name' => 'access_token', 'label' => 'Access Token', 'type' => 'password', 'required' => true],
@@ -36,7 +38,7 @@ return [
                 'Ga naar <a href="https://business.facebook.com/settings" target="_blank" class="text-eazy underline">Meta Business Suite</a> &rarr; <strong>Instellingen</strong> &rarr; <strong>Bedrijfsinformatie</strong> om je <strong>Pagina ID</strong> te vinden.',
                 'Ga naar <a href="https://developers.facebook.com/tools/explorer/" target="_blank" class="text-eazy underline">Graph API Explorer</a>, selecteer je app en genereer een <strong>Access Token</strong> met de rechten <code class="bg-gray-100 px-1 py-0.5 rounded text-[11px]">pages_manage_posts</code> en <code class="bg-gray-100 px-1 py-0.5 rounded text-[11px]">pages_read_engagement</code>.',
             ],
-            'note' => 'Zorg dat je pagina gepubliceerd is en dat je beheerdersrechten hebt. De access token verloopt periodiek — verleng deze via Meta Business Suite.',
+            'note' => 'Zorg dat je pagina gepubliceerd is en dat je beheerdersrechten hebt. De access token verloopt periodiek; verleng deze via Meta Business Suite.',
         ],
     ],
     'autotrack' => [
@@ -44,6 +46,7 @@ return [
         'description' => 'Nederlands platform voor auto\'s kopen en verkopen',
         'icon' => 'fa-car-side',
         'color' => 'red',
+        'delivery' => 'feed',
         'fields' => [
             ['name' => 'api_key', 'label' => 'API Key', 'type' => 'password', 'required' => true],
             ['name' => 'dealer_id', 'label' => 'Dealer ID', 'type' => 'text', 'required' => true],
@@ -63,6 +66,7 @@ return [
         'description' => 'Deel je auto\'s als posts op Instagram',
         'icon' => 'fa-brands fa-instagram',
         'color' => 'pink',
+        'delivery' => 'api',
         'fields' => [
             ['name' => 'business_account_id', 'label' => 'Business Account ID', 'type' => 'text', 'required' => true],
             ['name' => 'access_token', 'label' => 'Access Token', 'type' => 'password', 'required' => true],

@@ -35,4 +35,14 @@ return [
         ],
     ],
 
+    // VWE / Finnik data services. Powers the premium parts of het voertuigrapport
+    // (taxatie, tellerstandhistorie, onderhoudshistorie, terugroepdetails, schade,
+    // WOK, fabrieksopties). Leave empty to keep the report on free RDW data only.
+    'vwe' => [
+        'base_url' => env('VWE_API_BASE_URL'),
+        'username' => env('VWE_USERNAME'),
+        'password' => env('VWE_PASSWORD'),
+        'client_id' => env('VWE_CLIENT_ID'),
+    ],
+
 ];

@@ -17,6 +17,10 @@
                 else $greeting = 'Goedenavond';
             @endphp
             <div class="bg-gradient-to-br from-eazy-darker via-eazy-dark to-eazy rounded-3xl p-8 text-white mb-8 relative overflow-hidden">
+                <button type="button" onclick="window.dispatchEvent(new Event('eazy-replay-tour'))"
+                    class="absolute top-5 right-5 z-20 inline-flex items-center gap-2 px-3.5 py-2 rounded-full bg-white/15 hover:bg-white/25 backdrop-blur text-white text-xs font-bold transition">
+                    <i class="fa-solid fa-circle-play text-xs"></i> Rondleiding
+                </button>
                 <div class="relative z-10">
                     <p class="text-eazy-200 text-sm font-medium mb-1">{{ $greeting }}</p>
                     <h1 class="text-3xl font-black mb-2">Welkom terug, {{ Auth::user()->name }}!</h1>
@@ -29,7 +33,7 @@
 
             {{-- Quick Actions --}}
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-14">
-                <a href="{{ route('cars.create') }}" class="cursor-pointer group bg-white rounded-2xl border border-[#215558]/10 p-4 relative overflow-hidden flex items-center gap-4 hover:border-eazy/30 transition-all">
+                <a href="{{ route('cars.create') }}" data-tour="quick-add" class="cursor-pointer group bg-white rounded-2xl border border-[#215558]/10 p-4 relative overflow-hidden flex items-center gap-4 hover:border-eazy/30 transition-all">
                     <div class="w-11 h-11 rounded-xl bg-eazy-50 flex items-center justify-center group-hover:bg-eazy transition-colors">
                         <i class="fa-solid fa-plus text-eazy group-hover:text-white transition-colors"></i>
                     </div>
@@ -62,7 +66,7 @@
             </div>
 
             {{-- Statistics --}}
-            <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+            <div data-tour="stats" class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
                 @foreach([
                     ['label' => 'Totaal', 'key' => 'total_cars', 'icon' => 'fa-car', 'iconBg' => 'bg-blue-50', 'iconColor' => 'text-blue-500', 'valueColor' => 'text-blue-600'],
                     ['label' => 'Actief', 'key' => 'active_cars', 'icon' => 'fa-circle-check', 'iconBg' => 'bg-emerald-50', 'iconColor' => 'text-emerald-500', 'valueColor' => 'text-emerald-600'],
@@ -192,4 +196,23 @@
 
         </div>
     </div>
+
+    {{-- First-login guided tour: highlights real elements and walks through them (see resources/js/tour.js) --}}
+    <script>
+        (function () {
+            var tourConfig = {
+                completeUrl: '{{ route('onboarding.complete') }}',
+                csrf: '{{ csrf_token() }}',
+            };
+            function launch() {
+                if (window.startEazyTour) {
+                    window.startEazyTour(tourConfig);
+                }
+            }
+            @if($showTutorial)
+                window.addEventListener('load', function () { setTimeout(launch, 400); });
+            @endif
+            window.addEventListener('eazy-replay-tour', launch);
+        })();
+    </script>
 </x-app-layout>

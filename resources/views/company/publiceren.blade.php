@@ -106,6 +106,83 @@
             {{-- TAB 1: Platformen                                            --}}
             {{-- ============================================================ --}}
             <div x-show="$store.pubTab.active === 'platforms'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100">
+
+                {{-- ==================== Voorraadfeed (XML/CSV) ==================== --}}
+                @php
+                    $feedConnections = $connections->filter(fn ($c) => ($platforms[$c->platform]['delivery'] ?? null) === 'feed' && $c->isConnected());
+                @endphp
+                <div class="bg-white rounded-2xl border border-[#215558]/10 p-6 mb-6">
+                    <div class="flex items-center gap-3 mb-4 pb-4 border-b border-[#215558]/5">
+                        <div class="w-9 h-9 rounded-xl bg-eazy-50 flex items-center justify-center">
+                            <i class="fa-solid fa-rss text-eazy text-sm"></i>
+                        </div>
+                        <div class="flex-1 min-w-0">
+                            <h3 class="text-sm font-bold text-[#215558]">Voorraadfeed</h3>
+                            <p class="text-xs text-[#215558] opacity-50">Geef deze URL aan een portaal of websitebouwer; je volledige actieve voorraad wordt automatisch opgehaald en bijgewerkt.</p>
+                        </div>
+                    </div>
+
+                    {{-- Full inventory: XML --}}
+                    <div class="mb-3" x-data="{ copied: false }">
+                        <label class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1.5">XML-feed (aanbevolen voor portals)</label>
+                        <div class="flex items-stretch gap-2">
+                            <code class="flex-1 bg-gray-50 px-4 py-2.5 rounded-xl text-xs font-mono text-gray-600 break-all border border-gray-100">{{ route('feed.cars', $company->api_key) }}</code>
+                            <button type="button"
+                                @click="navigator.clipboard.writeText('{{ route('feed.cars', $company->api_key) }}'); copied = true; setTimeout(() => copied = false, 1500)"
+                                class="cursor-pointer shrink-0 inline-flex items-center gap-1.5 px-4 rounded-xl bg-eazy text-white text-xs font-bold hover:bg-eazy-dark transition">
+                                <i class="fa-solid" :class="copied ? 'fa-check' : 'fa-copy'"></i>
+                                <span x-text="copied ? 'Gekopieerd' : 'Kopieer'"></span>
+                            </button>
+                            <a href="{{ route('feed.cars', $company->api_key) }}" target="_blank" rel="noopener"
+                                class="shrink-0 inline-flex items-center gap-1.5 px-4 rounded-xl border border-[#215558]/10 text-[#215558] text-xs font-bold hover:bg-[#ebf2f2]/60 transition">
+                                <i class="fa-solid fa-arrow-up-right-from-square text-[10px]"></i> Open
+                            </a>
+                        </div>
+                    </div>
+
+                    {{-- Full inventory: CSV --}}
+                    <div x-data="{ copied: false }">
+                        <label class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1.5">CSV-export (voor Excel)</label>
+                        <div class="flex items-stretch gap-2">
+                            <code class="flex-1 bg-gray-50 px-4 py-2.5 rounded-xl text-xs font-mono text-gray-600 break-all border border-gray-100">{{ route('feed.cars.csv', $company->api_key) }}</code>
+                            <button type="button"
+                                @click="navigator.clipboard.writeText('{{ route('feed.cars.csv', $company->api_key) }}'); copied = true; setTimeout(() => copied = false, 1500)"
+                                class="cursor-pointer shrink-0 inline-flex items-center gap-1.5 px-4 rounded-xl bg-eazy text-white text-xs font-bold hover:bg-eazy-dark transition">
+                                <i class="fa-solid" :class="copied ? 'fa-check' : 'fa-copy'"></i>
+                                <span x-text="copied ? 'Gekopieerd' : 'Kopieer'"></span>
+                            </button>
+                            <a href="{{ route('feed.cars.csv', $company->api_key) }}" target="_blank" rel="noopener"
+                                class="shrink-0 inline-flex items-center gap-1.5 px-4 rounded-xl border border-[#215558]/10 text-[#215558] text-xs font-bold hover:bg-[#ebf2f2]/60 transition">
+                                <i class="fa-solid fa-download text-[10px]"></i> Download
+                            </a>
+                        </div>
+                    </div>
+
+                    {{-- Per-platform feeds --}}
+                    @if($feedConnections->isNotEmpty())
+                        <div class="mt-4 pt-4 border-t border-[#215558]/5">
+                            <p class="text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-2">Platform-specifieke feeds</p>
+                            <p class="text-xs text-[#215558] opacity-50 mb-3">Deze feeds bevatten alleen de auto's die je naar dat platform publiceert (tabblad "Auto's").</p>
+                            <div class="space-y-2">
+                                @foreach($feedConnections as $c)
+                                    @php $pConf = $platforms[$c->platform] ?? null; @endphp
+                                    <div class="flex items-center gap-2" x-data="{ copied: false }">
+                                        <span class="shrink-0 w-28 text-xs font-semibold text-[#215558]">
+                                            <i class="{{ str_contains($pConf['icon'] ?? '', 'fa-brands') ? '' : 'fa-solid ' }}{{ $pConf['icon'] ?? 'fa-rss' }} mr-1 text-[#215558]/40"></i>{{ $pConf['name'] ?? $c->platform }}
+                                        </span>
+                                        <code class="flex-1 bg-gray-50 px-3 py-2 rounded-lg text-[11px] font-mono text-gray-500 break-all border border-gray-100">{{ route('feed.platform', ['apiKey' => $company->api_key, 'platform' => $c->platform]) }}</code>
+                                        <button type="button"
+                                            @click="navigator.clipboard.writeText('{{ route('feed.platform', ['apiKey' => $company->api_key, 'platform' => $c->platform]) }}'); copied = true; setTimeout(() => copied = false, 1500)"
+                                            class="cursor-pointer shrink-0 w-9 h-9 inline-flex items-center justify-center rounded-lg border border-[#215558]/10 text-[#215558] hover:bg-[#ebf2f2]/60 transition">
+                                            <i class="fa-solid text-xs" :class="copied ? 'fa-check text-emerald-500' : 'fa-copy'"></i>
+                                        </button>
+                                    </div>
+                                @endforeach
+                            </div>
+                        </div>
+                    @endif
+                </div>
+
                 <div class="grid grid-cols-1 gap-6">
                     @foreach($platforms as $slug => $platform)
                         @php
@@ -593,7 +670,11 @@
                                         'disconnect' => ['icon' => 'fa-unlink', 'color' => 'red'],
                                         default => ['icon' => 'fa-circle-info', 'color' => 'gray'],
                                     };
-                                    $statusColor = $log->status === 'success' ? 'emerald' : 'red';
+                                    $statusConfig = match($log->status) {
+                                        'success' => ['color' => 'emerald', 'icon' => 'fa-circle-check', 'label' => 'Gelukt'],
+                                        'pending' => ['color' => 'amber', 'icon' => 'fa-clock', 'label' => 'Wachtrij'],
+                                        default => ['color' => 'red', 'icon' => 'fa-circle-exclamation', 'label' => 'Mislukt'],
+                                    };
                                     $platformConfig = $platforms[$log->platform] ?? null;
                                 @endphp
                                 <div class="flex items-center gap-4 px-5 py-3.5 hover:bg-[#ebf2f2]/30 transition-colors">
@@ -625,9 +706,9 @@
                                     </div>
 
                                     {{-- Status badge --}}
-                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-{{ $statusColor }}-50 text-{{ $statusColor }}-600 shrink-0">
-                                        <i class="fa-solid {{ $log->status === 'success' ? 'fa-circle-check' : 'fa-circle-exclamation' }} text-[8px]"></i>
-                                        {{ $log->status === 'success' ? 'Gelukt' : 'Mislukt' }}
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-lg text-[10px] font-bold bg-{{ $statusConfig['color'] }}-50 text-{{ $statusConfig['color'] }}-600 shrink-0">
+                                        <i class="fa-solid {{ $statusConfig['icon'] }} text-[8px]"></i>
+                                        {{ $statusConfig['label'] }}
                                     </span>
                                 </div>
                             @endforeach

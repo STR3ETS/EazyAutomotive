@@ -1,90 +1,97 @@
 <x-guest-layout>
-    <div class="mb-6">
-        <div class="flex items-center gap-3 mb-2">
-            <div class="w-10 h-10 rounded-xl bg-emerald-50 flex items-center justify-center">
-                <i class="fa-solid fa-user-plus text-emerald-500"></i>
-            </div>
-            <div>
-                <h2 class="text-xl font-black text-[#215558]">Account aanmaken</h2>
-                <p class="text-xs text-[#215558]/40 font-medium">Start met het beheren van je autovoorraad</p>
-            </div>
+    {{-- Heading --}}
+    <div class="mb-7">
+        <div class="inline-flex items-center gap-2 px-3 py-1 bg-eazy-50 rounded-full text-[11px] font-bold text-eazy-dark uppercase tracking-wider mb-3">
+            <i class="fa-solid fa-circle-check text-[10px]" aria-hidden="true"></i> Gratis &middot; geen creditcard
         </div>
+        <h1 class="text-2xl font-black text-eazy-darker tracking-tight">Account aanmaken</h1>
+        <p class="text-sm text-muted mt-1">Start in 2 minuten met het beheren van je autovoorraad.</p>
     </div>
 
-    <form method="POST" action="{{ route('register') }}">
+    <form method="POST" action="{{ route('register') }}" class="space-y-4">
         @csrf
 
-        <!-- Company Name -->
+        {{-- Company Name --}}
         <div>
-            <label for="company_name" class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1.5">Bedrijfsnaam</label>
+            <label for="company_name" class="block text-[11px] font-bold text-eazy-darker uppercase tracking-wider mb-1.5">Bedrijfsnaam</label>
             <div class="relative">
-                <i class="fa-solid fa-building absolute left-3.5 top-1/2 -translate-y-1/2 text-[#215558]/25 text-sm"></i>
+                <i class="fa-solid fa-building absolute left-4 top-1/2 -translate-y-1/2 text-muted text-sm" aria-hidden="true"></i>
                 <input id="company_name" type="text" name="company_name" value="{{ old('company_name') }}" required autofocus autocomplete="organization"
-                    class="block w-full pl-10 pr-4 py-2.5 rounded-full border-[#215558]/10 text-sm text-[#215558] focus:border-eazy focus:ring-eazy placeholder:text-[#215558]/25"
+                    class="block w-full pl-11 pr-4 py-3 rounded-xl border border-eazy-darker/10 bg-white text-sm text-eazy-darker focus:border-eazy-dark focus:ring-2 focus:ring-eazy-dark placeholder:text-muted/60"
                     placeholder="bijv. Auto van Dijk">
             </div>
             <x-input-error :messages="$errors->get('company_name')" class="mt-2" />
         </div>
 
-        <!-- Name -->
-        <div class="mt-4">
-            <label for="name" class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1.5">Jouw naam</label>
+        {{-- Name --}}
+        <div>
+            <label for="name" class="block text-[11px] font-bold text-eazy-darker uppercase tracking-wider mb-1.5">Jouw naam</label>
             <div class="relative">
-                <i class="fa-solid fa-user absolute left-3.5 top-1/2 -translate-y-1/2 text-[#215558]/25 text-sm"></i>
+                <i class="fa-solid fa-user absolute left-4 top-1/2 -translate-y-1/2 text-muted text-sm" aria-hidden="true"></i>
                 <input id="name" type="text" name="name" value="{{ old('name') }}" required autocomplete="name"
-                    class="block w-full pl-10 pr-4 py-2.5 rounded-full border-[#215558]/10 text-sm text-[#215558] focus:border-eazy focus:ring-eazy placeholder:text-[#215558]/25"
+                    class="block w-full pl-11 pr-4 py-3 rounded-xl border border-eazy-darker/10 bg-white text-sm text-eazy-darker focus:border-eazy-dark focus:ring-2 focus:ring-eazy-dark placeholder:text-muted/60"
                     placeholder="Je volledige naam">
             </div>
             <x-input-error :messages="$errors->get('name')" class="mt-2" />
         </div>
 
-        <!-- Email Address -->
-        <div class="mt-4">
-            <label for="email" class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1.5">E-mailadres</label>
+        {{-- Email --}}
+        <div>
+            <label for="email" class="block text-[11px] font-bold text-eazy-darker uppercase tracking-wider mb-1.5">E-mailadres</label>
             <div class="relative">
-                <i class="fa-solid fa-envelope absolute left-3.5 top-1/2 -translate-y-1/2 text-[#215558]/25 text-sm"></i>
+                <i class="fa-solid fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-muted text-sm" aria-hidden="true"></i>
                 <input id="email" type="email" name="email" value="{{ old('email') }}" required autocomplete="username"
-                    class="block w-full pl-10 pr-4 py-2.5 rounded-full border-[#215558]/10 text-sm text-[#215558] focus:border-eazy focus:ring-eazy placeholder:text-[#215558]/25"
+                    class="block w-full pl-11 pr-4 py-3 rounded-xl border border-eazy-darker/10 bg-white text-sm text-eazy-darker focus:border-eazy-dark focus:ring-2 focus:ring-eazy-dark placeholder:text-muted/60"
                     placeholder="naam@bedrijf.nl">
             </div>
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
-        <!-- Password -->
-        <div class="mt-4">
-            <label for="password" class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1.5">Wachtwoord</label>
+        {{-- Password --}}
+        <div x-data="{ show: false }">
+            <label for="password" class="block text-[11px] font-bold text-eazy-darker uppercase tracking-wider mb-1.5">Wachtwoord</label>
             <div class="relative">
-                <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-[#215558]/25 text-sm"></i>
+                <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-muted text-sm" aria-hidden="true"></i>
                 <input id="password" type="password" name="password" required autocomplete="new-password"
-                    class="block w-full pl-10 pr-4 py-2.5 rounded-full border-[#215558]/10 text-sm text-[#215558] focus:border-eazy focus:ring-eazy placeholder:text-[#215558]/25"
+                    :type="show ? 'text' : 'password'"
+                    class="block w-full pl-11 pr-11 py-3 rounded-xl border border-eazy-darker/10 bg-white text-sm text-eazy-darker focus:border-eazy-dark focus:ring-2 focus:ring-eazy-dark placeholder:text-muted/60"
                     placeholder="Minimaal 8 tekens">
+                <button type="button" x-on:click="show = !show" :aria-label="show ? 'Wachtwoord verbergen' : 'Wachtwoord tonen'"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center text-muted hover:text-eazy-dark transition">
+                    <i class="fa-solid" :class="show ? 'fa-eye-slash' : 'fa-eye'" aria-hidden="true"></i>
+                </button>
             </div>
             <x-input-error :messages="$errors->get('password')" class="mt-2" />
         </div>
 
-        <!-- Confirm Password -->
-        <div class="mt-4">
-            <label for="password_confirmation" class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1.5">Wachtwoord bevestigen</label>
+        {{-- Confirm Password --}}
+        <div x-data="{ show: false }">
+            <label for="password_confirmation" class="block text-[11px] font-bold text-eazy-darker uppercase tracking-wider mb-1.5">Wachtwoord bevestigen</label>
             <div class="relative">
-                <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-[#215558]/25 text-sm"></i>
+                <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-muted text-sm" aria-hidden="true"></i>
                 <input id="password_confirmation" type="password" name="password_confirmation" required autocomplete="new-password"
-                    class="block w-full pl-10 pr-4 py-2.5 rounded-full border-[#215558]/10 text-sm text-[#215558] focus:border-eazy focus:ring-eazy placeholder:text-[#215558]/25"
+                    :type="show ? 'text' : 'password'"
+                    class="block w-full pl-11 pr-11 py-3 rounded-xl border border-eazy-darker/10 bg-white text-sm text-eazy-darker focus:border-eazy-dark focus:ring-2 focus:ring-eazy-dark placeholder:text-muted/60"
                     placeholder="Herhaal je wachtwoord">
+                <button type="button" x-on:click="show = !show" :aria-label="show ? 'Wachtwoord verbergen' : 'Wachtwoord tonen'"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center text-muted hover:text-eazy-dark transition">
+                    <i class="fa-solid" :class="show ? 'fa-eye-slash' : 'fa-eye'" aria-hidden="true"></i>
+                </button>
             </div>
             <x-input-error :messages="$errors->get('password_confirmation')" class="mt-2" />
         </div>
 
-        <div class="mt-6">
-            <button type="submit" class="cursor-pointer w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-eazy text-white rounded-full text-sm font-bold hover:bg-eazy-dark shadow-lg shadow-eazy/20 hover:shadow-eazy/30 transition-all">
-                <i class="fa-solid fa-rocket text-xs"></i> Gratis registreren
-            </button>
-        </div>
+        <button type="submit" class="btn-shine w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 bg-eazy-dark text-white rounded-full text-sm font-bold hover:bg-eazy-darker shadow-lg shadow-eazy/25 transition-all">
+            Gratis account aanmaken <i class="fa-solid fa-arrow-right text-xs" aria-hidden="true"></i>
+        </button>
 
-        <div class="mt-5 pt-5 border-t border-[#215558]/5 text-center">
-            <span class="text-sm text-[#215558]/40 font-medium">Al een account?</span>
-            <a class="text-sm text-eazy hover:text-eazy-dark font-bold ml-1 transition" href="{{ route('login') }}">
-                Inloggen
-            </a>
+        <p class="text-center text-xs text-muted leading-relaxed">
+            Door te registreren ga je akkoord met onze voorwaarden. Je kunt maandelijks opzeggen.
+        </p>
+
+        <div class="pt-5 border-t border-eazy-darker/5 text-center">
+            <span class="text-sm text-muted">Al een account?</span>
+            <a class="text-sm text-eazy-dark hover:text-eazy-darker font-bold ml-1 transition" href="{{ route('login') }}">Inloggen</a>
         </div>
     </form>
 </x-guest-layout>

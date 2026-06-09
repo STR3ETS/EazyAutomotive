@@ -1,70 +1,69 @@
 <x-guest-layout>
-    <div class="mb-6">
-        <div class="flex items-center gap-3 mb-2">
-            <div class="w-10 h-10 rounded-xl bg-eazy-50 flex items-center justify-center">
-                <i class="fa-solid fa-right-to-bracket text-eazy"></i>
-            </div>
-            <div>
-                <h2 class="text-xl font-black text-[#215558]">Welkom terug</h2>
-                <p class="text-xs text-[#215558]/40 font-medium">Log in op je EazyAutomotive account</p>
-            </div>
-        </div>
+    {{-- Heading --}}
+    <div class="mb-7">
+        <span class="font-hand text-eazy-dark text-xl">Fijn dat je er weer bent</span>
+        <h1 class="text-2xl font-black text-eazy-darker tracking-tight">Welkom terug</h1>
+        <p class="text-sm text-muted mt-1">Log in op je EazyAutomotive-account.</p>
     </div>
 
-    <!-- Session Status -->
-    <x-auth-session-status class="mb-4" :status="session('status')" />
+    {{-- Session Status --}}
+    @if (session('status'))
+        <div class="mb-5 flex items-center gap-2.5 bg-emerald-50 border border-emerald-200 text-emerald-700 px-4 py-3 rounded-xl text-sm font-medium">
+            <i class="fa-solid fa-circle-check" aria-hidden="true"></i>
+            <span>{{ session('status') }}</span>
+        </div>
+    @endif
 
-    <form method="POST" action="{{ route('login') }}">
+    <form method="POST" action="{{ route('login') }}" class="space-y-4">
         @csrf
 
-        <!-- Email Address -->
+        {{-- Email --}}
         <div>
-            <label for="email" class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1.5">E-mailadres</label>
+            <label for="email" class="block text-[11px] font-bold text-eazy-darker uppercase tracking-wider mb-1.5">E-mailadres</label>
             <div class="relative">
-                <i class="fa-solid fa-envelope absolute left-3.5 top-1/2 -translate-y-1/2 text-[#215558]/25 text-sm"></i>
+                <i class="fa-solid fa-envelope absolute left-4 top-1/2 -translate-y-1/2 text-muted text-sm" aria-hidden="true"></i>
                 <input id="email" type="email" name="email" value="{{ old('email') }}" required autofocus autocomplete="username"
-                    class="block w-full pl-10 pr-4 py-2.5 rounded-full border-[#215558]/10 text-sm text-[#215558] focus:border-eazy focus:ring-eazy placeholder:text-[#215558]/25"
+                    class="block w-full pl-11 pr-4 py-3 rounded-xl border border-eazy-darker/10 bg-white text-sm text-eazy-darker focus:border-eazy-dark focus:ring-2 focus:ring-eazy-dark placeholder:text-muted/60"
                     placeholder="naam@bedrijf.nl">
             </div>
             <x-input-error :messages="$errors->get('email')" class="mt-2" />
         </div>
 
-        <!-- Password -->
-        <div class="mt-4">
-            <label for="password" class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1.5">Wachtwoord</label>
+        {{-- Password --}}
+        <div x-data="{ show: false }">
+            <div class="flex items-center justify-between mb-1.5">
+                <label for="password" class="block text-[11px] font-bold text-eazy-darker uppercase tracking-wider">Wachtwoord</label>
+                @if (Route::has('password.request'))
+                    <a class="text-xs font-semibold text-eazy-dark hover:text-eazy-darker transition" href="{{ route('password.request') }}">Wachtwoord vergeten?</a>
+                @endif
+            </div>
             <div class="relative">
-                <i class="fa-solid fa-lock absolute left-3.5 top-1/2 -translate-y-1/2 text-[#215558]/25 text-sm"></i>
+                <i class="fa-solid fa-lock absolute left-4 top-1/2 -translate-y-1/2 text-muted text-sm" aria-hidden="true"></i>
                 <input id="password" type="password" name="password" required autocomplete="current-password"
-                    class="block w-full pl-10 pr-4 py-2.5 rounded-full border-[#215558]/10 text-sm text-[#215558] focus:border-eazy focus:ring-eazy placeholder:text-[#215558]/25"
+                    :type="show ? 'text' : 'password'"
+                    class="block w-full pl-11 pr-11 py-3 rounded-xl border border-eazy-darker/10 bg-white text-sm text-eazy-darker focus:border-eazy-dark focus:ring-2 focus:ring-eazy-dark placeholder:text-muted/60"
                     placeholder="Je wachtwoord">
+                <button type="button" x-on:click="show = !show" :aria-label="show ? 'Wachtwoord verbergen' : 'Wachtwoord tonen'"
+                    class="absolute right-3 top-1/2 -translate-y-1/2 w-7 h-7 flex items-center justify-center text-muted hover:text-eazy-dark transition">
+                    <i class="fa-solid" :class="show ? 'fa-eye-slash' : 'fa-eye'" aria-hidden="true"></i>
+                </button>
             </div>
             <x-input-error :messages="$errors->get('password')" class="mt-2" />
         </div>
 
-        <!-- Remember Me -->
-        <div class="block mt-4">
-            <label for="remember_me" class="inline-flex items-center">
-                <input id="remember_me" type="checkbox" class="rounded-md border-[#215558]/15 text-eazy shadow-sm focus:ring-eazy" name="remember">
-                <span class="ms-2 text-sm text-[#215558]/60 font-medium">Onthoud mij</span>
-            </label>
-        </div>
+        {{-- Remember Me --}}
+        <label for="remember_me" class="inline-flex items-center gap-2 cursor-pointer">
+            <input id="remember_me" type="checkbox" name="remember" class="rounded-md border-eazy-darker/20 text-eazy-dark shadow-sm focus:ring-eazy-dark">
+            <span class="text-sm text-muted font-medium">Onthoud mij op dit apparaat</span>
+        </label>
 
-        <div class="mt-6">
-            <button type="submit" class="cursor-pointer w-full inline-flex items-center justify-center gap-2 px-5 py-3 bg-eazy text-white rounded-full text-sm font-bold hover:bg-eazy-dark shadow-lg shadow-eazy/20 hover:shadow-eazy/30 transition-all">
-                <i class="fa-solid fa-right-to-bracket text-xs"></i> Inloggen
-            </button>
-        </div>
+        <button type="submit" class="btn-shine w-full inline-flex items-center justify-center gap-2 px-5 py-3.5 bg-eazy-dark text-white rounded-full text-sm font-bold hover:bg-eazy-darker shadow-lg shadow-eazy/25 transition-all">
+            <i class="fa-solid fa-right-to-bracket text-xs" aria-hidden="true"></i> Inloggen
+        </button>
 
-        <div class="flex items-center justify-between mt-5 pt-5 border-t border-[#215558]/5">
-            @if (Route::has('password.request'))
-                <a class="text-sm text-eazy hover:text-eazy-dark font-medium transition" href="{{ route('password.request') }}">
-                    Wachtwoord vergeten?
-                </a>
-            @endif
-
-            <a class="text-sm text-[#215558]/40 hover:text-[#215558]/70 font-medium transition" href="{{ route('register') }}">
-                Nog geen account?
-            </a>
+        <div class="pt-5 border-t border-eazy-darker/5 text-center">
+            <span class="text-sm text-muted">Nog geen account?</span>
+            <a class="text-sm text-eazy-dark hover:text-eazy-darker font-bold ml-1 transition" href="{{ route('register') }}">Gratis starten</a>
         </div>
     </form>
 </x-guest-layout>

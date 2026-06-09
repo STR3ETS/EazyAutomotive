@@ -34,6 +34,16 @@ class DashboardController extends Controller
             ->take(5)
             ->get();
 
-        return view('dashboard', compact('stats', 'recentCars', 'popularCars'));
+        $user = $request->user();
+        $showTutorial = is_null($user->onboarding_completed_at);
+
+        if ($showTutorial) {
+            // Meteen vastleggen zodat de rondleiding niet opnieuw start als de gebruiker
+            // via een gemarkeerde link navigeert, het tabblad sluit of ververst voordat
+            // Driver.js onDestroyed afvuurt. De client-POST blijft een idempotente bevestiging.
+            $user->forceFill(['onboarding_completed_at' => now()])->save();
+        }
+
+        return view('dashboard', compact('stats', 'recentCars', 'popularCars', 'showTutorial'));
     }
 }

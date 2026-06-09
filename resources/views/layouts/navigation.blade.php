@@ -20,12 +20,13 @@
     <nav class="flex-1 px-4 py-5 space-y-1 overflow-y-auto">
         @php
             $navItems = [
-                ['route' => 'dashboard', 'match' => 'dashboard', 'icon' => 'fa-house', 'label' => 'Dashboard'],
-                ['route' => 'cars.index', 'match' => 'cars.*', 'icon' => 'fa-car', 'label' => "Auto's"],
-                ['route' => 'ontwerpen', 'match' => 'ontwerpen', 'icon' => 'fa-palette', 'label' => 'Ontwerpen'],
-                ['route' => 'integratie', 'match' => 'integratie', 'icon' => 'fa-code', 'label' => 'Integratie'],
-                ['route' => 'publiceren', 'match' => 'publiceren*', 'icon' => 'fa-share-nodes', 'label' => 'Publiceren'],
-                ['route' => 'settings.edit', 'match' => 'settings.*', 'icon' => 'fa-gear', 'label' => 'Instellingen'],
+                ['route' => 'dashboard', 'match' => 'dashboard', 'icon' => 'fa-house', 'label' => 'Dashboard', 'tour' => 'nav-dashboard'],
+                ['route' => 'cars.index', 'match' => 'cars.*', 'icon' => 'fa-car', 'label' => "Auto's", 'tour' => 'nav-cars'],
+                ['route' => 'onderzoek', 'match' => 'onderzoek', 'icon' => 'fa-magnifying-glass-chart', 'label' => 'Onderzoek', 'tour' => 'nav-research'],
+                ['route' => 'ontwerpen', 'match' => 'ontwerpen', 'icon' => 'fa-palette', 'label' => 'Ontwerpen', 'tour' => 'nav-design'],
+                ['route' => 'integratie', 'match' => 'integratie', 'icon' => 'fa-code', 'label' => 'Integratie', 'tour' => 'nav-embed'],
+                ['route' => 'publiceren', 'match' => 'publiceren*', 'icon' => 'fa-share-nodes', 'label' => 'Publiceren', 'tour' => 'nav-publish'],
+                ['route' => 'settings.edit', 'match' => 'settings.*', 'icon' => 'fa-gear', 'label' => 'Instellingen', 'tour' => 'nav-settings'],
             ];
         @endphp
 
@@ -33,6 +34,7 @@
             @php $active = request()->routeIs($item['match']); @endphp
             <a href="{{ route($item['route']) }}"
                @click="sidebarOpen = false"
+               data-tour="{{ $item['tour'] }}"
                class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150
                       {{ $active
                           ? 'bg-eazy-50 text-eazy-700'

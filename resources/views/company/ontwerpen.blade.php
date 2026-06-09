@@ -606,7 +606,7 @@
                         <div class="lg:sticky lg:top-6">
                             <div class="flex items-center gap-2 mb-3">
                                 <i class="fa-solid fa-eye text-xs text-[#215558] opacity-50"></i>
-                                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Live voorbeeld — Kaart</label>
+                                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Live voorbeeld: Kaart</label>
                             </div>
                             <div class="rounded-2xl bg-[#ebf2f2]/50" id="previewContainer">
                                 <div id="previewCard" style="overflow:hidden;transition:all 0.2s ease;">
@@ -937,7 +937,7 @@
                         <div class="lg:sticky lg:top-6">
                             <div class="flex items-center gap-2 mb-3">
                                 <i class="fa-solid fa-eye text-xs text-[#215558] opacity-50"></i>
-                                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Live voorbeeld — Detail</label>
+                                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Live voorbeeld: Detail</label>
                             </div>
                             <div class="rounded-2xl overflow-hidden" id="detailPreviewContainer">
                                 {{-- Detail Preview Mock --}}

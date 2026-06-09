@@ -46,7 +46,7 @@ class PublicerenController extends Controller
             ->get();
 
         return view('company.publiceren', compact(
-            'platforms', 'connections', 'cars', 'stats', 'recentLogs'
+            'platforms', 'connections', 'cars', 'stats', 'recentLogs', 'company'
         ));
     }
 
@@ -141,25 +141,31 @@ class PublicerenController extends Controller
             ->connected()
             ->get();
 
-        $results = ['success' => 0, 'failed' => 0];
+        $results = ['success' => 0, 'pending' => 0, 'failed' => 0];
 
         foreach ($cars as $car) {
             foreach ($connections as $connection) {
                 $publication = $this->publishingService->publish($car, $connection);
-                if ($publication->status === 'published') {
-                    $results['success']++;
-                } else {
-                    $results['failed']++;
-                }
+                $results[match ($publication->status) {
+                    'published' => 'success',
+                    'pending' => 'pending',
+                    default => 'failed',
+                }]++;
             }
         }
 
-        $message = "{$results['success']} publicatie(s) gelukt";
+        $parts = [];
+        if ($results['success'] > 0) {
+            $parts[] = "{$results['success']} gepubliceerd";
+        }
+        if ($results['pending'] > 0) {
+            $parts[] = "{$results['pending']} in wachtrij";
+        }
         if ($results['failed'] > 0) {
-            $message .= ", {$results['failed']} mislukt";
+            $parts[] = "{$results['failed']} mislukt";
         }
 
-        return back()->with('success', $message);
+        return back()->with('success', $parts ? implode(', ', $parts) : 'Geen publicaties verwerkt');
     }
 
     public function unpublishCar(Request $request, CarPublication $publication)

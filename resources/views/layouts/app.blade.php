@@ -19,7 +19,10 @@
         @vite(['resources/css/app.css', 'resources/js/app.js'])
     </head>
     <body class="font-sans antialiased">
-        <div x-data="{ sidebarOpen: false }" class="min-h-screen bg-[#ebf2f2]">
+        <div x-data="{ sidebarOpen: false }"
+             x-on:eazy-open-sidebar.window="sidebarOpen = true"
+             x-on:eazy-close-sidebar.window="sidebarOpen = false"
+             class="min-h-screen bg-[#ebf2f2]">
 
             {{-- Mobile overlay --}}
             <div x-show="sidebarOpen"
