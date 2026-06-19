@@ -63,7 +63,7 @@ class CarVideoController extends Controller
 
         // Turn the dealer's short idea into a rich cinematic prompt (once, reused per photo).
         $cinematicPrompt = $this->composer->compose($car, $validated['prompt']);
-        $model = (string) config('services.higgsfield.model', 'dop-turbo');
+        $model = (string) config('services.higgsfield.model', 'seedance_lite');
 
         $created = 0;
         $lastError = null;

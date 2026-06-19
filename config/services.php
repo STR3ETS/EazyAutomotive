@@ -41,7 +41,7 @@ return [
     'higgsfield' => [
         'credentials' => env('HIGGSFIELD_CREDENTIALS'),
         'base_url' => env('HIGGSFIELD_BASE_URL', 'https://platform.higgsfield.ai'),
-        'model' => env('HIGGSFIELD_MODEL', 'dop-turbo'),
+        'model' => env('HIGGSFIELD_MODEL', 'seedance_lite'),
         // Authorization scheme: "Key" (KEY_ID:KEY_SECRET) or "Bearer" (single token).
         'auth_scheme' => env('HIGGSFIELD_AUTH_SCHEME', 'Key'),
         // Send Higgsfield's own prompt-enhancement flag. Disable if the account rejects it.

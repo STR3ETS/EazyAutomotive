@@ -6,15 +6,17 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Process;
 
 /**
- * Stitches several short clips (the per-photo DoP videos) into one reel using
- * ffmpeg. Each clip is downloaded, scaled/padded to a common size and frame
- * rate, then concatenated. Runs synchronously; the clips are short so this
- * completes within a request.
+ * Stitches several short clips (the per-photo videos) into one reel using ffmpeg.
+ * Clips are scaled/padded to a common size and frame rate, then joined with a
+ * short crossfade between each. If clip durations can't be read (no ffprobe), it
+ * falls back to a plain hard-cut concatenation.
  */
 class VideoStitcher
 {
     private const WIDTH = 1280;
     private const HEIGHT = 720;
+    private const FPS = 24;
+    private const XFADE = 0.5; // crossfade duration in seconds
 
     public function isAvailable(): bool
     {
@@ -44,35 +46,28 @@ class VideoStitcher
         }
 
         try {
-            $localFiles = $this->download($clipUrls, $workDir);
+            $files = $this->download($clipUrls, $workDir);
 
             $outDir = dirname($outputPath);
             if (! is_dir($outDir)) {
                 mkdir($outDir, 0775, true);
             }
 
-            $args = [$this->binary(), '-y'];
-            foreach ($localFiles as $file) {
-                $args[] = '-i';
-                $args[] = $file;
-            }
-            $args[] = '-filter_complex';
-            $args[] = $this->filter(count($localFiles));
-            $args[] = '-map';
-            $args[] = '[outv]';
-            $args[] = '-c:v';
-            $args[] = 'libx264';
-            $args[] = '-preset';
-            $args[] = 'veryfast';
-            $args[] = '-pix_fmt';
-            $args[] = 'yuv420p';
-            $args[] = '-movflags';
-            $args[] = '+faststart';
-            $args[] = $outputPath;
+            // Prefer crossfade transitions; fall back to a hard-cut concat.
+            $durations = $this->durations($files);
+            $usedCrossfade = $durations !== null;
+            $args = $usedCrossfade
+                ? $this->crossfadeArgs($files, $durations, $outputPath)
+                : $this->concatArgs($files, $outputPath);
 
             $result = Process::timeout(600)->run($args);
 
-            if (! $result->successful() || ! is_file($outputPath) || filesize($outputPath) === 0) {
+            if (($this->failed($result, $outputPath)) && $usedCrossfade) {
+                // Crossfade can be finicky; retry with a plain concat.
+                $result = Process::timeout(600)->run($this->concatArgs($files, $outputPath));
+            }
+
+            if ($this->failed($result, $outputPath)) {
                 $err = trim($result->errorOutput()) ?: trim($result->output());
                 throw new \RuntimeException('ffmpeg kon de video niet samenvoegen: ' . mb_substr($err, -300));
             }
@@ -81,9 +76,14 @@ class VideoStitcher
         }
     }
 
+    private function failed($result, string $outputPath): bool
+    {
+        return ! $result->successful() || ! is_file($outputPath) || filesize($outputPath) === 0;
+    }
+
     /**
      * @param  list<string>  $urls
-     * @return list<string>  Local file paths.
+     * @return list<string>
      */
     private function download(array $urls, string $workDir): array
     {
@@ -101,20 +101,147 @@ class VideoStitcher
         return $files;
     }
 
-    private function filter(int $n): string
+    /**
+     * Hard-cut concatenation (robust fallback).
+     *
+     * @param  list<string>  $files
+     * @return list<string>
+     */
+    private function concatArgs(array $files, string $outputPath): array
     {
-        $w = self::WIDTH;
-        $h = self::HEIGHT;
+        $n = count($files);
         $parts = [];
         $labels = '';
         for ($i = 0; $i < $n; $i++) {
-            $parts[] = "[{$i}:v]scale={$w}:{$h}:force_original_aspect_ratio=decrease,"
-                . "pad={$w}:{$h}:(ow-iw)/2:(oh-ih)/2,setsar=1,fps=24,format=yuv420p[v{$i}]";
+            $parts[] = "[{$i}:v]" . $this->normalize() . "[v{$i}]";
             $labels .= "[v{$i}]";
         }
         $parts[] = $labels . "concat=n={$n}:v=1:a=0[outv]";
 
-        return implode(';', $parts);
+        return $this->encodeArgs($files, implode(';', $parts), $outputPath);
+    }
+
+    /**
+     * Crossfade between each clip using xfade with cumulative offsets.
+     *
+     * @param  list<string>  $files
+     * @param  list<float>  $durations
+     * @return list<string>
+     */
+    private function crossfadeArgs(array $files, array $durations, string $outputPath): array
+    {
+        $n = count($files);
+        $d = self::XFADE;
+        $parts = [];
+        for ($i = 0; $i < $n; $i++) {
+            $parts[] = "[{$i}:v]" . $this->normalize() . "[v{$i}]";
+        }
+
+        $last = '[v0]';
+        $cum = $durations[0];
+        for ($i = 1; $i < $n; $i++) {
+            $offset = max(0.1, $cum - $i * $d);
+            $out = ($i === $n - 1) ? '[outv]' : "[x{$i}]";
+            $parts[] = "{$last}[v{$i}]xfade=transition=fade:duration={$d}:offset="
+                . number_format($offset, 3, '.', '') . $out;
+            $last = $out;
+            $cum += $durations[$i];
+        }
+
+        return $this->encodeArgs($files, implode(';', $parts), $outputPath);
+    }
+
+    private function normalize(): string
+    {
+        $w = self::WIDTH;
+        $h = self::HEIGHT;
+        $fps = self::FPS;
+
+        return "scale={$w}:{$h}:force_original_aspect_ratio=decrease,"
+            . "pad={$w}:{$h}:(ow-iw)/2:(oh-ih)/2,setsar=1,fps={$fps},format=yuv420p";
+    }
+
+    /**
+     * @param  list<string>  $files
+     * @return list<string>
+     */
+    private function encodeArgs(array $files, string $filter, string $outputPath): array
+    {
+        $args = [$this->binary(), '-y'];
+        foreach ($files as $file) {
+            $args[] = '-i';
+            $args[] = $file;
+        }
+        $args[] = '-filter_complex';
+        $args[] = $filter;
+        $args[] = '-map';
+        $args[] = '[outv]';
+        $args[] = '-c:v';
+        $args[] = 'libx264';
+        $args[] = '-preset';
+        $args[] = 'veryfast';
+        $args[] = '-pix_fmt';
+        $args[] = 'yuv420p';
+        $args[] = '-movflags';
+        $args[] = '+faststart';
+        $args[] = $outputPath;
+
+        return $args;
+    }
+
+    /**
+     * @param  list<string>  $files
+     * @return list<float>|null  Per-clip duration in seconds, or null if unavailable.
+     */
+    private function durations(array $files): ?array
+    {
+        $probe = $this->probeBinary();
+        if ($probe === null) {
+            return null;
+        }
+
+        $durations = [];
+        foreach ($files as $file) {
+            try {
+                $r = Process::timeout(30)->run([
+                    $probe, '-v', 'error',
+                    '-show_entries', 'format=duration',
+                    '-of', 'default=noprint_wrappers=1:nokey=1',
+                    $file,
+                ]);
+            } catch (\Throwable $e) {
+                return null;
+            }
+
+            if (! $r->successful()) {
+                return null;
+            }
+            $d = (float) trim($r->output());
+            if ($d <= 0) {
+                return null;
+            }
+            $durations[] = $d;
+        }
+
+        return $durations;
+    }
+
+    private function probeBinary(): ?string
+    {
+        $ff = $this->binary();
+        if ($ff === 'ffmpeg' || $ff === '') {
+            return 'ffprobe';
+        }
+
+        $dir = dirname($ff);
+        foreach (['ffprobe.exe', 'ffprobe'] as $name) {
+            $candidate = $dir . DIRECTORY_SEPARATOR . $name;
+            if (is_file($candidate)) {
+                return $candidate;
+            }
+        }
+
+        return null;
     }
 
     private function cleanup(string $dir): void

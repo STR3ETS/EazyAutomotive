@@ -34,7 +34,9 @@ class HiggsfieldService
      */
     public function generate(string $imageUrl, string $prompt, ?string $motionId = null): array
     {
-        $resp = $this->client()->post('/v1/image2video/dop', $this->buildPayload($imageUrl, $prompt, $motionId));
+        [$endpoint, $payload] = $this->buildRequest($imageUrl, $prompt, $motionId);
+
+        $resp = $this->client()->post($endpoint, $payload);
 
         if (! $resp->successful()) {
             throw new \RuntimeException($this->errorMessage($resp));
@@ -84,31 +86,54 @@ class HiggsfieldService
     // ── API contract (isolated, defensive) ───────────────────────────
 
     /**
-     * @return array<string,mixed>
+     * Builds the right endpoint and payload for the configured model. The API
+     * exposes one image2video endpoint per provider, each with its own image
+     * field: DoP uses `input_images` (an array, max 1), while Seedance and Kling
+     * use a single `input_image`. All generation params are wrapped under `params`.
+     *
+     * @return array{0:string, 1:array<string,mixed>}
      */
-    private function buildPayload(string $imageUrl, string $prompt, ?string $motionId): array
+    private function buildRequest(string $imageUrl, string $prompt, ?string $motionId): array
     {
-        $params = [
-            'model' => (string) config('services.higgsfield.model', 'dop-turbo'),
+        $model = (string) config('services.higgsfield.model', 'seedance_lite');
+        $provider = $this->providerFor($model);
+        $image = ['type' => 'image_url', 'image_url' => $imageUrl];
+
+        if ($provider === 'dop') {
+            $params = [
+                'model' => $model,
+                'prompt' => $prompt,
+                'input_images' => [$image],
+            ];
+
+            if (config('services.higgsfield.enhance_prompt', true)) {
+                $params['enhance_prompt'] = true;
+            }
+            if ($motionId) {
+                $params['motion_id'] = $motionId;
+            }
+
+            return ['/v1/image2video/dop', ['params' => $params]];
+        }
+
+        // Seedance / Kling: a single input_image.
+        return ['/v1/image2video/' . $provider, ['params' => [
+            'model' => $model,
             'prompt' => $prompt,
-            'input_images' => [
-                ['type' => 'image_url', 'image_url' => $imageUrl],
-            ],
-        ];
+            'input_image' => $image,
+        ]]];
+    }
 
-        // Higgsfield's own prompt refinement, on top of our cinematic prompt.
-        // Gated so it can be disabled instantly if the account rejects the field.
-        if (config('services.higgsfield.enhance_prompt', true)) {
-            $params['enhance_prompt'] = true;
+    private function providerFor(string $model): string
+    {
+        if (str_starts_with($model, 'dop')) {
+            return 'dop';
+        }
+        if (str_starts_with($model, 'kling')) {
+            return 'kling';
         }
 
-        if ($motionId) {
-            $params['motion_id'] = $motionId;
-        }
-
-        // The platform.higgsfield.ai REST API expects the generation parameters
-        // wrapped under "params" (confirmed via the API's 422 validation).
-        return ['params' => $params];
+        return 'seedance';
     }
 
     /**
