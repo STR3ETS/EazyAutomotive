@@ -3,11 +3,14 @@
 namespace App\Http\Controllers;
 
 use App\Models\Car;
+use App\Models\CarReel;
 use App\Models\CarVideo;
 use App\Services\Video\HiggsfieldService;
 use App\Services\Video\VideoPromptComposer;
+use App\Services\Video\VideoStitcher;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
 
 class CarVideoController extends Controller
 {
@@ -144,5 +147,62 @@ class CarVideoController extends Controller
         $video->delete();
 
         return back()->with('success', 'Video verwijderd.');
+    }
+
+    /** Combine this car's completed clips into one stitched reel via ffmpeg. */
+    public function stitch(Request $request, Car $car, VideoStitcher $stitcher)
+    {
+        abort_unless($car->company_id === $request->user()->company_id, 403);
+
+        if (! $stitcher->isAvailable()) {
+            return back()->with('error', 'Samenvoegen is niet beschikbaar: ffmpeg is niet geconfigureerd op de server.');
+        }
+
+        $clips = $car->videos()
+            ->where('status', 'completed')
+            ->whereNotNull('video_url')
+            ->orderBy('id')
+            ->take(12)
+            ->get();
+
+        if ($clips->count() < 2) {
+            return back()->with('error', 'Je hebt minstens twee afgeronde clips nodig om een reel te maken.');
+        }
+
+        $filename = bin2hex(random_bytes(8)) . '.mp4';
+        $relativePath = "cars/{$car->id}/reels/{$filename}";
+
+        $reel = $car->reels()->create([
+            'company_id' => $car->company_id,
+            'status' => 'processing',
+            'clip_count' => $clips->count(),
+        ]);
+
+        try {
+            @set_time_limit(0);
+            $stitcher->stitch($clips->pluck('video_url')->all(), storage_path('app/public/' . $relativePath));
+        } catch (\Throwable $e) {
+            report($e);
+            $reel->update(['status' => 'failed', 'error' => $e->getMessage()]);
+
+            return back()->with('error', 'Samenvoegen mislukt: ' . $e->getMessage());
+        }
+
+        $reel->update(['status' => 'completed', 'path' => $relativePath]);
+
+        return back()->with('success', "Reel gemaakt van {$clips->count()} clips.");
+    }
+
+    public function destroyReel(Request $request, Car $car, CarReel $reel)
+    {
+        abort_unless($car->company_id === $request->user()->company_id, 403);
+        abort_unless($reel->car_id === $car->id, 404);
+
+        if ($reel->path) {
+            Storage::disk('public')->delete($reel->path);
+        }
+        $reel->delete();
+
+        return back()->with('success', 'Reel verwijderd.');
     }
 }

@@ -192,6 +192,56 @@
                                 @endforeach
                             </div>
                         @endif
+
+                        @php
+                            $completedCount = $car->videos->where('status', 'completed')->filter(fn ($v) => ! empty($v->video_url))->count();
+                        @endphp
+                        @if($completedCount >= 2)
+                            <div class="mt-5 pt-5 border-t border-[#215558]/5">
+                                <form method="POST" action="{{ route('cars.reel.store', $car) }}" x-data="{ busy: false }" @submit="busy = true">
+                                    @csrf
+                                    <p class="text-xs text-[#215558] opacity-60 mb-2">Plak je {{ $completedCount }} afgeronde clips achter elkaar tot één reel.</p>
+                                    <button type="submit" :disabled="busy" class="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 bg-[#215558] text-white rounded-full text-sm font-bold hover:bg-eazy-darker disabled:opacity-50 transition">
+                                        <i class="fa-solid" :class="busy ? 'fa-spinner fa-spin' : 'fa-film'"></i>
+                                        <span x-text="busy ? 'Samenvoegen...' : 'Combineer tot één reel'"></span>
+                                    </button>
+                                    <span x-show="busy" class="ml-2 text-[11px] text-[#215558] opacity-50">Dit kan even duren, pagina niet sluiten.</span>
+                                </form>
+                            </div>
+                        @endif
+
+                        @if($car->reels->count() > 0)
+                            <div class="mt-5 pt-5 border-t border-[#215558]/5 space-y-4">
+                                <h4 class="text-xs font-bold text-[#215558]">Reels</h4>
+                                @foreach($car->reels as $reel)
+                                    <div class="rounded-xl border border-[#215558]/10 p-3">
+                                        @if($reel->isCompleted())
+                                            <video src="{{ $reel->url }}" controls preload="metadata" class="w-full rounded-lg bg-black"></video>
+                                            <div class="flex items-center justify-between mt-2">
+                                                <span class="text-[11px] text-[#215558] opacity-50">{{ $reel->clip_count }} clips &middot; {{ $reel->created_at->format('d-m-Y H:i') }}</span>
+                                                <div class="flex items-center gap-2">
+                                                    <a href="{{ $reel->url }}" download target="_blank" rel="noopener" class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-eazy-dark text-white rounded-full text-xs font-bold hover:bg-eazy-darker transition"><i class="fa-solid fa-download text-[10px]"></i> Downloaden</a>
+                                                    <form method="POST" action="{{ route('cars.reel.destroy', [$car, $reel]) }}" onsubmit="return confirm('Deze reel verwijderen?')">
+                                                        @csrf @method('DELETE')
+                                                        <button type="submit" class="cursor-pointer inline-flex items-center justify-center w-8 h-8 text-red-500 rounded-full hover:bg-red-50 transition"><i class="fa-solid fa-trash text-[10px]"></i></button>
+                                                    </form>
+                                                </div>
+                                            </div>
+                                        @elseif($reel->status === 'failed')
+                                            <div class="flex items-center justify-between gap-2">
+                                                <p class="text-xs text-red-500">Samenvoegen mislukt: {{ $reel->error ?: 'onbekende fout' }}</p>
+                                                <form method="POST" action="{{ route('cars.reel.destroy', [$car, $reel]) }}">
+                                                    @csrf @method('DELETE')
+                                                    <button type="submit" class="cursor-pointer text-xs text-red-500 font-semibold hover:underline">Verwijderen</button>
+                                                </form>
+                                            </div>
+                                        @else
+                                            <p class="text-xs text-[#215558] opacity-50"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Reel wordt samengevoegd...</p>
+                                        @endif
+                                    </div>
+                                @endforeach
+                            </div>
+                        @endif
                     </div>
 
                     {{-- Description --}}

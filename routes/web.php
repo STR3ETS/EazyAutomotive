@@ -43,6 +43,8 @@ Route::middleware(['auth', 'verified', 'company.ownership'])->group(function () 
     Route::post('/cars/{car}/videos', [CarVideoController::class, 'store'])->name('cars.videos.store');
     Route::get('/cars/{car}/videos/{video}/status', [CarVideoController::class, 'status'])->name('cars.videos.status');
     Route::delete('/cars/{car}/videos/{video}', [CarVideoController::class, 'destroy'])->name('cars.videos.destroy');
+    Route::post('/cars/{car}/reel', [CarVideoController::class, 'stitch'])->name('cars.reel.store');
+    Route::delete('/cars/{car}/reel/{reel}', [CarVideoController::class, 'destroyReel'])->name('cars.reel.destroy');
 
     // AJAX RDW lookup (returns JSON)
     Route::post('/rdw/lookup', [RdwLookupController::class, 'lookup'])->name('rdw.lookup');

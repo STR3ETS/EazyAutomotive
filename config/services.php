@@ -48,6 +48,13 @@ return [
         'enhance_prompt' => env('HIGGSFIELD_ENHANCE_PROMPT', true),
     ],
 
+    // Path to the ffmpeg binary, used to stitch per-photo clips into one reel.
+    // Local dev points at the bundled Laragon binary; on the server set FFMPEG_PATH
+    // to "ffmpeg" (if on PATH) or the absolute path.
+    'ffmpeg' => [
+        'path' => env('FFMPEG_PATH', 'ffmpeg'),
+    ],
+
     // VWE / Finnik data services. Powers the premium parts of het voertuigrapport
     // (taxatie, tellerstandhistorie, onderhoudshistorie, terugroepdetails, schade,
     // WOK, fabrieksopties). Leave empty to keep the report on free RDW data only.
