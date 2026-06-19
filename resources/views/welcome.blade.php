@@ -283,7 +283,7 @@
                         ['text' => '1 regel', 'label' => 'Code om live te gaan', 'icon' => 'fa-code'],
                         ['value' => 98, 'suffix' => '%', 'label' => 'Tot minder typwerk', 'icon' => 'fa-wand-magic-sparkles'],
                         ['value' => 2, 'suffix' => ' min', 'label' => 'Tot je live bent', 'icon' => 'fa-rocket'],
-                        ['text' => 'RDW', 'label' => 'Data altijd actueel', 'icon' => 'fa-shield-check'],
+                        ['text' => 'RDW', 'label' => 'Data altijd actueel', 'icon' => 'fa-shield-halved'],
                     ] as $stat)
                     <div>
                         <div class="w-12 h-12 rounded-2xl bg-white/10 flex items-center justify-center mx-auto mb-3">
@@ -631,7 +631,7 @@
             <div class="flex flex-col sm:flex-row justify-between items-center gap-4 pt-8 border-t border-white/10">
                 <p class="text-sm text-white/70">&copy; {{ date('Y') }} Eazyonline. Alle rechten voorbehouden.</p>
                 <div class="flex items-center gap-2 text-xs text-white/70">
-                    <i class="fa-solid fa-shield-check text-eazy-400" aria-hidden="true"></i> Gekoppeld aan de officiële RDW-database
+                    <i class="fa-solid fa-shield-halved text-eazy-400" aria-hidden="true"></i> Gekoppeld aan de officiële RDW-database
                 </div>
             </div>
         </div>

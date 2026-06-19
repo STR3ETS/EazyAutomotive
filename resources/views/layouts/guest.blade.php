@@ -108,7 +108,7 @@
 
                 {{-- Footer --}}
                 <div class="relative z-10 flex items-center gap-2 text-xs font-semibold text-eazy-50">
-                    <i class="fa-solid fa-shield-check text-eazy-200" aria-hidden="true"></i>
+                    <i class="fa-solid fa-shield-halved text-eazy-200" aria-hidden="true"></i>
                     Gekoppeld aan de officiële RDW-database
                 </div>
             </aside>

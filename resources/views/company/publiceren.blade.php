@@ -234,7 +234,7 @@
                                           onsubmit="return confirm('Weet je zeker dat je {{ $platform['name'] }} wilt loskoppelen?')">
                                         @csrf
                                         <button type="submit" class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-red-50 text-red-600 rounded-full text-[11px] font-semibold hover:bg-red-100 transition">
-                                            <i class="fa-solid fa-unlink text-[10px]"></i> Loskoppelen
+                                            <i class="fa-solid fa-link-slash text-[10px]"></i> Loskoppelen
                                         </button>
                                     </form>
                                 </div>
@@ -399,7 +399,7 @@
                                         </button>
                                         <button type="button" @click="viewMode = 'kanban'" class="cursor-pointer w-9 h-9 flex items-center justify-center transition-all"
                                             :class="viewMode === 'kanban' ? 'bg-[#215558] text-white' : 'bg-white text-[#215558]/30 hover:text-[#215558]/60'">
-                                            <i class="fa-solid fa-columns text-xs"></i>
+                                            <i class="fa-solid fa-table-columns text-xs"></i>
                                         </button>
                                     </div>
                                 </div>
@@ -667,7 +667,7 @@
                                         'publish' => ['icon' => 'fa-arrow-up-from-bracket', 'color' => 'blue'],
                                         'unpublish' => ['icon' => 'fa-arrow-down', 'color' => 'orange'],
                                         'connect' => ['icon' => 'fa-plug', 'color' => 'emerald'],
-                                        'disconnect' => ['icon' => 'fa-unlink', 'color' => 'red'],
+                                        'disconnect' => ['icon' => 'fa-link-slash', 'color' => 'red'],
                                         default => ['icon' => 'fa-circle-info', 'color' => 'gray'],
                                     };
                                     $statusConfig = match($log->status) {

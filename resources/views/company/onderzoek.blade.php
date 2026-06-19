@@ -24,10 +24,20 @@
                                 class="flex-1 w-full bg-[#f4ce00] text-black text-xl font-black text-center uppercase border-0 focus:ring-0 focus:outline-none py-2.5">
                         </div>
                     </div>
-                    <div class="sm:w-56">
-                        <label for="km" class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1.5">Kilometerstand <span class="opacity-50 normal-case font-medium">(optioneel)</span></label>
+                    <div class="sm:w-44">
+                        <label for="km" class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1.5">Km-stand <span class="opacity-50 normal-case font-medium">(optioneel)</span></label>
                         <input id="km" type="number" name="km" value="{{ $km }}" min="0" step="500" placeholder="bijv. 84500"
                             class="block w-full px-4 py-2.5 rounded-xl border-[#215558]/10 text-sm focus:border-eazy focus:ring-eazy placeholder:text-[#215558]/25">
+                    </div>
+                    <div class="sm:w-48">
+                        <label for="provincie" class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1.5">Provincie <span class="opacity-50 normal-case font-medium">(opcenten)</span></label>
+                        <select id="provincie" name="provincie"
+                            class="block w-full px-4 py-2.5 rounded-xl border-[#215558]/10 text-sm focus:border-eazy focus:ring-eazy">
+                            <option value="">Kies provincie</option>
+                            @foreach(app(\App\Services\FiscalService::class)->provincies() as $prov)
+                                <option value="{{ $prov }}" @selected(($provincie ?? '') === $prov)>{{ $prov }}</option>
+                            @endforeach
+                        </select>
                     </div>
                     <div class="flex items-end">
                         <button type="submit" class="w-full sm:w-auto cursor-pointer inline-flex items-center justify-center gap-2 px-6 py-2.5 bg-eazy text-white rounded-full text-sm font-bold hover:bg-eazy-dark shadow-lg shadow-eazy/20 transition">
@@ -91,8 +101,12 @@
                 <div class="bg-white rounded-2xl border border-[#215558]/10 p-6 mb-6">
                     <h3 class="text-sm font-bold text-[#215558] mb-4 flex items-center gap-2">
                         <i class="fa-solid fa-tags text-eazy"></i> Indicatieve waardeschatting
-                        @if($report['waarde']['beschikbaar'] && ($report['waarde']['ruw'] ?? false))
-                            <span class="ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 text-[10px] font-bold uppercase tracking-wide">Ruwe indicatie</span>
+                        @if($report['waarde']['beschikbaar'])
+                            @if(($report['waarde']['bron'] ?? '') === 'marktdata')
+                                <span class="ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-bold uppercase tracking-wide">Marktdata &middot; {{ $report['waarde']['aantal'] }} advertenties</span>
+                            @else
+                                <span class="ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 text-[10px] font-bold uppercase tracking-wide">Modelschatting</span>
+                            @endif
                         @endif
                     </h3>
                     @if($report['waarde']['beschikbaar'])
@@ -110,7 +124,8 @@
                                 <div class="text-lg font-bold text-[#215558] opacity-70">{{ $report['waarde']['boven'] }}</div>
                             </div>
                         </div>
-                        <p class="text-center text-xs text-[#215558] opacity-50 mt-4 max-w-lg mx-auto">{{ $report['waarde']['toelichting'] }}</p>
+                        <p class="text-center text-xs font-semibold text-[#215558] opacity-60 mt-4">Betrouwbaarheid: {{ ucfirst($report['waarde']['vertrouwen'] ?? 'laag') }}</p>
+                        <p class="text-center text-xs text-[#215558] opacity-50 mt-1 max-w-lg mx-auto">{{ $report['waarde']['toelichting'] }}</p>
                         @unless($report['waarde']['km_gebruikt'])
                             <p class="text-center text-xs text-eazy font-semibold mt-2"><i class="fa-solid fa-circle-info text-[10px]"></i> Vul een kilometerstand in voor een nauwkeurigere schatting.</p>
                         @endunless
@@ -144,9 +159,62 @@
                     @endforeach
                 </div>
 
+                {{-- Fiscale berekeningen --}}
+                @php $fx = $report['fiscaal_extra']; @endphp
+                @if($fx['rest_bpm'] || $fx['bijtelling'] || $fx['wegenbelasting'])
+                <div class="bg-white rounded-2xl border border-[#215558]/10 p-6 mb-6">
+                    <h3 class="text-sm font-bold text-[#215558] mb-4 flex items-center gap-2"><i class="fa-solid fa-calculator text-eazy"></i> Fiscale berekeningen</h3>
+                    <div class="grid sm:grid-cols-3 gap-4">
+                        @if($fx['rest_bpm'])
+                            <div class="rounded-xl bg-[#ebf2f2]/50 p-4" title="{{ $fx['rest_bpm']['toelichting'] }}">
+                                <div class="text-[10px] font-bold text-[#215558] opacity-50 uppercase tracking-wide mb-1">Rest-BPM</div>
+                                <div class="text-2xl font-black text-eazy">{{ $fx['rest_bpm']['rest'] }}</div>
+                                <div class="text-[11px] text-[#215558] opacity-50 mt-1">Bruto {{ $fx['rest_bpm']['bruto'] }} &middot; afschr. {{ $fx['rest_bpm']['afschrijving'] }}</div>
+                            </div>
+                        @endif
+                        @if($fx['bijtelling'])
+                            <div class="rounded-xl bg-[#ebf2f2]/50 p-4" title="{{ $fx['bijtelling']['toelichting'] }}">
+                                <div class="text-[10px] font-bold text-[#215558] opacity-50 uppercase tracking-wide mb-1">Bijtelling ({{ $fx['bijtelling']['percentage'] }})</div>
+                                <div class="text-2xl font-black text-eazy">{{ $fx['bijtelling']['per_jaar'] }}<span class="text-sm font-semibold opacity-50"> /jaar</span></div>
+                                <div class="text-[11px] text-[#215558] opacity-50 mt-1">{{ $fx['bijtelling']['per_maand'] }} /maand &middot; {{ $fx['bijtelling']['grondslag'] }}</div>
+                            </div>
+                        @endif
+                        @if($fx['wegenbelasting'])
+                            <div class="rounded-xl bg-[#ebf2f2]/50 p-4">
+                                <div class="text-[10px] font-bold text-[#215558] opacity-50 uppercase tracking-wide mb-1">Wegenbelasting</div>
+                                @if($fx['wegenbelasting']['opcenten'])
+                                    <div class="text-sm font-bold text-[#215558]">Opcenten {{ $report['provincie'] }}: {{ $fx['wegenbelasting']['opcenten'] }} <span class="font-medium opacity-50">(voorlopig {{ config('fiscaal.tariefjaar') }})</span></div>
+                                @else
+                                    <div class="text-sm font-bold text-[#215558] opacity-60">Kies een provincie</div>
+                                @endif
+                                <div class="text-[11px] text-[#215558] opacity-50 mt-1">Gewicht {{ $fx['wegenbelasting']['ledig_gewicht'] ?? 'onbekend' }} &middot; <a href="{{ $fx['wegenbelasting']['rekenhulp'] }}" target="_blank" rel="noopener" class="text-eazy-dark font-semibold underline">exact berekenen</a></div>
+                            </div>
+                        @endif
+                    </div>
+                    <p class="text-[11px] text-[#215558] opacity-40 mt-3">Indicaties op basis van RDW-data en tarieven {{ config('fiscaal.tariefjaar') }}. Geen fiscaal advies.</p>
+                </div>
+                @endif
+
+                {{-- Milieuzones --}}
+                <div class="bg-white rounded-2xl border border-[#215558]/10 p-6 mb-6">
+                    <h3 class="text-sm font-bold text-[#215558] mb-4 flex items-center gap-2"><i class="fa-solid fa-city text-eazy"></i> Milieuzones</h3>
+                    <div class="grid grid-cols-2 sm:grid-cols-4 gap-3">
+                        @foreach($report['milieuzone']['steden'] as $stad => $toegang)
+                            <div class="flex items-center gap-2 px-3 py-2.5 rounded-xl {{ $toegang === true ? 'bg-emerald-50' : ($toegang === false ? 'bg-red-50' : 'bg-gray-50') }}">
+                                <i class="fa-solid {{ $toegang === true ? 'fa-circle-check text-emerald-500' : ($toegang === false ? 'fa-circle-xmark text-red-500' : 'fa-circle-question text-gray-400') }} text-sm"></i>
+                                <div>
+                                    <div class="text-xs font-bold text-[#215558]">{{ $stad }}</div>
+                                    <div class="text-[10px] {{ $toegang === true ? 'text-emerald-600' : ($toegang === false ? 'text-red-500' : 'text-gray-400') }}">{{ $toegang === true ? 'Toegang' : ($toegang === false ? 'Geweigerd' : 'Onbekend') }}</div>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                    <p class="text-[11px] text-[#215558] opacity-40 mt-3">{{ $report['milieuzone']['toelichting'] }}</p>
+                </div>
+
                 {{-- Status --}}
                 <div class="bg-white rounded-2xl border border-[#215558]/10 p-6 mb-6">
-                    <h3 class="text-sm font-bold text-[#215558] mb-4 flex items-center gap-2"><i class="fa-solid fa-shield-check text-eazy"></i> Status &amp; registratie</h3>
+                    <h3 class="text-sm font-bold text-[#215558] mb-4 flex items-center gap-2"><i class="fa-solid fa-shield-halved text-eazy"></i> Status &amp; registratie</h3>
                     <div class="grid sm:grid-cols-2 gap-3">
                         @foreach($report['status'] as $label => $item)
                             <div class="flex items-center justify-between gap-3 px-4 py-3 rounded-xl bg-[#ebf2f2]/50">

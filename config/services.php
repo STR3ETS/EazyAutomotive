@@ -35,6 +35,19 @@ return [
         ],
     ],
 
+    // Higgsfield AI video generation. Powers the cinematic promo-video feature
+    // (image-to-video) per car. Credentials use the KEY_ID:KEY_SECRET format and
+    // are sent as an "Authorization: Key <credentials>" header.
+    'higgsfield' => [
+        'credentials' => env('HIGGSFIELD_CREDENTIALS'),
+        'base_url' => env('HIGGSFIELD_BASE_URL', 'https://platform.higgsfield.ai'),
+        'model' => env('HIGGSFIELD_MODEL', 'dop-turbo'),
+        // Authorization scheme: "Key" (KEY_ID:KEY_SECRET) or "Bearer" (single token).
+        'auth_scheme' => env('HIGGSFIELD_AUTH_SCHEME', 'Key'),
+        // Send Higgsfield's own prompt-enhancement flag. Disable if the account rejects it.
+        'enhance_prompt' => env('HIGGSFIELD_ENHANCE_PROMPT', true),
+    ],
+
     // VWE / Finnik data services. Powers the premium parts of het voertuigrapport
     // (taxatie, tellerstandhistorie, onderhoudshistorie, terugroepdetails, schade,
     // WOK, fabrieksopties). Leave empty to keep the report on free RDW data only.

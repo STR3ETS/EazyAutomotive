@@ -232,6 +232,39 @@
                     :class="$store.designTab.active === 'detail' ? 'bg-eazy text-white shadow-md shadow-eazy/20' : 'text-[#215558]/60 hover:text-[#215558] hover:bg-[#ebf2f2]/50'">
                     <i class="fa-solid fa-expand text-xs"></i> Detailpagina
                 </button>
+                <button type="button" @click="$dispatch('switch-tab', { tab: 'proefrit' })"
+                    class="cursor-pointer tab-btn inline-flex items-center gap-2 px-5 py-2 rounded-full text-sm font-bold transition-all"
+                    :class="$store.designTab.active === 'proefrit' ? 'bg-eazy text-white shadow-md shadow-eazy/20' : 'text-[#215558]/60 hover:text-[#215558] hover:bg-[#ebf2f2]/50'">
+                    <i class="fa-solid fa-calendar-check text-xs"></i> Proefrit
+                </button>
+            </div>
+
+            {{-- AI ontwerp-generator (één samenhangend ontwerp voor de hele widget) --}}
+            <div x-data="aiDesigner()" class="mb-6 rounded-2xl border border-eazy/20 bg-gradient-to-br from-eazy-50/60 to-white p-5">
+                <div class="flex items-start gap-3 mb-4">
+                    <div class="w-9 h-9 rounded-xl bg-eazy text-white flex items-center justify-center shrink-0">
+                        <i class="fa-solid fa-wand-magic-sparkles text-sm"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-[#215558]">Genereer met AI</h3>
+                        <p class="text-xs text-[#215558] opacity-60">Beschrijf de gewenste stijl, of plak een website-URL om de kleuren en het lettertype over te nemen. Je krijgt één samenhangend ontwerp voor de hele widget: kaart en detailpagina. Het proefrit-formulier neemt de kleur en het lettertype automatisch over.</p>
+                    </div>
+                </div>
+                <div class="grid gap-3 sm:grid-cols-[1fr_auto]">
+                    <div class="space-y-2">
+                        <textarea x-model="prompt" rows="2" maxlength="1000" placeholder="Bijv. modern en strak met een diepblauwe accentkleur en zachte schaduwen" class="block w-full px-4 py-2.5 rounded-xl border-[#215558]/15 text-sm focus:border-eazy focus:ring-eazy resize-none"></textarea>
+                        <div class="relative">
+                            <i class="fa-solid fa-link absolute left-3 top-1/2 -translate-y-1/2 text-[#215558]/30 text-xs"></i>
+                            <input x-model="url" type="url" placeholder="https://jouw-website.nl (optioneel)" class="block w-full pl-8 pr-4 py-2.5 rounded-xl border-[#215558]/15 text-sm focus:border-eazy focus:ring-eazy">
+                        </div>
+                    </div>
+                    <button type="button" @click="generate()" :disabled="loading || !prompt.trim()" class="cursor-pointer inline-flex items-center justify-center gap-2 px-5 h-[44px] bg-eazy-dark text-white rounded-xl text-sm font-bold hover:bg-eazy-darker disabled:opacity-50 disabled:cursor-default transition self-start whitespace-nowrap">
+                        <i class="fa-solid" :class="loading ? 'fa-spinner fa-spin' : 'fa-wand-magic-sparkles'"></i>
+                        <span x-text="loading ? 'Bezig...' : 'Genereer ontwerp'"></span>
+                    </button>
+                </div>
+                <p x-show="error" x-text="error" class="mt-3 text-xs font-semibold text-red-600"></p>
+                <p x-show="note" x-text="note" class="mt-3 text-xs font-semibold text-eazy-dark"></p>
             </div>
 
             <form method="POST" action="{{ route('ontwerpen.update') }}" id="settingsForm">
@@ -242,6 +275,20 @@
                 {{-- CARD TAB --}}
                 {{-- ═══════════════════════════════════════ --}}
                 <div x-show="$store.designTab.active === 'card'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0">
+                <div class="mb-6 bg-white rounded-2xl border border-[#215558]/10 p-4">
+                    <div class="flex items-center gap-2 mb-3">
+                        <i class="fa-solid fa-wand-magic-sparkles text-eazy text-xs"></i>
+                        <span class="text-xs font-bold text-[#215558]">Presets</span>
+                        <span class="text-[11px] text-[#215558] opacity-40">Kies een stijl en finetune daarna. Vergeet niet op te slaan.</span>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach(['modern'=>['Modern','#0F9B9F'],'minimaal'=>['Minimaal','#111827'],'donker'=>['Donker','#1F2937'],'premium'=>['Premium','#C9A227'],'warm'=>['Warm','#EA580C']] as $k => $p)
+                            <button type="button" onclick="applyDesignSettings(CARD_PRESETS.{{ $k }})" class="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#215558]/10 text-xs font-semibold text-[#215558] hover:border-eazy hover:bg-eazy-50 transition">
+                                <span class="w-3 h-3 rounded-full shrink-0" style="background:{{ $p[1] }}"></span> {{ $p[0] }}
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
                 <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
 
                     {{-- LEFT COLUMN: Settings (3/5) --}}
@@ -260,7 +307,8 @@
                             </div>
 
                             {{-- Columns --}}
-                            <label class="text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-2 block">Aantal kolommen</label>
+                            <label class="text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1 block">Aantal kolommen</label>
+                            <p class="text-[11px] text-[#215558] opacity-40 mb-2"><i class="fa-solid fa-circle-info mr-1"></i> Bepaalt hoeveel auto's er naast elkaar staan op je website. Niet zichtbaar in dit voorbeeld, dat toont één kaart.</p>
                             <input type="hidden" name="columns" id="columns" value="{{ $s['columns'] ?? 3 }}">
                             <div class="grid grid-cols-3 gap-3 mb-5" data-selector-group="columns">
                                 @foreach([2, 3, 4] as $col)
@@ -604,9 +652,16 @@
                     {{-- RIGHT COLUMN: Card Live Preview (2/5) --}}
                     <div class="lg:col-span-2">
                         <div class="lg:sticky lg:top-6">
-                            <div class="flex items-center gap-2 mb-3">
-                                <i class="fa-solid fa-eye text-xs text-[#215558] opacity-50"></i>
-                                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Live voorbeeld: Kaart</label>
+                            <input type="file" id="testPhotoInput" accept="image/*" class="hidden">
+                            <div class="flex items-center justify-between gap-2 mb-3">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-eye text-xs text-[#215558] opacity-50"></i>
+                                    <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Live voorbeeld: Kaart</label>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" onclick="document.getElementById('testPhotoInput').click()" class="cursor-pointer inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-eazy-50 text-eazy-dark text-[11px] font-bold hover:bg-eazy-100 transition"><i class="fa-solid fa-image text-[10px]"></i> Testfoto</button>
+                                    <button type="button" onclick="clearTestPhoto()" class="test-photo-remove cursor-pointer text-[11px] font-semibold text-gray-400 hover:text-red-500 transition" style="display:none">Verwijder</button>
+                                </div>
                             </div>
                             <div class="rounded-2xl bg-[#ebf2f2]/50" id="previewContainer">
                                 <div id="previewCard" style="overflow:hidden;transition:all 0.2s ease;">
@@ -653,6 +708,20 @@
                 {{-- DETAIL TAB --}}
                 {{-- ═══════════════════════════════════════ --}}
                 <div x-show="$store.designTab.active === 'detail'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" style="display:none;">
+                <div class="mb-6 bg-white rounded-2xl border border-[#215558]/10 p-4">
+                    <div class="flex items-center gap-2 mb-3">
+                        <i class="fa-solid fa-wand-magic-sparkles text-eazy text-xs"></i>
+                        <span class="text-xs font-bold text-[#215558]">Presets</span>
+                        <span class="text-[11px] text-[#215558] opacity-40">Zet "Eigen detailontwerp" aan en kies een stijl.</span>
+                    </div>
+                    <div class="flex flex-wrap gap-2">
+                        @foreach(['modern'=>['Modern','#0F9B9F'],'minimaal'=>['Minimaal','#111827'],'donker'=>['Donker','#1F2937'],'premium'=>['Premium','#C9A227'],'warm'=>['Warm','#EA580C']] as $k => $p)
+                            <button type="button" onclick="applyDesignSettings(DETAIL_PRESETS.{{ $k }})" class="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#215558]/10 text-xs font-semibold text-[#215558] hover:border-eazy hover:bg-eazy-50 transition">
+                                <span class="w-3 h-3 rounded-full shrink-0" style="background:{{ $p[1] }}"></span> {{ $p[0] }}
+                            </button>
+                        @endforeach
+                    </div>
+                </div>
                 <div class="grid grid-cols-1 lg:grid-cols-5 gap-6">
 
                     {{-- LEFT COLUMN: Detail Settings (3/5) --}}
@@ -935,9 +1004,15 @@
                     {{-- RIGHT COLUMN: Detail Live Preview (2/5) --}}
                     <div class="lg:col-span-2">
                         <div class="lg:sticky lg:top-6">
-                            <div class="flex items-center gap-2 mb-3">
-                                <i class="fa-solid fa-eye text-xs text-[#215558] opacity-50"></i>
-                                <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Live voorbeeld: Detail</label>
+                            <div class="flex items-center justify-between gap-2 mb-3">
+                                <div class="flex items-center gap-2">
+                                    <i class="fa-solid fa-eye text-xs text-[#215558] opacity-50"></i>
+                                    <label class="text-xs font-bold text-gray-500 uppercase tracking-wider">Live voorbeeld: Detail</label>
+                                </div>
+                                <div class="flex items-center gap-2">
+                                    <button type="button" onclick="document.getElementById('testPhotoInput').click()" class="cursor-pointer inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-eazy-50 text-eazy-dark text-[11px] font-bold hover:bg-eazy-100 transition"><i class="fa-solid fa-image text-[10px]"></i> Testfoto</button>
+                                    <button type="button" onclick="clearTestPhoto()" class="test-photo-remove cursor-pointer text-[11px] font-semibold text-gray-400 hover:text-red-500 transition" style="display:none">Verwijder</button>
+                                </div>
                             </div>
                             <div class="rounded-2xl overflow-hidden" id="detailPreviewContainer">
                                 {{-- Detail Preview Mock --}}
@@ -1009,13 +1084,100 @@
 
             </form>
 
+            {{-- ═══════════════════════════════════════ --}}
+            {{-- PROEFRIT TAB --}}
+            {{-- ═══════════════════════════════════════ --}}
+            <div x-show="$store.designTab.active === 'proefrit'" x-transition:enter="transition ease-out duration-200" x-transition:enter-start="opacity-0 translate-y-1" x-transition:enter-end="opacity-100 translate-y-0" style="display:none">
+                @php $s = $company->embed_settings ?? []; @endphp
+                <form method="POST" action="{{ route('ontwerpen.proefrit') }}" class="max-w-2xl">
+                    @csrf
+                    @method('PUT')
+
+                    {{-- Presets --}}
+                    <div class="mb-6 bg-white rounded-2xl border border-[#215558]/10 p-4">
+                        <div class="flex items-center gap-2 mb-3">
+                            <i class="fa-solid fa-wand-magic-sparkles text-eazy text-xs"></i>
+                            <span class="text-xs font-bold text-[#215558]">Presets</span>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            @foreach(['standaard' => 'Standaard', 'kort' => 'Kort & snel', 'avg' => 'Met AVG-akkoord'] as $k => $label)
+                                <button type="button" onclick="applyProefritPreset(PROEFRIT_PRESETS.{{ $k }})" class="cursor-pointer inline-flex items-center gap-2 px-3 py-1.5 rounded-full border border-[#215558]/10 text-xs font-semibold text-[#215558] hover:border-eazy hover:bg-eazy-50 transition">{{ $label }}</button>
+                            @endforeach
+                        </div>
+                    </div>
+
+                    {{-- Teksten --}}
+                    <div class="bg-white rounded-2xl border border-[#215558]/10 p-6 mb-6">
+                        <div class="flex items-center gap-3 mb-5 pb-4 border-b border-[#215558]/5">
+                            <div class="w-9 h-9 rounded-xl bg-eazy-50 flex items-center justify-center"><i class="fa-solid fa-font text-eazy text-sm"></i></div>
+                            <div>
+                                <h3 class="text-sm font-bold text-[#215558]">Teksten</h3>
+                                <p class="text-xs text-[#215558] opacity-50">Pas de teksten van het proefrit-formulier aan.</p>
+                            </div>
+                        </div>
+                        <div class="space-y-4">
+                            <div>
+                                <label class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1.5">Titel</label>
+                                <input type="text" name="proefrit_titel" value="{{ old('proefrit_titel', $s['proefrit_titel'] ?? 'Plan een proefrit') }}" maxlength="80" class="block w-full px-4 py-2.5 rounded-xl border-[#215558]/10 text-sm focus:border-eazy focus:ring-eazy">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1.5">Introtekst</label>
+                                <textarea name="proefrit_intro" rows="2" maxlength="300" class="block w-full px-4 py-2.5 rounded-xl border-[#215558]/10 text-sm focus:border-eazy focus:ring-eazy">{{ old('proefrit_intro', $s['proefrit_intro'] ?? '') }}</textarea>
+                                <p class="text-[11px] text-[#215558] opacity-40 mt-1">Laat leeg voor de standaardtekst met je bedrijfsnaam.</p>
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1.5">Knoptekst</label>
+                                <input type="text" name="proefrit_knop" value="{{ old('proefrit_knop', $s['proefrit_knop'] ?? 'Proefrit aanvragen') }}" maxlength="50" class="block w-full px-4 py-2.5 rounded-xl border-[#215558]/10 text-sm focus:border-eazy focus:ring-eazy">
+                            </div>
+                            <div>
+                                <label class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1.5">Bedanktekst (na verzenden)</label>
+                                <textarea name="proefrit_bedankt" rows="2" maxlength="300" class="block w-full px-4 py-2.5 rounded-xl border-[#215558]/10 text-sm focus:border-eazy focus:ring-eazy">{{ old('proefrit_bedankt', $s['proefrit_bedankt'] ?? 'Bedankt! Je proefrit-aanvraag is verstuurd. We nemen snel contact met je op.') }}</textarea>
+                            </div>
+                        </div>
+                    </div>
+
+                    {{-- Velden --}}
+                    <div class="bg-white rounded-2xl border border-[#215558]/10 p-6 mb-6">
+                        <div class="flex items-center gap-3 mb-5 pb-4 border-b border-[#215558]/5">
+                            <div class="w-9 h-9 rounded-xl bg-eazy-50 flex items-center justify-center"><i class="fa-solid fa-list-check text-eazy text-sm"></i></div>
+                            <div>
+                                <h3 class="text-sm font-bold text-[#215558]">Velden</h3>
+                                <p class="text-xs text-[#215558] opacity-50">Bepaal welke velden klanten zien.</p>
+                            </div>
+                        </div>
+                        <div class="space-y-3.5">
+                            @foreach([
+                                ['proefrit_toon_datum', 'Datumveld tonen', true],
+                                ['proefrit_toon_bericht', 'Berichtveld tonen', true],
+                                ['proefrit_auto_verplicht', 'Auto-keuze verplicht maken', false],
+                                ['proefrit_privacy', 'Privacy-akkoord verplichten', false],
+                            ] as [$key, $label, $default])
+                                <label class="flex items-center justify-between gap-3 cursor-pointer">
+                                    <span class="text-sm font-medium text-[#215558]">{{ $label }}</span>
+                                    <input type="checkbox" name="{{ $key }}" value="1" @checked(old($key, $s[$key] ?? $default)) class="rounded border-[#215558]/20 text-eazy focus:ring-eazy">
+                                </label>
+                            @endforeach
+                        </div>
+                        <div class="mt-4 pt-4 border-t border-[#215558]/5">
+                            <label class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1.5">Tekst privacy-akkoord</label>
+                            <input type="text" name="proefrit_privacy_tekst" value="{{ old('proefrit_privacy_tekst', $s['proefrit_privacy_tekst'] ?? 'Ik ga akkoord met de verwerking van mijn gegevens.') }}" maxlength="300" class="block w-full px-4 py-2.5 rounded-xl border-[#215558]/10 text-sm focus:border-eazy focus:ring-eazy">
+                        </div>
+                        <p class="text-[11px] text-[#215558] opacity-40 mt-4"><i class="fa-solid fa-circle-info mr-1"></i> Kleur, lettertype en hoekradius volgen automatisch je instellingen onder "Kaart".</p>
+                    </div>
+
+                    <button type="submit" class="cursor-pointer inline-flex items-center gap-2 px-6 py-3 bg-eazy text-white rounded-full text-sm font-bold hover:bg-eazy-dark shadow-lg shadow-eazy/20 transition">
+                        <i class="fa-solid fa-floppy-disk text-xs"></i> Proefrit-instellingen opslaan
+                    </button>
+                </form>
+            </div>
+
         </div>
     </div>
 
     <script>
         /* Alpine store for tab switching */
         document.addEventListener('alpine:init', () => {
-            Alpine.store('designTab', { active: 'card' });
+            Alpine.store('designTab', { active: '{{ optional($errors)->hasAny(['proefrit_titel', 'proefrit_intro', 'proefrit_knop', 'proefrit_bedankt', 'proefrit_privacy_tekst']) ? 'proefrit' : 'card' }}' });
         });
         window.addEventListener('switch-tab', e => {
             Alpine.store('designTab').active = e.detail.tab;
@@ -1043,7 +1205,7 @@
             });
         });
 
-        /* Live Preview — Card */
+        /* Live Preview - Card */
         function updatePreview() {
             const card = $('previewCard');
             const body = $('previewBody');
@@ -1159,7 +1321,7 @@
 
         }
 
-        /* Live Preview — Detail */
+        /* Live Preview - Detail */
         function updateDetailPreview() {
             const modal = $('detailPreviewModal');
             const body = $('detailPreviewBody');
@@ -1308,7 +1470,7 @@
                 el.style.color = subtitleColor;
             });
 
-            /* Value displays — Colors */
+            /* Value displays - Colors */
             const colorTexts = {
                 'detail_bg_color': bgColor, 'detail_border_color': borderColor,
                 'detail_title_color': titleColor, 'detail_subtitle_color': subtitleColor,
@@ -1322,7 +1484,7 @@
                 if (el) el.textContent = val;
             }
 
-            /* Value displays — Sliders */
+            /* Value displays - Sliders */
             const sliderVals = {
                 'detail_border_radius': [radius, 'px'], 'detail_border_width': [borderWidth, 'px'],
                 'detail_padding': [padding, 'px'], 'detail_title_size': [titleSize, 'px'],
@@ -1342,6 +1504,132 @@
             el.addEventListener('input', () => { updatePreview(); updateDetailPreview(); });
             el.addEventListener('change', () => { updatePreview(); updateDetailPreview(); });
         });
+
+        /* Test photo upload for the live preview (client-side only, niet opgeslagen) */
+        let testPhotoUrl = null;
+        const PLACEHOLDER_BG = 'linear-gradient(135deg,#dbeafe 0%,#bfdbfe 50%,#93c5fd 100%)';
+        const TEST_PHOTO_TARGETS = ['previewImgPlaceholder', 'previewImgPlaceholderBottom', 'detailPreviewGallery'];
+        function applyTestPhoto() {
+            TEST_PHOTO_TARGETS.forEach(id => {
+                const el = $(id);
+                if (!el) return;
+                const icon = el.querySelector('i');
+                if (testPhotoUrl) {
+                    el.style.backgroundImage = 'url("' + testPhotoUrl + '")';
+                    el.style.backgroundSize = 'cover';
+                    el.style.backgroundPosition = 'center';
+                    el.style.backgroundRepeat = 'no-repeat';
+                    if (icon) icon.style.display = 'none';
+                } else {
+                    el.style.backgroundImage = PLACEHOLDER_BG;
+                    if (icon) icon.style.display = '';
+                }
+            });
+            document.querySelectorAll('.test-photo-remove').forEach(b => b.style.display = testPhotoUrl ? 'inline' : 'none');
+        }
+        function clearTestPhoto() {
+            if (testPhotoUrl) URL.revokeObjectURL(testPhotoUrl);
+            testPhotoUrl = null;
+            const inp = $('testPhotoInput');
+            if (inp) inp.value = '';
+            applyTestPhoto();
+        }
+        $('testPhotoInput')?.addEventListener('change', e => {
+            const file = e.target.files && e.target.files[0];
+            if (!file) return;
+            if (testPhotoUrl) URL.revokeObjectURL(testPhotoUrl);
+            testPhotoUrl = URL.createObjectURL(file);
+            applyTestPhoto();
+        });
+
+        /* ── Design presets ── */
+        const CARD_PRESETS = {
+            modern:   { primary_color:'#0F9B9F', card_bg_color:'#FFFFFF', card_border_radius:16, card_padding:16, card_border_color:'#E5E7EB', card_border_width:1, card_shadow:'md', hover_effect:'lift', title_color:'#111827', label_style:'badge', label_bg_color:'#F0FAFA', label_text_color:'#0B7A7D', label_radius:8 },
+            minimaal: { primary_color:'#111827', card_bg_color:'#FFFFFF', card_border_radius:6, card_padding:14, card_border_color:'#E5E7EB', card_border_width:1, card_shadow:'none', hover_effect:'none', title_color:'#111827', label_style:'outline', label_bg_color:'#FFFFFF', label_text_color:'#6B7280', label_radius:6 },
+            donker:   { primary_color:'#38BDF8', card_bg_color:'#1F2937', card_border_radius:14, card_padding:18, card_border_color:'#374151', card_border_width:1, card_shadow:'lg', hover_effect:'glow', title_color:'#FFFFFF', label_style:'pill', label_bg_color:'#374151', label_text_color:'#E5E7EB', label_radius:14 },
+            premium:  { primary_color:'#C9A227', card_bg_color:'#0B0B0C', card_border_radius:4, card_padding:20, card_border_color:'#2A2A2A', card_border_width:1, card_shadow:'lg', hover_effect:'shadow', title_color:'#F5F5F4', label_style:'outline', label_bg_color:'#0B0B0C', label_text_color:'#C9A227', label_radius:2 },
+            warm:     { primary_color:'#EA580C', card_bg_color:'#FFF7ED', card_border_radius:18, card_padding:16, card_border_color:'#FED7AA', card_border_width:1, card_shadow:'sm', hover_effect:'scale', title_color:'#7C2D12', label_style:'badge', label_bg_color:'#FFEDD5', label_text_color:'#C2410C', label_radius:14 },
+        };
+        const DETAIL_PRESETS = {
+            modern:   { detail_custom:true, detail_bg_color:'#FFFFFF', detail_border_color:'#E5E7EB', detail_border_radius:16, detail_padding:24, detail_shadow:'lg', detail_title_color:'#111827', detail_price_color:'#0F9B9F', detail_desc_color:'#4B5563', detail_spec_bg_color:'#F9FAFB', detail_spec_label_color:'#6B7280', detail_spec_value_color:'#111827', detail_spec_radius:8, detail_badge_style:'pill', detail_badge_bg_color:'#F0FAFA', detail_badge_text_color:'#0B7A7D' },
+            minimaal: { detail_custom:true, detail_bg_color:'#FFFFFF', detail_border_color:'#E5E7EB', detail_border_radius:6, detail_padding:24, detail_shadow:'none', detail_title_color:'#111827', detail_price_color:'#111827', detail_desc_color:'#6B7280', detail_spec_bg_color:'#FFFFFF', detail_spec_label_color:'#9CA3AF', detail_spec_value_color:'#111827', detail_spec_radius:4, detail_badge_style:'outline', detail_badge_bg_color:'#FFFFFF', detail_badge_text_color:'#6B7280' },
+            donker:   { detail_custom:true, detail_bg_color:'#111827', detail_border_color:'#374151', detail_border_radius:14, detail_padding:24, detail_shadow:'lg', detail_title_color:'#FFFFFF', detail_price_color:'#38BDF8', detail_desc_color:'#D1D5DB', detail_spec_bg_color:'#1F2937', detail_spec_label_color:'#9CA3AF', detail_spec_value_color:'#F9FAFB', detail_spec_radius:10, detail_badge_style:'pill', detail_badge_bg_color:'#374151', detail_badge_text_color:'#E5E7EB' },
+            premium:  { detail_custom:true, detail_bg_color:'#0B0B0C', detail_border_color:'#2A2A2A', detail_border_radius:4, detail_padding:28, detail_shadow:'lg', detail_title_color:'#F5F5F4', detail_price_color:'#C9A227', detail_desc_color:'#A3A3A3', detail_spec_bg_color:'#141414', detail_spec_label_color:'#8A8A8A', detail_spec_value_color:'#F5F5F4', detail_spec_radius:2, detail_badge_style:'outline', detail_badge_bg_color:'#0B0B0C', detail_badge_text_color:'#C9A227' },
+            warm:     { detail_custom:true, detail_bg_color:'#FFF7ED', detail_border_color:'#FED7AA', detail_border_radius:18, detail_padding:24, detail_shadow:'sm', detail_title_color:'#7C2D12', detail_price_color:'#EA580C', detail_desc_color:'#7C2D12', detail_spec_bg_color:'#FFEDD5', detail_spec_label_color:'#C2410C', detail_spec_value_color:'#7C2D12', detail_spec_radius:14, detail_badge_style:'badge', detail_badge_bg_color:'#FFEDD5', detail_badge_text_color:'#C2410C' },
+        };
+        const PROEFRIT_PRESETS = {
+            standaard: { proefrit_titel:'Plan een proefrit', proefrit_intro:'', proefrit_knop:'Proefrit aanvragen', proefrit_toon_datum:true, proefrit_toon_bericht:true, proefrit_auto_verplicht:false, proefrit_privacy:false },
+            kort:      { proefrit_titel:'Vraag een proefrit aan', proefrit_intro:'Laat je gegevens achter, dan nemen we snel contact op.', proefrit_knop:'Aanvragen', proefrit_toon_datum:false, proefrit_toon_bericht:false, proefrit_auto_verplicht:false, proefrit_privacy:false },
+            avg:       { proefrit_titel:'Plan een proefrit', proefrit_intro:'', proefrit_knop:'Proefrit aanvragen', proefrit_toon_datum:true, proefrit_toon_bericht:true, proefrit_auto_verplicht:false, proefrit_privacy:true, proefrit_privacy_tekst:'Ik ga akkoord met de verwerking van mijn gegevens.' },
+        };
+
+        function applyDesignSettings(obj) {
+            Object.keys(obj).forEach(key => {
+                const val = obj[key];
+                const group = document.querySelector('[data-selector-group="' + key + '"]');
+                const el = $(key);
+                if (group && el) {
+                    el.value = val;
+                    group.querySelectorAll('[data-value]').forEach(c => c.classList.toggle('selected', String(c.dataset.value) === String(val)));
+                } else if (el) {
+                    if (el.type === 'checkbox') { el.checked = !!val; }
+                    else { el.value = val; el.dispatchEvent(new Event('input', { bubbles: true })); }
+                }
+            });
+            updatePreview();
+            updateDetailPreview();
+        }
+
+        function applyProefritPreset(obj) {
+            const form = document.querySelector('form[action*="ontwerpen/proefrit"]');
+            if (!form) return;
+            Object.keys(obj).forEach(key => {
+                const el = form.querySelector('[name="' + key + '"]');
+                if (!el) return;
+                if (el.type === 'checkbox') { el.checked = !!obj[key]; }
+                else { el.value = obj[key]; }
+            });
+        }
+        window.applyDesignSettings = applyDesignSettings;
+        window.applyProefritPreset = applyProefritPreset;
+
+        /* ── AI ontwerp-generator ── */
+        function aiDesigner() {
+            return {
+                prompt: '', url: '', loading: false, error: '', note: '',
+                async generate() {
+                    this.error = ''; this.note = '';
+                    if (!this.prompt.trim()) { this.error = 'Beschrijf eerst de gewenste stijl.'; return; }
+                    this.loading = true;
+                    try {
+                        const res = await fetch('{{ route('ontwerpen.ai') }}', {
+                            method: 'POST',
+                            headers: {
+                                'Content-Type': 'application/json',
+                                'Accept': 'application/json',
+                                'X-CSRF-TOKEN': document.querySelector('meta[name="csrf-token"]').content,
+                            },
+                            body: JSON.stringify({ prompt: this.prompt, url: this.url || null }),
+                        });
+                        const data = await res.json();
+                        if (!res.ok) { this.error = data.error || 'Genereren mislukt. Probeer het opnieuw.'; return; }
+                        const settings = data.settings || {};
+                        if (!Object.keys(settings).length) { this.error = 'Geen ontwerp ontvangen. Probeer een andere omschrijving.'; return; }
+                        applyDesignSettings(settings);
+                        let n = 'Ontwerp toegepast op kaart en detailpagina. Controleer beide tabs en klik op opslaan.';
+                        if (data.brand && data.brand.colors && data.brand.colors.length) {
+                            n += ' Kleuren overgenomen: ' + data.brand.colors.slice(0, 4).join(', ') + '.';
+                        }
+                        this.note = n;
+                    } catch (e) {
+                        this.error = 'Verbinding mislukt. Probeer het opnieuw.';
+                    } finally {
+                        this.loading = false;
+                    }
+                },
+            };
+        }
+        window.aiDesigner = aiDesigner;
 
         /* Initial render */
         updatePreview();

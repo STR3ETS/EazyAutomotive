@@ -13,9 +13,10 @@ class VoertuigRapportController extends Controller
     {
         $kenteken = trim((string) $request->query('kenteken')) ?: null;
         $km = $request->integer('km') ?: null;
+        $provincie = trim((string) $request->query('provincie')) ?: null;
 
-        $report = $kenteken ? $this->reports->generate($kenteken, $km) : null;
+        $report = $kenteken ? $this->reports->generate($kenteken, $km, $provincie) : null;
 
-        return view('company.onderzoek', compact('report', 'kenteken', 'km'));
+        return view('company.onderzoek', compact('report', 'kenteken', 'km', 'provincie'));
     }
 }

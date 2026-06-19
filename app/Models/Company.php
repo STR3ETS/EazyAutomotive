@@ -67,4 +67,9 @@ class Company extends Model
     {
         return $this->hasMany(PublicationLog::class);
     }
+
+    public function proefritAanvragen(): HasMany
+    {
+        return $this->hasMany(ProefritAanvraag::class);
+    }
 }

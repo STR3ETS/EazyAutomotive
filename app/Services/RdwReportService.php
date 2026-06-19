@@ -2,6 +2,7 @@
 
 namespace App\Services;
 
+use App\Services\Valuation\ValuationEngine;
 use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Http;
@@ -21,9 +22,13 @@ class RdwReportService
     private const GEBREKEN_GECONSTATEERD = '/a34c-vvps.json';
     private const GEBREKEN_OMSCHRIJVING = '/hx2c-gt7k.json';
 
-    public function __construct(private RdwService $rdw) {}
+    public function __construct(
+        private RdwService $rdw,
+        private ValuationEngine $valuationEngine,
+        private FiscalService $fiscalService,
+    ) {}
 
-    public function generate(string $kenteken, ?int $km = null): ?array
+    public function generate(string $kenteken, ?int $km = null, ?string $provincie = null): ?array
     {
         $plate = $this->rdw->normalizeKenteken($kenteken);
 
@@ -36,6 +41,13 @@ class RdwReportService
         $assen = $this->fetchAssen($plate);
         $defects = $this->fetchDefectHistory($plate);
 
+        $brandstofOmschr = $voertuig['brandstof_omschrijving'] ?? null;
+        $leeftijd = $this->fiscalService->leeftijdJaren($voertuig['datum_eerste_toelating'] ?? null);
+        $euroKlasse = $this->euroClass($voertuig);
+
+        $waarde = $this->valuation($voertuig, $km);
+        $dagwaarde = $waarde['midden_val'] ?? null;
+
         return [
             'kenteken' => strtoupper($plate),
             'kenteken_raw' => $plate,
@@ -46,11 +58,42 @@ class RdwReportService
             'afmetingen' => $this->dimensions($voertuig, $assen),
             'milieu' => $this->environment($voertuig, $brandstof),
             'fiscaal' => $this->fiscal($voertuig),
+            'fiscaal_extra' => [
+                'rest_bpm' => $this->fiscalService->restBpm(
+                    isset($voertuig['bruto_bpm']) ? (int) $voertuig['bruto_bpm'] : null,
+                    $voertuig['datum_eerste_toelating'] ?? null,
+                ),
+                'bijtelling' => $this->fiscalService->bijtelling(
+                    isset($voertuig['catalogusprijs']) ? (int) $voertuig['catalogusprijs'] : null,
+                    $brandstofOmschr,
+                    $leeftijd,
+                    $dagwaarde,
+                ),
+                'wegenbelasting' => $this->fiscalService->wegenbelasting(
+                    isset($voertuig['massa_ledig_voertuig']) ? (int) $voertuig['massa_ledig_voertuig'] : null,
+                    $brandstofOmschr,
+                    $provincie,
+                ),
+            ],
+            'milieuzone' => $this->fiscalService->milieuzone($brandstofOmschr, $euroKlasse),
+            'provincie' => $provincie,
+            'provincies' => $this->fiscalService->provincies(),
             'status' => $this->status($voertuig),
             'gebreken' => $defects,
-            'waarde' => $this->valuation($voertuig, $km),
+            'waarde' => $waarde,
             'aandachtspunten' => $this->attentionPoints($voertuig, $defects),
         ];
+    }
+
+    private function euroClass(array $v): ?int
+    {
+        $candidates = [$v['uitlaatemissieniveau'] ?? '', $v['emissiecode_omschrijving'] ?? ''];
+        foreach ($candidates as $s) {
+            if (preg_match('/(\d+)/', (string) $s, $m)) {
+                return (int) $m[1];
+            }
+        }
+        return null;
     }
 
     private function coreData(array $v): array
@@ -211,41 +254,29 @@ class RdwReportService
      */
     private function valuation(array $v, ?int $km): array
     {
-        $year = $this->year($v['datum_eerste_toelating'] ?? null);
-        if (!$year) {
-            return ['beschikbaar' => false, 'toelichting' => 'Onvoldoende gegevens (geen bouwjaar) voor een indicatie.'];
+        $est = $this->valuationEngine->estimate([
+            'merk' => $v['merk'] ?? null,
+            'model' => $v['handelsbenaming'] ?? null,
+            'bouwjaar' => $this->year($v['datum_eerste_toelating'] ?? null),
+            'brandstof' => $v['brandstof_omschrijving'] ?? null,
+            'catalogusprijs' => $v['catalogusprijs'] ?? null,
+        ], $km);
+
+        if (!($est['beschikbaar'] ?? false)) {
+            return ['beschikbaar' => false, 'toelichting' => $est['toelichting'] ?? 'Geen waardeschatting mogelijk.'];
         }
-
-        $age = max(0, now()->year - (int) $year);
-        $catalogus = isset($v['catalogusprijs']) ? (int) $v['catalogusprijs'] : 0;
-        $rough = $catalogus <= 0;
-        $base = $rough ? 30000 : $catalogus;
-
-        // Depreciation: steep early, flatter later.
-        $value = $base * (0.82 ** min($age, 4)) * (0.90 ** max(0, $age - 4));
-
-        // Mileage adjustment (only penalise meaningfully; capped both ways).
-        if ($km !== null && $km > 0) {
-            $expected = max(10000, $age * 13000);
-            $ratio = $km / $expected;
-            $factor = max(0.55, min(1.15, 1.15 - 0.30 * $ratio));
-            $value *= $factor;
-        }
-
-        $value = max(500, $value);
-        $step = $value < 5000 ? 100 : 250;
-        $mid = (int) (round($value / $step) * $step);
 
         return [
             'beschikbaar' => true,
-            'ruw' => $rough,
-            'midden' => $this->euro($mid),
-            'onder' => $this->euro((int) (round($mid * 0.88 / $step) * $step)),
-            'boven' => $this->euro((int) (round($mid * 1.12 / $step) * $step)),
+            'bron' => $est['bron'],
+            'vertrouwen' => $est['vertrouwen'],
+            'aantal' => $est['aantal'],
+            'midden' => $this->euro($est['midden']),
+            'midden_val' => $est['midden'],
+            'onder' => $this->euro($est['onder']),
+            'boven' => $this->euro($est['boven']),
             'km_gebruikt' => $km,
-            'toelichting' => $rough
-                ? 'Ruwe indicatie: de RDW heeft geen catalogusprijs voor dit (oudere) voertuig. Voor een nauwkeurige waarde is een taxatie- of marktbron nodig.'
-                : 'Indicatieve schatting op basis van nieuwprijs, leeftijd' . ($km ? ' en kilometerstand' : '') . '. Geen officiële taxatie.',
+            'toelichting' => $est['toelichting'],
         ];
     }
 

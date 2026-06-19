@@ -9,6 +9,13 @@
                 </div>
             @endif
 
+            @if(session('error'))
+                <div class="mb-6 flex items-center gap-3 bg-red-50 border border-red-200 text-red-600 px-5 py-3.5 rounded-xl">
+                    <i class="fa-solid fa-circle-exclamation text-lg"></i>
+                    <span class="text-sm font-medium">{{ session('error') }}</span>
+                </div>
+            @endif
+
             {{-- Page Header --}}
             <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
                 <div>
@@ -76,6 +83,108 @@
                             <div class="w-full h-80 bg-[#ebf2f2] rounded-xl flex flex-col items-center justify-center">
                                 <i class="fa-solid fa-image text-[#215558]/15 text-4xl mb-2"></i>
                                 <p class="text-sm text-[#215558] opacity-40">Geen foto's beschikbaar</p>
+                            </div>
+                        @endif
+                    </div>
+
+                    {{-- AI Promo-video's --}}
+                    <div class="bg-white rounded-2xl border border-[#215558]/10 p-6 relative overflow-hidden">
+                        <div class="flex items-center gap-3 mb-4 pb-3 border-b border-[#215558]/5">
+                            <div class="w-8 h-8 rounded-lg bg-purple-50 flex items-center justify-center">
+                                <i class="fa-solid fa-clapperboard text-purple-500 text-xs"></i>
+                            </div>
+                            <div>
+                                <h3 class="text-sm font-bold text-[#215558]">Promovideo's (AI)</h3>
+                                <p class="text-[11px] text-[#215558] opacity-50">Genereer een cinematische video van deze auto. Je korte omschrijving wordt automatisch uitgewerkt tot een filmische prompt.</p>
+                            </div>
+                        </div>
+
+                        @if($car->images->count() === 0)
+                            <p class="text-sm text-[#215558] opacity-60">Voeg eerst een foto toe. De video wordt gemaakt op basis van de eerste foto.</p>
+                        @else
+                            @php $defaultImageId = optional($car->primaryImage)->id ?? optional($car->images->first())->id; @endphp
+                            <form method="POST" action="{{ route('cars.videos.store', $car) }}" x-data="{ submitting: false, img: {{ $defaultImageId }} }" @submit="submitting = true">
+                                @csrf
+                                @if($car->images->count() > 1)
+                                    <label class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1.5">Kies de hero-foto</label>
+                                    <div class="flex flex-wrap gap-2 mb-4">
+                                        @foreach($car->images as $image)
+                                            <label class="cursor-pointer">
+                                                <input type="radio" name="car_image_id" value="{{ $image->id }}" class="sr-only" x-model.number="img">
+                                                <img src="{{ $image->url }}" alt="" class="w-16 h-16 object-cover rounded-lg border-2 transition" :class="img === {{ $image->id }} ? 'border-eazy' : 'border-transparent hover:border-[#215558]/20'">
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                @else
+                                    <input type="hidden" name="car_image_id" value="{{ $defaultImageId }}">
+                                @endif
+                                <label class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1.5">Beschrijf de video</label>
+                                <textarea name="prompt" rows="2" maxlength="1000" required x-ref="prompt"
+                                    placeholder="Bijv. cinematische orbit rond de auto, dramatische avondbelichting, langzame dolly-in"
+                                    class="block w-full px-4 py-2.5 rounded-xl border-[#215558]/10 text-sm focus:border-eazy focus:ring-eazy resize-none"></textarea>
+                                <div class="flex flex-wrap gap-1.5 mt-2 mb-3">
+                                    @foreach([
+                                        'Cinematische orbit rond de auto, dramatische belichting',
+                                        'Langzame dolly-in met reflecties op de lak',
+                                        'Dynamische reveal, camera sweep van voor naar achter',
+                                        'Luxe sfeer, zachte camerabeweging, gouden uur',
+                                    ] as $suggestie)
+                                        <button type="button" @click="$refs.prompt.value = @js($suggestie)" class="cursor-pointer text-[11px] px-2.5 py-1 rounded-full border border-[#215558]/10 text-[#215558] hover:border-eazy hover:bg-eazy-50 transition">{{ \Illuminate\Support\Str::limit($suggestie, 32) }}</button>
+                                    @endforeach
+                                </div>
+                                @if(config('app.env') !== 'production')
+                                    <input type="url" name="image_url" placeholder="Test: publieke afbeeldings-URL (lokaal nodig, Higgsfield kan localhost niet bereiken)" class="block w-full px-4 py-2 mb-3 rounded-xl border-[#215558]/10 text-xs focus:border-eazy focus:ring-eazy">
+                                @endif
+                                <button type="submit" :disabled="submitting" class="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 bg-eazy text-white rounded-full text-sm font-bold hover:bg-eazy-dark disabled:opacity-50 transition">
+                                    <i class="fa-solid" :class="submitting ? 'fa-spinner fa-spin' : 'fa-clapperboard'"></i>
+                                    <span x-text="submitting ? 'Bezig...' : 'Genereer video'"></span>
+                                </button>
+                            </form>
+                        @endif
+
+                        @if($car->videos->count() > 0)
+                            <div class="mt-5 pt-5 border-t border-[#215558]/5 space-y-4">
+                                @foreach($car->videos as $video)
+                                    <div class="rounded-xl border border-[#215558]/10 p-3"
+                                        @if($video->isPending()) x-data="videoPoll('{{ route('cars.videos.status', [$car, $video]) }}')" x-init="start()" @endif>
+                                        <div class="flex items-start justify-between gap-3">
+                                            <div class="min-w-0">
+                                                <p class="text-xs text-[#215558] opacity-70 line-clamp-2">{{ $video->prompt }}</p>
+                                                <p class="text-[10px] text-[#215558] opacity-40 mt-1">{{ $video->created_at->format('d-m-Y H:i') }}</p>
+                                            </div>
+                                            @php
+                                                $badge = match($video->status) {
+                                                    'completed' => ['bg-emerald-50', 'text-emerald-600', 'Klaar', 'fa-circle-check'],
+                                                    'failed' => ['bg-red-50', 'text-red-500', 'Mislukt', 'fa-circle-exclamation'],
+                                                    'in_progress' => ['bg-amber-50', 'text-amber-600', 'Bezig', 'fa-spinner fa-spin'],
+                                                    default => ['bg-gray-100', 'text-gray-500', 'In wachtrij', 'fa-clock'],
+                                                };
+                                            @endphp
+                                            <span class="shrink-0 inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[11px] font-semibold {{ $badge[0] }} {{ $badge[1] }}">
+                                                <i class="fa-solid {{ $badge[3] }} text-[9px]"></i> {{ $badge[2] }}
+                                            </span>
+                                        </div>
+
+                                        @if($video->isCompleted() && $video->video_url)
+                                            <video src="{{ $video->video_url }}" controls preload="metadata" class="w-full rounded-lg mt-3 bg-black"></video>
+                                            <div class="flex items-center gap-2 mt-2">
+                                                <a href="{{ $video->video_url }}" download target="_blank" rel="noopener" class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-eazy-dark text-white rounded-full text-xs font-bold hover:bg-eazy-darker transition"><i class="fa-solid fa-download text-[10px]"></i> Downloaden</a>
+                                                <form method="POST" action="{{ route('cars.videos.destroy', [$car, $video]) }}" onsubmit="return confirm('Deze video verwijderen?')">
+                                                    @csrf @method('DELETE')
+                                                    <button type="submit" class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 text-red-500 rounded-full text-xs font-semibold hover:bg-red-50 transition"><i class="fa-solid fa-trash text-[10px]"></i> Verwijderen</button>
+                                                </form>
+                                            </div>
+                                        @elseif($video->isFailed())
+                                            <p class="text-xs text-red-500 mt-2">{{ $video->error ?: 'De generatie is mislukt.' }}</p>
+                                            <form method="POST" action="{{ route('cars.videos.destroy', [$car, $video]) }}" class="mt-2" onsubmit="return confirm('Deze video verwijderen?')">
+                                                @csrf @method('DELETE')
+                                                <button type="submit" class="cursor-pointer text-xs text-red-500 font-semibold hover:underline"><i class="fa-solid fa-trash text-[10px] mr-1"></i> Verwijderen</button>
+                                            </form>
+                                        @else
+                                            <p class="text-xs text-[#215558] opacity-50 mt-2"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Bezig met genereren, dit kan een paar minuten duren. De status ververst automatisch.</p>
+                                        @endif
+                                    </div>
+                                @endforeach
                             </div>
                         @endif
                     </div>
@@ -168,4 +277,29 @@
 
         </div>
     </div>
+
+    <script>
+        /* Poll a pending video; reload the page once it is done (completed or failed). */
+        function videoPoll(url) {
+            return {
+                timer: null,
+                start() {
+                    this.timer = setInterval(() => this.check(), 8000);
+                    setTimeout(() => this.check(), 4000);
+                },
+                async check() {
+                    try {
+                        const res = await fetch(url, { headers: { 'Accept': 'application/json' } });
+                        if (!res.ok) return;
+                        const data = await res.json();
+                        if (data && data.pending === false) {
+                            clearInterval(this.timer);
+                            window.location.reload();
+                        }
+                    } catch (e) { /* keep polling */ }
+                },
+            };
+        }
+        window.videoPoll = videoPoll;
+    </script>
 </x-app-layout>

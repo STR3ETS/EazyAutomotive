@@ -1,10 +1,15 @@
 <?php
 
+use App\Http\Controllers\AiAssistantController;
+use App\Http\Controllers\AiDesignController;
+use App\Http\Controllers\CarCopyController;
 use App\Http\Controllers\CarController;
+use App\Http\Controllers\CarVideoController;
 use App\Http\Controllers\CompanySettingsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FeedController;
 use App\Http\Controllers\OnboardingController;
+use App\Http\Controllers\ProefritController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicerenController;
 use App\Http\Controllers\RdwLookupController;
@@ -32,6 +37,12 @@ Route::middleware(['auth', 'verified', 'company.ownership'])->group(function () 
     // Cars CRUD
     Route::resource('cars', CarController::class);
     Route::post('/cars/lookup-kenteken', [CarController::class, 'lookupKenteken'])->name('cars.lookup');
+    Route::post('/cars/ai-copy', [CarCopyController::class, 'generate'])->name('cars.ai-copy');
+
+    // AI promo-video's per auto (Higgsfield image-to-video)
+    Route::post('/cars/{car}/videos', [CarVideoController::class, 'store'])->name('cars.videos.store');
+    Route::get('/cars/{car}/videos/{video}/status', [CarVideoController::class, 'status'])->name('cars.videos.status');
+    Route::delete('/cars/{car}/videos/{video}', [CarVideoController::class, 'destroy'])->name('cars.videos.destroy');
 
     // AJAX RDW lookup (returns JSON)
     Route::post('/rdw/lookup', [RdwLookupController::class, 'lookup'])->name('rdw.lookup');
@@ -47,9 +58,15 @@ Route::middleware(['auth', 'verified', 'company.ownership'])->group(function () 
     // Ontwerpen (Widget Design)
     Route::get('/ontwerpen', [CompanySettingsController::class, 'ontwerpen'])->name('ontwerpen');
     Route::put('/ontwerpen', [CompanySettingsController::class, 'updateEmbedSettings'])->name('ontwerpen.update');
+    Route::put('/ontwerpen/proefrit', [CompanySettingsController::class, 'updateProefritSettings'])->name('ontwerpen.proefrit');
+    Route::post('/ontwerpen/ai-design', [AiDesignController::class, 'generate'])->name('ontwerpen.ai');
 
     // Integratie (Embed Code + Guide)
     Route::get('/integratie', [CompanySettingsController::class, 'integratie'])->name('integratie');
+
+    // Proefrit-aanvragen (leads uit de embed-widget)
+    Route::get('/proefritten', [ProefritController::class, 'index'])->name('proefritten');
+    Route::patch('/proefritten/{aanvraag}', [ProefritController::class, 'updateStatus'])->name('proefritten.status');
 
     // Publiceren (Publishing to external platforms)
     Route::get('/publiceren', [PublicerenController::class, 'index'])->name('publiceren');
@@ -57,6 +74,10 @@ Route::middleware(['auth', 'verified', 'company.ownership'])->group(function () 
     Route::post('/publiceren/platform/{platform}/disconnect', [PublicerenController::class, 'disconnectPlatform'])->name('publiceren.disconnect');
     Route::post('/publiceren/publish', [PublicerenController::class, 'publishCars'])->name('publiceren.publish');
     Route::post('/publiceren/unpublish/{publication}', [PublicerenController::class, 'unpublishCar'])->name('publiceren.unpublish');
+
+    // AI-collega: chat + autonome acties met activiteitenlog/undo
+    Route::post('/ai/chat', [AiAssistantController::class, 'send'])->name('ai.send');
+    Route::post('/ai/activity/{activity}/undo', [AiAssistantController::class, 'undo'])->name('ai.undo');
 });
 
 // Profile routes (from Breeze)

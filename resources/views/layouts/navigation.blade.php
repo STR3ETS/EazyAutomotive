@@ -26,6 +26,7 @@
                 ['route' => 'ontwerpen', 'match' => 'ontwerpen', 'icon' => 'fa-palette', 'label' => 'Ontwerpen', 'tour' => 'nav-design'],
                 ['route' => 'integratie', 'match' => 'integratie', 'icon' => 'fa-code', 'label' => 'Integratie', 'tour' => 'nav-embed'],
                 ['route' => 'publiceren', 'match' => 'publiceren*', 'icon' => 'fa-share-nodes', 'label' => 'Publiceren', 'tour' => 'nav-publish'],
+                ['route' => 'proefritten', 'match' => 'proefritten', 'icon' => 'fa-calendar-check', 'label' => 'Proefritten', 'tour' => 'nav-proefrit'],
                 ['route' => 'settings.edit', 'match' => 'settings.*', 'icon' => 'fa-gear', 'label' => 'Instellingen', 'tour' => 'nav-settings'],
             ];
         @endphp

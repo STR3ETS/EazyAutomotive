@@ -132,6 +132,33 @@
 
             </div>
 
+            {{-- Proefrit Widget Section --}}
+            <div class="bg-white rounded-2xl border border-[#215558]/10 p-6 relative overflow-hidden mb-6">
+                <div class="flex items-center gap-3 mb-4 pb-4 border-b border-[#215558]/5">
+                    <div class="w-9 h-9 rounded-xl bg-eazy-50 flex items-center justify-center">
+                        <i class="fa-solid fa-calendar-check text-eazy text-sm"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-[#215558]">Proefrit-widget</h3>
+                        <p class="text-xs text-[#215558] opacity-50">Laat klanten een proefrit aanvragen vanaf je eigen website</p>
+                    </div>
+                </div>
+                <p class="text-xs text-[#215558] opacity-60 mb-4 leading-relaxed">Plaats onderstaande code op je website. Aanvragen verschijnen automatisch onder <a href="{{ route('proefritten') }}" class="text-eazy font-semibold underline">Proefritten</a>. Wil je het formulier aan een specifieke auto koppelen? Voeg dan <code class="bg-gray-100 px-1 py-0.5 rounded text-[11px]">data-car-id="ID"</code> toe aan het script.</p>
+                <div class="relative">
+                    <pre class="bg-gray-900 text-green-400 rounded-xl p-4 text-xs overflow-x-auto leading-relaxed" id="proefritCode">&lt;!-- EazyAutomotive Proefrit-widget --&gt;
+&lt;div id="eazy-proefrit"&gt;&lt;/div&gt;
+&lt;script
+  src="{{ url('/embed/v1/proefrit.js') }}"
+  data-api-key="{{ $company->api_key }}"
+  data-base-url="{{ url('/') }}"
+  defer&gt;
+&lt;/script&gt;</pre>
+                    <button onclick="copyProefritCode()" class="cursor-pointer absolute top-3 right-3 inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-700 text-gray-300 rounded-lg text-xs hover:bg-gray-600 transition" id="copyProefritBtn">
+                        <i class="fa-regular fa-copy"></i> Kopieer
+                    </button>
+                </div>
+            </div>
+
             {{-- API Key Section --}}
             <div class="bg-white rounded-2xl border border-[#215558]/10 p-6 relative overflow-hidden mb-6">
                 <div class="flex items-center gap-3 mb-4 pb-4 border-b border-[#215558]/5">
@@ -193,6 +220,14 @@
             const code = document.getElementById('embedCode').textContent;
             navigator.clipboard.writeText(code.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&'));
             const btn = document.getElementById('copyBtn');
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Gekopieerd!';
+            setTimeout(() => btn.innerHTML = '<i class="fa-regular fa-copy"></i> Kopieer', 2000);
+        }
+
+        function copyProefritCode() {
+            const code = document.getElementById('proefritCode').textContent;
+            navigator.clipboard.writeText(code.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&'));
+            const btn = document.getElementById('copyProefritBtn');
             btn.innerHTML = '<i class="fa-solid fa-check"></i> Gekopieerd!';
             setTimeout(() => btn.innerHTML = '<i class="fa-regular fa-copy"></i> Kopieer', 2000);
         }

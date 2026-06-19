@@ -77,6 +77,23 @@
                         </div>
                     </div>
 
+                    @php
+                        $aiFacts = array_filter([
+                            'merk' => $carAttributes['merk'] ?? null,
+                            'model' => $carAttributes['handelsbenaming'] ?? null,
+                            'bouwjaar' => isset($carAttributes['bouwjaar']) ? (int) $carAttributes['bouwjaar'] : null,
+                            'brandstof' => $carAttributes['brandstof_omschrijving'] ?? null,
+                            'kleur' => $carAttributes['eerste_kleur'] ?? null,
+                            'carrosserie' => $carAttributes['inrichting'] ?? null,
+                            'vermogen' => isset($carAttributes['vermogen']) ? (int) $carAttributes['vermogen'] : null,
+                            'cilinderinhoud' => isset($carAttributes['cilinderinhoud']) ? (int) $carAttributes['cilinderinhoud'] : null,
+                            'aantal_deuren' => isset($carAttributes['aantal_deuren']) ? (int) $carAttributes['aantal_deuren'] : null,
+                            'aantal_zitplaatsen' => isset($carAttributes['aantal_zitplaatsen']) ? (int) $carAttributes['aantal_zitplaatsen'] : null,
+                            'apk' => $carAttributes['vervaldatum_apk'] ?? null,
+                        ], fn ($v) => $v !== null && $v !== '' && $v !== 0);
+                    @endphp
+                    @include('cars.partials.ai-copy', ['facts' => $aiFacts])
+
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div>
                             <label for="titel" class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1.5">Titel (optioneel)</label>
@@ -159,7 +176,7 @@
                 </div>
 
                 {{-- Images --}}
-                <div class="bg-white rounded-2xl border border-[#215558]/10 p-6 relative overflow-hidden mb-6">
+                <div x-data="imageUpload()" class="bg-white rounded-2xl border border-[#215558]/10 p-6 relative overflow-hidden mb-6">
                     <div class="flex items-center gap-3 mb-5 pb-4 border-b border-[#215558]/5">
                         <div class="w-9 h-9 rounded-xl bg-violet-50 flex items-center justify-center">
                             <i class="fa-solid fa-images text-violet-500 text-sm"></i>
@@ -176,8 +193,23 @@
                             <p class="text-sm font-bold text-[#215558] opacity-60 group-hover:text-eazy group-hover:opacity-100 transition-colors">Klik om foto's te uploaden</p>
                             <p class="text-[11px] text-[#215558] opacity-40 mt-1">JPG, PNG of WebP. Max 5MB per foto.</p>
                         </div>
-                        <input type="file" name="images[]" id="images" multiple accept="image/jpeg,image/png,image/webp" class="hidden">
                     </label>
+                    <input type="file" name="images[]" id="images" x-ref="input" multiple accept="image/jpeg,image/png,image/webp" class="hidden" @change="onChange()">
+
+                    <div x-show="previews.length" class="mt-4">
+                        <div class="grid grid-cols-3 sm:grid-cols-4 gap-3">
+                            <template x-for="(p, i) in previews" :key="p.url">
+                                <div class="relative group/thumb">
+                                    <img :src="p.url" alt="" class="w-full h-24 object-cover rounded-lg border border-[#215558]/10">
+                                    <span x-show="i === 0" class="absolute bottom-1 left-1 px-1.5 py-0.5 rounded-md bg-eazy text-white text-[9px] font-bold">Hoofdfoto</span>
+                                    <button type="button" @click="remove(i)" title="Verwijderen" class="cursor-pointer absolute top-1 right-1 w-6 h-6 rounded-full bg-black/60 text-white text-xs flex items-center justify-center opacity-0 group-hover/thumb:opacity-100 transition hover:bg-red-500">
+                                        <i class="fa-solid fa-xmark"></i>
+                                    </button>
+                                </div>
+                            </template>
+                        </div>
+                        <p class="text-[11px] text-[#215558] opacity-50 mt-2"><span x-text="previews.length"></span> foto('s) geselecteerd. De eerste is de hoofdfoto.</p>
+                    </div>
                 </div>
 
                 {{-- Submit --}}
@@ -193,4 +225,40 @@
 
         </div>
     </div>
+
+    <script>
+        /* Live preview for the photo upload: shows thumbnails, a count, a hoofdfoto badge,
+           and lets you remove files before submitting. Keeps the file input in sync. */
+        function imageUpload() {
+            return {
+                files: [],
+                previews: [],
+                max: 20,
+                onChange() {
+                    const input = this.$refs.input;
+                    const incoming = Array.from(input.files).filter(f => f.type.startsWith('image/'));
+                    const dt = new DataTransfer();
+                    this.files.forEach(f => dt.items.add(f));
+                    incoming.forEach(f => { if (dt.items.length < this.max) dt.items.add(f); });
+                    input.files = dt.files;
+                    this.sync();
+                },
+                sync() {
+                    this.revoke();
+                    this.files = Array.from(this.$refs.input.files);
+                    this.previews = this.files.map(f => ({ name: f.name, url: URL.createObjectURL(f) }));
+                },
+                remove(i) {
+                    const dt = new DataTransfer();
+                    this.files.forEach((f, idx) => { if (idx !== i) dt.items.add(f); });
+                    this.$refs.input.files = dt.files;
+                    this.sync();
+                },
+                revoke() {
+                    this.previews.forEach(p => URL.revokeObjectURL(p.url));
+                },
+            };
+        }
+        window.imageUpload = imageUpload;
+    </script>
 </x-app-layout>

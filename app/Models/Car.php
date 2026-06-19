@@ -64,6 +64,11 @@ class Car extends Model
         return $this->hasMany(CarView::class);
     }
 
+    public function videos(): HasMany
+    {
+        return $this->hasMany(CarVideo::class)->latest();
+    }
+
     public function publications(): HasMany
     {
         return $this->hasMany(CarPublication::class);

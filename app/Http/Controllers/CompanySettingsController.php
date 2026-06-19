@@ -77,11 +77,11 @@ class CompanySettingsController extends Controller
             'image_height' => 'nullable|integer|min:100|max:350',
 
             // Card styling
-            'primary_color' => 'nullable|string|max:7',
-            'card_bg_color' => 'nullable|string|max:7',
+            'primary_color' => 'nullable|regex:/^#[0-9A-Fa-f]{6}$/',
+            'card_bg_color' => 'nullable|regex:/^#[0-9A-Fa-f]{6}$/',
             'card_border_radius' => 'nullable|integer|min:0|max:30',
             'card_padding' => 'nullable|integer|min:0|max:40',
-            'card_border_color' => 'nullable|string|max:7',
+            'card_border_color' => 'nullable|regex:/^#[0-9A-Fa-f]{6}$/',
             'card_border_width' => 'nullable|integer|min:0|max:4',
             'card_shadow' => 'nullable|in:none,sm,md,lg',
             'hover_effect' => 'nullable|in:lift,shadow,scale,glow,none',
@@ -89,14 +89,14 @@ class CompanySettingsController extends Controller
             // Typography
             'font_family' => 'nullable|string|max:30',
             'title_size' => 'nullable|integer|min:12|max:28',
-            'title_color' => 'nullable|string|max:7',
+            'title_color' => 'nullable|regex:/^#[0-9A-Fa-f]{6}$/',
             'price_size' => 'nullable|integer|min:12|max:36',
             'currency' => 'nullable|in:EUR,USD,GBP,none',
 
             // Label styling
             'label_style' => 'nullable|in:badge,outline,icon-text,pill',
-            'label_bg_color' => 'nullable|string|max:7',
-            'label_text_color' => 'nullable|string|max:7',
+            'label_bg_color' => 'nullable|regex:/^#[0-9A-Fa-f]{6}$/',
+            'label_text_color' => 'nullable|regex:/^#[0-9A-Fa-f]{6}$/',
             'label_radius' => 'nullable|integer|min:0|max:20',
             'label_padding_x' => 'nullable|integer|min:0|max:24',
             'label_padding_y' => 'nullable|integer|min:0|max:16',
@@ -109,17 +109,17 @@ class CompanySettingsController extends Controller
 
             // Detail page overrides
             'detail_custom' => 'nullable|boolean',
-            'detail_bg_color' => 'nullable|string|max:7',
-            'detail_border_color' => 'nullable|string|max:7',
+            'detail_bg_color' => 'nullable|regex:/^#[0-9A-Fa-f]{6}$/',
+            'detail_border_color' => 'nullable|regex:/^#[0-9A-Fa-f]{6}$/',
             'detail_border_radius' => 'nullable|integer|min:0|max:30',
             'detail_border_width' => 'nullable|integer|min:0|max:4',
             'detail_padding' => 'nullable|integer|min:0|max:60',
             'detail_title_size' => 'nullable|integer|min:14|max:36',
-            'detail_title_color' => 'nullable|string|max:7',
-            'detail_subtitle_color' => 'nullable|string|max:7',
-            'detail_price_color' => 'nullable|string|max:7',
+            'detail_title_color' => 'nullable|regex:/^#[0-9A-Fa-f]{6}$/',
+            'detail_subtitle_color' => 'nullable|regex:/^#[0-9A-Fa-f]{6}$/',
+            'detail_price_color' => 'nullable|regex:/^#[0-9A-Fa-f]{6}$/',
             'detail_price_size' => 'nullable|integer|min:14|max:42',
-            'detail_desc_color' => 'nullable|string|max:7',
+            'detail_desc_color' => 'nullable|regex:/^#[0-9A-Fa-f]{6}$/',
             'detail_desc_size' => 'nullable|integer|min:10|max:20',
             'detail_gallery_height' => 'nullable|integer|min:150|max:500',
             'detail_overlay_opacity' => 'nullable|integer|min:20|max:90',
@@ -127,16 +127,16 @@ class CompanySettingsController extends Controller
 
             // Detail spec styling
             'detail_spec_columns' => 'nullable|integer|min:1|max:3',
-            'detail_spec_bg_color' => 'nullable|string|max:7',
-            'detail_spec_label_color' => 'nullable|string|max:7',
-            'detail_spec_value_color' => 'nullable|string|max:7',
+            'detail_spec_bg_color' => 'nullable|regex:/^#[0-9A-Fa-f]{6}$/',
+            'detail_spec_label_color' => 'nullable|regex:/^#[0-9A-Fa-f]{6}$/',
+            'detail_spec_value_color' => 'nullable|regex:/^#[0-9A-Fa-f]{6}$/',
             'detail_spec_radius' => 'nullable|integer|min:0|max:16',
             'detail_spec_gap' => 'nullable|integer|min:0|max:16',
 
             // Detail badge styling
             'detail_badge_style' => 'nullable|in:pill,badge,outline',
-            'detail_badge_bg_color' => 'nullable|string|max:7',
-            'detail_badge_text_color' => 'nullable|string|max:7',
+            'detail_badge_bg_color' => 'nullable|regex:/^#[0-9A-Fa-f]{6}$/',
+            'detail_badge_text_color' => 'nullable|regex:/^#[0-9A-Fa-f]{6}$/',
             'detail_badge_radius' => 'nullable|integer|min:0|max:20',
 
             // Detail visibility
@@ -156,8 +156,30 @@ class CompanySettingsController extends Controller
         $validated['detail_show_options'] = $request->boolean('detail_show_options');
 
         $company = $request->user()->company;
-        $company->update(['embed_settings' => $validated]);
+        // Merge so the proefrit (and any other widget) settings are preserved.
+        $company->update(['embed_settings' => array_merge($company->embed_settings ?? [], $validated)]);
 
         return back()->with('success', 'Ontwerp opgeslagen!');
+    }
+
+    public function updateProefritSettings(Request $request)
+    {
+        $validated = $request->validate([
+            'proefrit_titel' => 'nullable|string|max:80',
+            'proefrit_intro' => 'nullable|string|max:300',
+            'proefrit_knop' => 'nullable|string|max:50',
+            'proefrit_bedankt' => 'nullable|string|max:300',
+            'proefrit_privacy_tekst' => 'nullable|string|max:300',
+        ]);
+
+        $validated['proefrit_toon_datum'] = $request->boolean('proefrit_toon_datum');
+        $validated['proefrit_toon_bericht'] = $request->boolean('proefrit_toon_bericht');
+        $validated['proefrit_auto_verplicht'] = $request->boolean('proefrit_auto_verplicht');
+        $validated['proefrit_privacy'] = $request->boolean('proefrit_privacy');
+
+        $company = $request->user()->company;
+        $company->update(['embed_settings' => array_merge($company->embed_settings ?? [], $validated)]);
+
+        return back()->with('success', 'Proefrit-instellingen opgeslagen!');
     }
 }
