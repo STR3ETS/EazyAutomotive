@@ -102,21 +102,26 @@
                         @if($car->images->count() === 0)
                             <p class="text-sm text-[#215558] opacity-60">Voeg eerst een foto toe. De video wordt gemaakt op basis van de eerste foto.</p>
                         @else
-                            @php $defaultImageId = optional($car->primaryImage)->id ?? optional($car->images->first())->id; @endphp
-                            <form method="POST" action="{{ route('cars.videos.store', $car) }}" x-data="{ submitting: false, img: {{ $defaultImageId }} }" @submit="submitting = true">
+                            @php $allImageIds = $car->images->pluck('id')->values(); @endphp
+                            <form method="POST" action="{{ route('cars.videos.store', $car) }}" x-data="{ submitting: false, allIds: @js($allImageIds), sel: @js($allImageIds) }" @submit="submitting = true">
                                 @csrf
                                 @if($car->images->count() > 1)
-                                    <label class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1.5">Kies de hero-foto</label>
-                                    <div class="flex flex-wrap gap-2 mb-4">
+                                    <div class="flex items-center justify-between mb-1.5">
+                                        <label class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider">Kies de foto's (<span x-text="sel.length"></span> geselecteerd)</label>
+                                        <button type="button" @click="sel = (sel.length === allIds.length ? [] : [...allIds])" class="cursor-pointer text-[11px] font-semibold text-eazy hover:underline"><span x-text="sel.length === allIds.length ? 'Niets' : 'Alles'"></span></button>
+                                    </div>
+                                    <div class="flex flex-wrap gap-2 mb-1.5">
                                         @foreach($car->images as $image)
-                                            <label class="cursor-pointer">
-                                                <input type="radio" name="car_image_id" value="{{ $image->id }}" class="sr-only" x-model.number="img">
-                                                <img src="{{ $image->url }}" alt="" class="w-16 h-16 object-cover rounded-lg border-2 transition" :class="img === {{ $image->id }} ? 'border-eazy' : 'border-transparent hover:border-[#215558]/20'">
+                                            <label class="cursor-pointer relative">
+                                                <input type="checkbox" name="car_image_ids[]" value="{{ $image->id }}" class="sr-only" x-model.number="sel">
+                                                <img src="{{ $image->url }}" alt="" class="w-16 h-16 object-cover rounded-lg border-2 transition" :class="sel.includes({{ $image->id }}) ? 'border-eazy' : 'border-transparent hover:border-[#215558]/20'">
+                                                <span x-show="sel.includes({{ $image->id }})" class="absolute -top-1.5 -right-1.5 w-5 h-5 rounded-full bg-eazy text-white text-[10px] flex items-center justify-center"><i class="fa-solid fa-check"></i></span>
                                             </label>
                                         @endforeach
                                     </div>
+                                    <p class="text-[11px] text-[#215558] opacity-50 mb-3"><span x-text="sel.length"></span> foto('s) geselecteerd, dit maakt <span x-text="sel.length"></span> video('s). Elke video kost credits.</p>
                                 @else
-                                    <input type="hidden" name="car_image_id" value="{{ $defaultImageId }}">
+                                    <input type="hidden" name="car_image_ids[]" value="{{ $allImageIds->first() }}">
                                 @endif
                                 <label class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1.5">Beschrijf de video</label>
                                 <textarea name="prompt" rows="2" maxlength="1000" required x-ref="prompt"
@@ -135,9 +140,9 @@
                                 @if(config('app.env') !== 'production')
                                     <input type="url" name="image_url" placeholder="Test: publieke afbeeldings-URL (lokaal nodig, Higgsfield kan localhost niet bereiken)" class="block w-full px-4 py-2 mb-3 rounded-xl border-[#215558]/10 text-xs focus:border-eazy focus:ring-eazy">
                                 @endif
-                                <button type="submit" :disabled="submitting" class="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 bg-eazy text-white rounded-full text-sm font-bold hover:bg-eazy-dark disabled:opacity-50 transition">
+                                <button type="submit" :disabled="submitting || sel.length === 0" class="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 bg-eazy text-white rounded-full text-sm font-bold hover:bg-eazy-dark disabled:opacity-50 disabled:cursor-default transition">
                                     <i class="fa-solid" :class="submitting ? 'fa-spinner fa-spin' : 'fa-clapperboard'"></i>
-                                    <span x-text="submitting ? 'Bezig...' : 'Genereer video'"></span>
+                                    <span x-text="submitting ? 'Bezig...' : (sel.length > 1 ? ('Genereer ' + sel.length + ' video\'s') : 'Genereer video')"></span>
                                 </button>
                             </form>
                         @endif
