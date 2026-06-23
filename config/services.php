@@ -46,6 +46,8 @@ return [
         'auth_scheme' => env('HIGGSFIELD_AUTH_SCHEME', 'Key'),
         // Send Higgsfield's own prompt-enhancement flag. Disable if the account rejects it.
         'enhance_prompt' => env('HIGGSFIELD_ENHANCE_PROMPT', true),
+        // DoP first-last-frame variant (turbo/lite/standard) for the walk-around clips.
+        'flf_variant' => env('HIGGSFIELD_FLF_VARIANT', 'turbo'),
     ],
 
     // Path to the ffmpeg binary, used to stitch per-photo clips into one reel.

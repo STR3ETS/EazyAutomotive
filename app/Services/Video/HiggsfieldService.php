@@ -56,6 +56,50 @@ class HiggsfieldService
     }
 
     /**
+     * Kick off a DoP "first-last-frame" generation: the model creates the motion
+     * between two real photos (e.g. front -> side), so both ends are real frames
+     * and only the in-between is generated. Used to build a walk-around montage
+     * from consecutive photo pairs.
+     *
+     * @return array{request_id:string, status:string}
+     *
+     * @throws \RuntimeException on a transport or API error.
+     */
+    public function generateTransition(string $firstUrl, string $lastUrl, string $prompt): array
+    {
+        $variant = (string) config('services.higgsfield.flf_variant', 'turbo');
+
+        $body = [
+            'prompt' => $prompt,
+            'image_url' => $firstUrl,
+            'end_image_url' => $lastUrl,
+            'motions' => [],
+        ];
+
+        if (config('services.higgsfield.enhance_prompt', true)) {
+            $body['enhance_prompt'] = true;
+        }
+
+        $resp = $this->client()->post('/higgsfield-ai/dop/' . $variant . '/first-last-frame', $body);
+
+        if (! $resp->successful()) {
+            throw new \RuntimeException($this->errorMessage($resp));
+        }
+
+        $data = $resp->json() ?? [];
+        $requestId = $this->extractRequestId($data);
+
+        if (! $requestId) {
+            throw new \RuntimeException('Higgsfield gaf geen request-id terug.');
+        }
+
+        return [
+            'request_id' => $requestId,
+            'status' => $this->normalizeStatus($data['status'] ?? 'queued'),
+        ];
+    }
+
+    /**
      * Poll the status of a generation.
      *
      * @return array{status:string, video_url:?string, thumbnail_url:?string, error:?string}

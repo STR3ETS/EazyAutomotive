@@ -61,47 +61,78 @@ class CarVideoController extends Controller
             return back()->with('error', 'Deze auto heeft nog geen foto. Voeg eerst een foto toe of geef een afbeeldings-URL op.');
         }
 
-        // Turn the dealer's short idea into a rich cinematic prompt (once, reused per photo).
+        $flfVariant = (string) config('services.higgsfield.flf_variant', 'turbo');
+        $isManualSingle = ! empty($validated['image_url']);
+
+        // With 2+ photos: build a walk-around montage using first-last-frame clips
+        // between consecutive photos. Both ends of each clip are real frames, so it
+        // warps far less than animating a single still.
+        if (! $isManualSingle && count($imageUrls) >= 2) {
+            $prompt = 'Smooth cinematic camera movement around the ' . $car->display_title
+                . ', as if slowly walking around the car. The car stays parked and still, '
+                . 'premium automotive commercial look, photorealistic, no distortion or warping.';
+
+            $created = 0;
+            $lastError = null;
+            $count = count($imageUrls);
+
+            for ($i = 0; $i < $count - 1; $i++) {
+                try {
+                    $result = $this->higgsfield->generateTransition($imageUrls[$i], $imageUrls[$i + 1], $prompt);
+                } catch (\Throwable $e) {
+                    report($e);
+                    $lastError = $e->getMessage();
+
+                    continue;
+                }
+
+                $car->videos()->create([
+                    'company_id' => $car->company_id,
+                    'status' => $result['status'],
+                    'prompt' => $prompt,
+                    'model' => 'dop-' . $flfVariant . '-flf',
+                    'source_image_url' => $imageUrls[$i],
+                    'request_id' => $result['request_id'],
+                ]);
+                $created++;
+            }
+
+            if ($created === 0) {
+                return back()->with('error', 'Genereren mislukt: ' . ($lastError ?? 'onbekende fout'));
+            }
+
+            $message = "Er worden {$created} overgangsclips gemaakt tussen je foto's (de camera loopt om de auto). "
+                . 'Zodra ze klaar zijn, klik je op "Combineer tot een reel" voor een vloeiende video.';
+
+            if ($lastError !== null) {
+                $message .= ' Let op: een of meer paren konden niet worden verwerkt.';
+            }
+
+            return back()->with('success', $message);
+        }
+
+        // One photo (or a manual test URL): a single-image clip.
         $cinematicPrompt = $this->composer->compose($car, $validated['prompt']);
         $model = (string) config('services.higgsfield.model', 'dop-turbo');
 
-        $created = 0;
-        $lastError = null;
+        try {
+            $result = $this->higgsfield->generate($imageUrls[0], $cinematicPrompt);
+        } catch (\Throwable $e) {
+            report($e);
 
-        foreach ($imageUrls as $imageUrl) {
-            try {
-                $result = $this->higgsfield->generate($imageUrl, $cinematicPrompt);
-            } catch (\Throwable $e) {
-                report($e);
-                $lastError = $e->getMessage();
-
-                continue;
-            }
-
-            $car->videos()->create([
-                'company_id' => $car->company_id,
-                'status' => $result['status'],
-                'prompt' => $validated['prompt'],
-                'model' => $model,
-                'source_image_url' => $imageUrl,
-                'request_id' => $result['request_id'],
-            ]);
-            $created++;
+            return back()->with('error', 'Genereren mislukt: ' . $e->getMessage());
         }
 
-        if ($created === 0) {
-            return back()->with('error', 'Genereren mislukt: ' . ($lastError ?? 'onbekende fout'));
-        }
+        $car->videos()->create([
+            'company_id' => $car->company_id,
+            'status' => $result['status'],
+            'prompt' => $validated['prompt'],
+            'model' => $model,
+            'source_image_url' => $imageUrls[0],
+            'request_id' => $result['request_id'],
+        ]);
 
-        $message = $created === 1
-            ? 'De video wordt gegenereerd. Dit kan een paar minuten duren; de status ververst automatisch.'
-            : "Er worden {$created} video's gegenereerd (1 per foto). Dit kan een paar minuten duren; de status ververst automatisch.";
-
-        if ($lastError !== null) {
-            $message .= ' Let op: een of meer foto\'s konden niet worden verwerkt.';
-        }
-
-        return back()->with('success', $message);
+        return back()->with('success', 'De video wordt gegenereerd. Dit kan een paar minuten duren; de status ververst automatisch.');
     }
 
     /** Poll Higgsfield for a pending video and return the current state as JSON. */

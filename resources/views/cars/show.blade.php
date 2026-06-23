@@ -119,7 +119,7 @@
                                             </label>
                                         @endforeach
                                     </div>
-                                    <p class="text-[11px] text-[#215558] opacity-50 mb-3"><span x-text="sel.length"></span> foto('s) geselecteerd, dit maakt <span x-text="sel.length"></span> video('s). Elke video kost credits.</p>
+                                    <p class="text-[11px] text-[#215558] opacity-50 mb-3"><span x-text="sel.length"></span> foto('s) geselecteerd. Bij 2 of meer foto's loopt de camera vloeiend van de ene naar de andere foto, alsof je om de auto loopt. Elke overgang kost credits.</p>
                                 @else
                                     <input type="hidden" name="car_image_ids[]" value="{{ $allImageIds->first() }}">
                                 @endif
@@ -142,7 +142,7 @@
                                 @endif
                                 <button type="submit" :disabled="submitting || sel.length === 0" class="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 bg-eazy text-white rounded-full text-sm font-bold hover:bg-eazy-dark disabled:opacity-50 disabled:cursor-default transition">
                                     <i class="fa-solid" :class="submitting ? 'fa-spinner fa-spin' : 'fa-clapperboard'"></i>
-                                    <span x-text="submitting ? 'Bezig...' : (sel.length > 1 ? ('Genereer ' + sel.length + ' video\'s') : 'Genereer video')"></span>
+                                    <span x-text="submitting ? 'Bezig...' : (sel.length > 1 ? 'Genereer walk-around' : 'Genereer video')"></span>
                                 </button>
                             </form>
                         @endif

@@ -54,14 +54,15 @@ class VideoPromptComposer
     private function system(): string
     {
         return <<<PROMPT
-You are a cinematographer writing prompts for Higgsfield DoP, an image-to-video model that animates a single still photo of a car into a short, high-end cinematic clip.
+You write a prompt for an image-to-video model that animates a SINGLE still photo of a parked car into a short clip. The biggest failure modes are: the car appears to drive (while the wheels do not turn and there is no driver), and the car body warps or morphs. Your prompt must prevent both.
 
-Write ONE vivid English prompt (max ~70 words) that turns the dealer's idea into a premium automotive commercial shot. Focus on:
-- Camera movement (slow orbit, dolly-in, crane up, FPV sweep, parallax push) - this is what the model actually animates.
-- Lighting and mood (golden hour, studio rim light, neon reflections, moody shadows).
-- Cinematic finish (shallow depth of field, glossy reflections on the paint, smooth motion, photorealistic, premium feel).
+Hard rules:
+- The car is PARKED and completely stationary. Engine off. The car does not move or drive. The wheels do not turn. No driver, no people.
+- ONLY the camera moves, and only subtly: a slow gentle push-in, a slow slight pan, or a small parallax. Never a 360 orbit, never fast or large camera motion (those make the model invent and warp the unseen sides of the car).
+- Keep the car's exact shape, proportions and badges. No morphing, warping, melting, stretching or distortion.
+- Realistic daylight and soft reflections on the paint are good. Keep it photorealistic.
 
-Do not re-describe the car's shape or invent a different car; the photo already defines it. Do not add text, logos, extra people, or spinning wheels. Output only the prompt itself: no preamble, no quotes, no explanation.
+Use the dealer's idea only for the mood/lighting, not for car motion. Output ONE short English prompt (max ~45 words). No preamble, no quotes.
 PROMPT;
     }
 
@@ -85,8 +86,7 @@ PROMPT;
     private function fallback(Car $car, string $idea): string
     {
         $desc = trim("{$car->merk} {$car->handelsbenaming}") ?: 'car';
-        $idea = $idea !== '' ? $idea : 'slow cinematic reveal';
 
-        return "Cinematic automotive commercial of a {$desc}: {$idea}. Smooth professional camera movement, dramatic lighting with glossy reflections on the paint, shallow depth of field, premium and dynamic, photorealistic, high detail.";
+        return "A {$desc} parked and completely still. The car does not move and the wheels do not turn; there is no driver. Only the camera slowly pushes in a little. Keep the exact car shape, no warping or distortion. Soft daylight, glossy reflections, photorealistic, smooth subtle motion.";
     }
 }
