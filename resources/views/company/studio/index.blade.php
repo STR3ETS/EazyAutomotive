@@ -1,0 +1,132 @@
+<x-app-layout>
+    <div class="py-8">
+        <div class="max-w-5xl mx-auto px-4 sm:px-6 lg:px-8">
+
+            @if(session('success'))
+                <div class="mb-6 flex items-center gap-3 bg-emerald-50 border border-emerald-200 text-emerald-700 px-5 py-3.5 rounded-xl">
+                    <i class="fa-solid fa-circle-check text-lg"></i>
+                    <span class="text-sm font-medium">{{ session('success') }}</span>
+                </div>
+            @endif
+            @if(session('error'))
+                <div class="mb-6 flex items-center gap-3 bg-red-50 border border-red-200 text-red-700 px-5 py-3.5 rounded-xl">
+                    <i class="fa-solid fa-triangle-exclamation text-lg"></i>
+                    <span class="text-sm font-medium">{{ session('error') }}</span>
+                </div>
+            @endif
+
+            {{-- Header --}}
+            <div class="flex items-center gap-3 mb-6">
+                <div class="w-10 h-10 rounded-xl bg-purple-50 flex items-center justify-center">
+                    <i class="fa-solid fa-clapperboard text-purple-500"></i>
+                </div>
+                <div>
+                    <h1 class="text-2xl font-black text-[#215558]">Video Studio</h1>
+                    <p class="text-sm text-[#215558] opacity-50">Upload foto's (huizen, producten, wat je wilt) en maak er een cinematische video van met AI.</p>
+                </div>
+            </div>
+
+            {{-- Upload + prompt --}}
+            <div class="bg-white rounded-2xl border border-[#215558]/10 p-6 mb-8">
+                <form method="POST" action="{{ route('studio.store') }}" enctype="multipart/form-data"
+                      x-data="{ submitting: false, files: 0 }" @submit="submitting = true">
+                    @csrf
+
+                    <label class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1.5">Foto's (1 tot 9)</label>
+                    <label class="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-[#215558]/15 rounded-xl py-8 cursor-pointer hover:border-eazy hover:bg-eazy-50/40 transition mb-1.5">
+                        <i class="fa-solid fa-cloud-arrow-up text-2xl text-[#215558] opacity-40"></i>
+                        <span class="text-sm text-[#215558] opacity-70" x-text="files ? (files + ' foto(\'s) gekozen') : 'Klik om foto\'s te kiezen'"></span>
+                        <input type="file" name="images[]" accept="image/jpeg,image/png,image/webp" multiple class="hidden"
+                               @change="files = $event.target.files.length">
+                    </label>
+                    <p class="text-[11px] text-[#215558] opacity-50 mb-4">JPG, PNG of WebP, max 20 MB per foto. Meerdere foto's worden tot één montage gemaakt.</p>
+
+                    <label class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1.5">Beschrijf de video</label>
+                    <textarea name="prompt" rows="3" maxlength="1500" required x-ref="prompt"
+                        placeholder="Bijv. cinematische woningtour, langzame gliding camera door de woonkamer, warme avondsfeer, eindigt op een wijde shot van de gevel"
+                        class="block w-full px-4 py-2.5 rounded-xl border-[#215558]/10 text-sm focus:border-eazy focus:ring-eazy resize-none">{{ old('prompt') }}</textarea>
+                    <div class="flex flex-wrap gap-1.5 mt-2 mb-4">
+                        @foreach([
+                            'Cinematische woningtour, langzame gliding camera, gouden uur, warme sfeer',
+                            'Vloeiende fly-through door het huis, eindigt op de gevel',
+                            'Strakke moderne reveal, zachte camerabeweging, clean en luxe',
+                            'Dramatische buitenshot bij avond, daarna een interieur sweep',
+                        ] as $suggestie)
+                            <button type="button" @click="$refs.prompt.value = @js($suggestie)" class="cursor-pointer text-[11px] px-2.5 py-1 rounded-full border border-[#215558]/10 text-[#215558] hover:border-eazy hover:bg-eazy-50 transition">{{ \Illuminate\Support\Str::limit($suggestie, 38) }}</button>
+                        @endforeach
+                    </div>
+
+                    <button type="submit" :disabled="submitting || files === 0"
+                        class="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 bg-eazy text-white rounded-full text-sm font-bold hover:bg-eazy-dark disabled:opacity-50 disabled:cursor-default transition">
+                        <i class="fa-solid" :class="submitting ? 'fa-spinner fa-spin' : 'fa-wand-magic-sparkles'"></i>
+                        <span x-text="submitting ? 'Uploaden en genereren...' : 'Genereer video'"></span>
+                    </button>
+                    <p x-show="submitting" class="text-[11px] text-[#215558] opacity-50 mt-2">Je foto's worden geupload en de video wordt gemaakt. Dit kan een paar minuten duren, pagina niet sluiten.</p>
+                </form>
+            </div>
+
+            {{-- Generated videos --}}
+            @if($videos->count() > 0)
+                <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
+                    @foreach($videos as $video)
+                        <div class="bg-white rounded-2xl border border-[#215558]/10 p-4"
+                            @if($video->isPending()) x-data="videoPoll('{{ route('studio.status', $video) }}')" x-init="start()" @endif>
+                            <div class="flex items-start justify-between gap-3 mb-2">
+                                <p class="text-xs text-[#215558] opacity-70 line-clamp-2">{{ $video->prompt }}</p>
+                                @php
+                                    $badge = match($video->status) {
+                                        'completed' => ['bg-emerald-50 text-emerald-600', 'fa-circle-check', 'Klaar'],
+                                        'failed' => ['bg-red-50 text-red-500', 'fa-circle-xmark', 'Mislukt'],
+                                        default => ['bg-amber-50 text-amber-600', 'fa-spinner fa-spin', 'Bezig'],
+                                    };
+                                @endphp
+                                <span class="shrink-0 inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-bold {{ $badge[0] }}"><i class="fa-solid {{ $badge[1] }} text-[9px]"></i> {{ $badge[2] }}</span>
+                            </div>
+                            <p class="text-[10px] text-[#215558] opacity-40 mb-2">{{ $video->image_count }} foto('s) &middot; {{ $video->created_at->format('d-m-Y H:i') }}</p>
+
+                            @if($video->isCompleted() && $video->video_url)
+                                <video src="{{ $video->video_url }}" controls preload="metadata" class="w-full rounded-lg bg-black"></video>
+                                <div class="flex items-center justify-between mt-3">
+                                    <a href="{{ $video->video_url }}" download target="_blank" rel="noopener" class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-eazy-dark text-white rounded-full text-xs font-bold hover:bg-eazy-darker transition"><i class="fa-solid fa-download text-[10px]"></i> Downloaden</a>
+                                    <form method="POST" action="{{ route('studio.destroy', $video) }}" onsubmit="return confirm('Deze video verwijderen?')">
+                                        @csrf @method('DELETE')
+                                        <button type="submit" class="cursor-pointer inline-flex items-center justify-center w-8 h-8 text-red-500 rounded-full hover:bg-red-50 transition"><i class="fa-solid fa-trash text-[10px]"></i></button>
+                                    </form>
+                                </div>
+                            @elseif($video->isFailed())
+                                <p class="text-xs text-red-500 mt-1">{{ $video->error ?: 'De generatie is mislukt.' }}</p>
+                                <form method="POST" action="{{ route('studio.destroy', $video) }}" class="mt-2" onsubmit="return confirm('Deze video verwijderen?')">
+                                    @csrf @method('DELETE')
+                                    <button type="submit" class="cursor-pointer text-xs text-red-500 font-semibold hover:underline"><i class="fa-solid fa-trash text-[10px] mr-1"></i> Verwijderen</button>
+                                </form>
+                            @else
+                                <p class="text-xs text-[#215558] opacity-50 mt-1"><i class="fa-solid fa-spinner fa-spin mr-1"></i> Bezig met genereren, dit kan een paar minuten duren. De status ververst automatisch.</p>
+                            @endif
+                        </div>
+                    @endforeach
+                </div>
+            @else
+                <div class="text-center py-12 text-[#215558] opacity-40 text-sm">Nog geen video's. Upload foto's hierboven om je eerste te maken.</div>
+            @endif
+
+        </div>
+    </div>
+
+    <script>
+        /* Poll a pending studio video; reload once it is done (completed or failed). */
+        function videoPoll(url) {
+            return {
+                timer: null,
+                start() {
+                    this.timer = setInterval(() => {
+                        fetch(url, { headers: { 'Accept': 'application/json' } })
+                            .then(r => r.json())
+                            .then(d => { if (!d.pending) { clearInterval(this.timer); window.location.reload(); } })
+                            .catch(() => {});
+                    }, 6000);
+                }
+            };
+        }
+        window.videoPoll = videoPoll;
+    </script>
+</x-app-layout>

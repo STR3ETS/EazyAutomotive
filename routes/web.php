@@ -14,6 +14,7 @@ use App\Http\Controllers\ProefritController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\PublicerenController;
 use App\Http\Controllers\RdwLookupController;
+use App\Http\Controllers\StudioVideoController;
 use App\Http\Controllers\VoertuigRapportController;
 use Illuminate\Support\Facades\Route;
 
@@ -74,6 +75,12 @@ Route::middleware(['auth', 'verified', 'company.ownership'])->group(function () 
     Route::patch('/leads/{lead}', [LeadController::class, 'update'])->name('leads.update');
     Route::patch('/leads/{lead}/status', [LeadController::class, 'updateStatus'])->name('leads.status');
     Route::delete('/leads/{lead}', [LeadController::class, 'destroy'])->name('leads.destroy');
+
+    // AI Video Studio: upload any photos + prompt -> fal Seedance montage
+    Route::get('/studio', [StudioVideoController::class, 'index'])->name('studio.index');
+    Route::post('/studio', [StudioVideoController::class, 'store'])->name('studio.store');
+    Route::get('/studio/{studioVideo}/status', [StudioVideoController::class, 'status'])->name('studio.status');
+    Route::delete('/studio/{studioVideo}', [StudioVideoController::class, 'destroy'])->name('studio.destroy');
 
     // Proefrit-aanvragen (leads uit de embed-widget)
     Route::get('/proefritten', [ProefritController::class, 'index'])->name('proefritten');
