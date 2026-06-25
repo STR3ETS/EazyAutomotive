@@ -15,6 +15,7 @@ Route::prefix('embed/v1')->middleware('embed.api')->group(function () {
     Route::get('/proefrit/config', [ProefritEmbedController::class, 'config']);
     Route::post('/proefrit', [ProefritEmbedController::class, 'store'])->middleware('throttle:15,1');
 
-    // Contact / interest form -> CRM lead
+    // Contact / inruil / financiering form -> CRM lead
+    Route::get('/lead/config', [LeadEmbedController::class, 'config']);
     Route::post('/lead', [LeadEmbedController::class, 'store'])->middleware('throttle:15,1');
 });

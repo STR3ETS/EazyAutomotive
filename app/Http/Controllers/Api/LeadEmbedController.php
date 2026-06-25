@@ -13,6 +13,33 @@ use Illuminate\Http\Request;
  */
 class LeadEmbedController extends Controller
 {
+    /** Widget bootstrap: dealer name, theme color/font and the car list. */
+    public function config(Request $request): JsonResponse
+    {
+        $company = $request->get('embed_company');
+        if (! $company) {
+            return response()->json(['error' => 'Unauthorized'], 403);
+        }
+
+        $s = $company->embed_settings ?? [];
+
+        return response()->json([
+            'company' => ['name' => $company->name],
+            'primary_color' => $s['primary_color'] ?? '#0F9B9F',
+            'font_family' => $s['font_family'] ?? null,
+            'radius' => isset($s['card_border_radius']) ? (int) $s['card_border_radius'] : null,
+            'cars' => $company->cars()
+                ->active()
+                ->orderBy('merk')
+                ->get()
+                ->map(fn ($car) => [
+                    'id' => $car->id,
+                    'titel' => trim($car->display_title . ' - ' . $car->formatted_price),
+                ])
+                ->values(),
+        ]);
+    }
+
     public function store(Request $request): JsonResponse
     {
         $company = $request->get('embed_company');

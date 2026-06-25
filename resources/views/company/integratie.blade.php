@@ -159,6 +159,34 @@
                 </div>
             </div>
 
+            {{-- Contact / inruil widget --}}
+            <div class="bg-white rounded-2xl border border-[#215558]/10 p-6 relative overflow-hidden mb-6">
+                <div class="flex items-center gap-3 mb-4 pb-4 border-b border-[#215558]/5">
+                    <div class="w-9 h-9 rounded-xl bg-eazy-50 flex items-center justify-center">
+                        <i class="fa-solid fa-inbox text-eazy text-sm"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-[#215558]">Contact- en inruil-widget</h3>
+                        <p class="text-xs text-[#215558] opacity-50">Laat klanten contact opnemen, een auto inruilen of financiering aanvragen</p>
+                    </div>
+                </div>
+                <p class="text-xs text-[#215558] opacity-60 mb-4 leading-relaxed">Plaats deze code op je website. Inzendingen verschijnen automatisch onder <a href="{{ route('leads.index') }}" class="text-eazy font-semibold underline">Leads</a>. Wijzig <code class="bg-gray-100 px-1 py-0.5 rounded text-[11px]">data-type</code> naar <code class="bg-gray-100 px-1 py-0.5 rounded text-[11px]">contact</code>, <code class="bg-gray-100 px-1 py-0.5 rounded text-[11px]">inruil</code> of <code class="bg-gray-100 px-1 py-0.5 rounded text-[11px]">financiering</code>. Aan een specifieke auto koppelen? Voeg <code class="bg-gray-100 px-1 py-0.5 rounded text-[11px]">data-car-id="ID"</code> toe.</p>
+                <div class="relative">
+                    <pre class="bg-gray-900 text-green-400 rounded-xl p-4 text-xs overflow-x-auto leading-relaxed" id="leadCode">&lt;!-- EazyAutomotive Contact-widget --&gt;
+&lt;div id="eazy-lead"&gt;&lt;/div&gt;
+&lt;script
+  src="{{ url('/embed/v1/lead.js') }}"
+  data-api-key="{{ $company->api_key }}"
+  data-base-url="{{ url('/') }}"
+  data-type="contact"
+  defer&gt;
+&lt;/script&gt;</pre>
+                    <button onclick="copyLeadCode()" class="cursor-pointer absolute top-3 right-3 inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-700 text-gray-300 rounded-lg text-xs hover:bg-gray-600 transition" id="copyLeadBtn">
+                        <i class="fa-regular fa-copy"></i> Kopieer
+                    </button>
+                </div>
+            </div>
+
             {{-- API Key Section --}}
             <div class="bg-white rounded-2xl border border-[#215558]/10 p-6 relative overflow-hidden mb-6">
                 <div class="flex items-center gap-3 mb-4 pb-4 border-b border-[#215558]/5">
@@ -228,6 +256,14 @@
             const code = document.getElementById('proefritCode').textContent;
             navigator.clipboard.writeText(code.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&'));
             const btn = document.getElementById('copyProefritBtn');
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Gekopieerd!';
+            setTimeout(() => btn.innerHTML = '<i class="fa-regular fa-copy"></i> Kopieer', 2000);
+        }
+
+        function copyLeadCode() {
+            const code = document.getElementById('leadCode').textContent;
+            navigator.clipboard.writeText(code.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&'));
+            const btn = document.getElementById('copyLeadBtn');
             btn.innerHTML = '<i class="fa-solid fa-check"></i> Gekopieerd!';
             setTimeout(() => btn.innerHTML = '<i class="fa-regular fa-copy"></i> Kopieer', 2000);
         }
