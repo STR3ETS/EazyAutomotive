@@ -54,7 +54,9 @@
 
     const GOOGLE_FONTS = ['Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Poppins'];
 
-    // Load Google Font in main document <head> — @import inside Shadow DOM doesn't work
+    const SEARCH_SVG = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"><circle cx="11" cy="11" r="7"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>';
+
+    // Load Google Font in main document <head>, @import inside Shadow DOM doesn't work
     function loadGoogleFont(fontName) {
         if (!fontName || fontName === 'system' || !GOOGLE_FONTS.includes(fontName)) return;
         const id = 'eazy-gfont-' + fontName.replace(/\s/g, '-').toLowerCase();
@@ -71,6 +73,9 @@
             this.cars = [];
             this.settings = {};
             this.companyInfo = {};
+            this.facets = { merken: [], brandstoffen: [], prijs_max: null };
+            this.pagination = {};
+            this.filters = { search: '', merk: '', brandstof: '', prijs_max: '', sort: 'nieuwste', page: 1 };
             this.init();
         }
 
@@ -85,27 +90,38 @@
             this.shadow = container.attachShadow({ mode: 'open' });
             this.shadow.innerHTML = this.loadingHTML();
 
-            await this.fetchCars();
-            this.render();
+            const ok = await this.fetchCars();
+            if (!ok) {
+                this.shadow.innerHTML = this.errorHTML();
+                return;
+            }
+
+            this.loadFont();
+            this.renderShell();
         }
 
-        async fetchCars(page = 1) {
+        async fetchCars() {
             try {
-                const url = `${BASE_URL}/api/embed/v1/cars?api_key=${encodeURIComponent(API_KEY)}&page=${page}`;
-                const response = await fetch(url);
+                const p = new URLSearchParams({ api_key: API_KEY, page: this.filters.page });
+                if (this.filters.search) p.set('search', this.filters.search);
+                if (this.filters.merk) p.set('merk', this.filters.merk);
+                if (this.filters.brandstof) p.set('brandstof', this.filters.brandstof);
+                if (this.filters.prijs_max) p.set('prijs_max', this.filters.prijs_max);
+                if (this.filters.sort && this.filters.sort !== 'nieuwste') p.set('sort', this.filters.sort);
 
-                if (!response.ok) {
-                    throw new Error(`HTTP ${response.status}`);
-                }
+                const response = await fetch(`${BASE_URL}/api/embed/v1/cars?${p.toString()}`);
+                if (!response.ok) throw new Error(`HTTP ${response.status}`);
 
                 const data = await response.json();
                 this.cars = data.cars?.data || [];
                 this.settings = data.settings || {};
                 this.companyInfo = data.company || {};
+                this.facets = data.filters || this.facets;
                 this.pagination = data.cars || {};
+                return true;
             } catch (error) {
                 console.error('[EazyAutomotive]', error);
-                this.shadow.innerHTML = this.errorHTML();
+                return false;
             }
         }
 
@@ -136,7 +152,7 @@
             if (!priceStr) return '';
             const currency = this.opt('currency', 'EUR');
             const symbol = CURRENCY_MAP[currency] ?? '€';
-            // priceStr comes formatted as "€ 24.950" from the API — strip original symbol
+            // priceStr comes formatted as "€ 24.950" from the API, strip original symbol
             const num = priceStr.replace(/^[€$£]\s*/, '');
             return symbol ? `${symbol} ${num}` : num;
         }
@@ -307,7 +323,7 @@
                 }
                 .eazy-powered a:hover { text-decoration: underline; }
 
-                /* Detail modal — uses detail overrides or card fallbacks */
+                /* Detail modal: uses detail overrides or card fallbacks */
                 ${this.getDetailVarsComment()}
                 .eazy-overlay {
                     position: fixed;
@@ -483,42 +499,169 @@
                     color: ${labelColor};
                     font-size: 0.9375rem;
                 }
+
+                /* Toolbar, pagination and loading skeleton */
+                .eazy-toolbar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; padding-top: 0.25rem; }
+                .eazy-search { position: relative; flex: 1 1 220px; min-width: 160px; }
+                .eazy-search svg { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); color: #9ca3af; pointer-events: none; }
+                .eazy-search .eazy-field { width: 100%; padding-left: 34px; }
+                .eazy-field { padding: 0.55rem 0.75rem; border: 1px solid #e5e7eb; border-radius: 10px; font-size: 0.85rem; color: #374151; background: #fff; font-family: inherit; outline: none; }
+                .eazy-field:focus { border-color: ${this.primaryColor}; box-shadow: 0 0 0 3px ${this.primaryColor}22; }
+                .eazy-reset { background: none; border: none; color: ${this.primaryColor}; font-size: 0.82rem; font-weight: 600; cursor: pointer; padding: 0.4rem 0.5rem; font-family: inherit; }
+                .eazy-reset:hover { text-decoration: underline; }
+                .eazy-resultbar { font-size: 0.8rem; color: #6b7280; margin: 0.75rem 0 0; }
+                .eazy-pagination { display: flex; align-items: center; justify-content: center; gap: 14px; padding: 1.25rem 0 0.5rem; }
+                .eazy-page-btn { padding: 0.5rem 1.1rem; border: 1px solid #e5e7eb; border-radius: 9999px; background: #fff; font-size: 0.85rem; color: #374151; cursor: pointer; font-family: inherit; transition: border-color .15s, color .15s; }
+                .eazy-page-btn:disabled { opacity: 0.4; cursor: default; }
+                .eazy-page-btn:not(:disabled):hover { border-color: ${this.primaryColor}; color: ${this.primaryColor}; }
+                .eazy-page-info { font-size: 0.85rem; color: #6b7280; }
+                .eazy-empty { text-align: center; padding: 2.5rem 1rem; color: #9ca3af; font-size: 0.9rem; }
+                .eazy-skel { border: 1px solid #eee; border-radius: ${borderRadius}px; overflow: hidden; background: #fff; }
+                .eazy-skel-img { height: ${imageHeight}px; background: linear-gradient(90deg,#f3f4f6 25%,#eaecef 50%,#f3f4f6 75%); background-size: 200% 100%; animation: eazy-shimmer 1.3s infinite; }
+                .eazy-skel-line { height: 12px; margin: 12px; border-radius: 6px; background: linear-gradient(90deg,#f3f4f6 25%,#eaecef 50%,#f3f4f6 75%); background-size: 200% 100%; animation: eazy-shimmer 1.3s infinite; }
+                @keyframes eazy-shimmer { 0% { background-position: 200% 0; } 100% { background-position: -200% 0; } }
             `;
         }
 
-        render() {
-            const showPrice = this.s.show_price !== false;
-            const showKm = this.s.show_km !== false;
-            const showFuel = this.s.show_fuel !== false;
-
-            // Load Google Font in main document head (Shadow DOM @import doesn't work)
-            this.loadFont();
-
-            if (this.cars.length === 0) {
-                this.shadow.innerHTML = this.emptyHTML();
-                return;
-            }
+        // Render the persistent shell (toolbar + results container) once, bind the
+        // toolbar, then fill the results. Only the results re-render on filtering,
+        // so the search box keeps focus while typing.
+        renderShell() {
+            const merkOpts = (this.facets.merken || []).map(m => `<option value="${this.escapeHtml(m)}">${this.escapeHtml(m)}</option>`).join('');
+            const brandstofOpts = (this.facets.brandstoffen || []).map(b => `<option value="${this.escapeHtml(b)}">${this.escapeHtml(b)}</option>`).join('');
 
             this.shadow.innerHTML = `
                 <style>${this.getStyles()}</style>
-                <div class="eazy-grid">
-                    ${this.cars.map(car => this.renderCard(car, { showPrice, showKm, showFuel })).join('')}
+                <div class="eazy-toolbar">
+                    <div class="eazy-search">
+                        ${SEARCH_SVG}
+                        <input class="eazy-field" type="search" id="eazy-q" placeholder="Zoek op merk, model of kenteken" value="${this.escapeHtml(this.filters.search)}">
+                    </div>
+                    <select class="eazy-field" id="eazy-merk"><option value="">Alle merken</option>${merkOpts}</select>
+                    <select class="eazy-field" id="eazy-brandstof"><option value="">Alle brandstof</option>${brandstofOpts}</select>
+                    <select class="eazy-field" id="eazy-sort">
+                        <option value="nieuwste">Nieuwste eerst</option>
+                        <option value="prijs_op">Prijs oplopend</option>
+                        <option value="prijs_af">Prijs aflopend</option>
+                        <option value="bouwjaar">Bouwjaar</option>
+                        <option value="km">Km-stand</option>
+                    </select>
+                    <button class="eazy-reset" id="eazy-reset" type="button">Wissen</button>
                 </div>
+                <div id="eazy-results"></div>
                 <div class="eazy-powered">
                     Powered by <a href="https://eazyonline.nl" target="_blank" rel="noopener">Eazyonline</a>
                 </div>
             `;
 
-            // Bind card click events
-            this.shadow.querySelectorAll('.eazy-card').forEach(card => {
+            this.bindToolbar();
+            this.renderResults();
+        }
+
+        bindToolbar() {
+            const q = this.shadow.getElementById('eazy-q');
+            const merk = this.shadow.getElementById('eazy-merk');
+            const brandstof = this.shadow.getElementById('eazy-brandstof');
+            const sort = this.shadow.getElementById('eazy-sort');
+            const reset = this.shadow.getElementById('eazy-reset');
+
+            if (merk) merk.value = this.filters.merk;
+            if (brandstof) brandstof.value = this.filters.brandstof;
+            if (sort) sort.value = this.filters.sort;
+
+            let t;
+            if (q) q.addEventListener('input', () => {
+                clearTimeout(t);
+                t = setTimeout(() => { this.filters.search = q.value.trim(); this.applyFilters(); }, 350);
+            });
+            if (merk) merk.addEventListener('change', () => { this.filters.merk = merk.value; this.applyFilters(); });
+            if (brandstof) brandstof.addEventListener('change', () => { this.filters.brandstof = brandstof.value; this.applyFilters(); });
+            if (sort) sort.addEventListener('change', () => { this.filters.sort = sort.value; this.applyFilters(); });
+            if (reset) reset.addEventListener('click', () => {
+                this.filters = { search: '', merk: '', brandstof: '', prijs_max: '', sort: 'nieuwste', page: 1 };
+                if (q) q.value = '';
+                if (merk) merk.value = '';
+                if (brandstof) brandstof.value = '';
+                if (sort) sort.value = 'nieuwste';
+                this.applyFilters();
+            });
+        }
+
+        async applyFilters() {
+            this.filters.page = 1;
+            const results = this.shadow.getElementById('eazy-results');
+            if (results) results.innerHTML = this.skeletonHTML();
+            await this.fetchCars();
+            this.renderResults();
+        }
+
+        async goToPage(page) {
+            if (page < 1 || (this.pagination.last_page && page > this.pagination.last_page)) return;
+            this.filters.page = page;
+            const results = this.shadow.getElementById('eazy-results');
+            if (results) results.innerHTML = this.skeletonHTML();
+            await this.fetchCars();
+            this.renderResults();
+            if (this.shadow.host) this.shadow.host.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+
+        hasActiveFilters() {
+            return !!(this.filters.search || this.filters.merk || this.filters.brandstof || this.filters.prijs_max);
+        }
+
+        renderResults() {
+            const results = this.shadow.getElementById('eazy-results');
+            if (!results) return;
+
+            const showPrice = this.s.show_price !== false;
+            const showKm = this.s.show_km !== false;
+            const showFuel = this.s.show_fuel !== false;
+            const total = this.pagination.total ?? this.cars.length;
+
+            if (this.cars.length === 0) {
+                results.innerHTML = `<div class="eazy-empty">Geen auto's gevonden${this.hasActiveFilters() ? ' met deze filters.' : '.'}</div>`;
+                return;
+            }
+
+            results.innerHTML = `
+                <div class="eazy-resultbar">${total} ${total === 1 ? 'auto' : "auto's"} gevonden</div>
+                <div class="eazy-grid">
+                    ${this.cars.map(car => this.renderCard(car, { showPrice, showKm, showFuel })).join('')}
+                </div>
+                ${this.paginationHTML()}
+            `;
+
+            results.querySelectorAll('.eazy-card').forEach(card => {
                 card.addEventListener('click', () => {
                     const carId = card.getAttribute('data-car-id');
                     if (carId) this.openDetail(parseInt(carId, 10));
                 });
             });
 
-            // Track views (fire and forget)
+            const prev = this.shadow.getElementById('eazy-prev');
+            const next = this.shadow.getElementById('eazy-next');
+            if (prev) prev.addEventListener('click', () => this.goToPage((this.pagination.current_page || 1) - 1));
+            if (next) next.addEventListener('click', () => this.goToPage((this.pagination.current_page || 1) + 1));
+
             this.cars.forEach(car => this.trackView(car.id));
+        }
+
+        paginationHTML() {
+            const cur = this.pagination.current_page || 1;
+            const last = this.pagination.last_page || 1;
+            if (last <= 1) return '';
+            return `
+                <div class="eazy-pagination">
+                    <button class="eazy-page-btn" id="eazy-prev" ${cur <= 1 ? 'disabled' : ''}>Vorige</button>
+                    <span class="eazy-page-info">Pagina ${cur} van ${last}</span>
+                    <button class="eazy-page-btn" id="eazy-next" ${cur >= last ? 'disabled' : ''}>Volgende</button>
+                </div>
+            `;
+        }
+
+        skeletonHTML() {
+            const card = '<div class="eazy-skel"><div class="eazy-skel-img"></div><div class="eazy-skel-line" style="width:70%"></div><div class="eazy-skel-line" style="width:40%"></div><div class="eazy-skel-line" style="width:55%"></div></div>';
+            return `<div class="eazy-grid">${card.repeat(6)}</div>`;
         }
 
         renderCard(car, opts) {

@@ -22,9 +22,17 @@ class EmbedService
 
         $query = $company->cars()
             ->active()
-            ->with('primaryImage')
-            ->orderByDesc('is_featured')
-            ->orderByDesc('created_at');
+            ->with('primaryImage');
+
+        if (!empty($filters['search'])) {
+            $s = $filters['search'];
+            $query->where(function ($q) use ($s) {
+                $q->where('merk', 'like', "%{$s}%")
+                    ->orWhere('handelsbenaming', 'like', "%{$s}%")
+                    ->orWhere('titel', 'like', "%{$s}%")
+                    ->orWhere('kenteken', 'like', "%{$s}%");
+            });
+        }
 
         if (!empty($filters['merk'])) {
             $query->where('merk', $filters['merk']);
@@ -32,6 +40,10 @@ class EmbedService
 
         if (!empty($filters['brandstof'])) {
             $query->where('brandstof_omschrijving', $filters['brandstof']);
+        }
+
+        if (!empty($filters['prijs_min'])) {
+            $query->where('prijs', '>=', (int) $filters['prijs_min'] * 100);
         }
 
         if (!empty($filters['prijs_max'])) {
@@ -42,12 +54,31 @@ class EmbedService
             $query->where('bouwjaar', '>=', (int) $filters['bouwjaar_min']);
         }
 
+        switch ($filters['sort'] ?? '') {
+            case 'prijs_op': $query->orderByRaw('prijs IS NULL, prijs ASC'); break;
+            case 'prijs_af': $query->orderByDesc('prijs'); break;
+            case 'bouwjaar': $query->orderByRaw('bouwjaar IS NULL, bouwjaar DESC'); break;
+            case 'km': $query->orderByRaw('kilometerstand IS NULL, kilometerstand ASC'); break;
+            default: $query->orderByDesc('is_featured')->orderByDesc('created_at');
+        }
+
+        // Facets for the filter dropdowns (from all active cars, not the filtered set).
+        $base = $company->cars()->active();
+        $maxPrijs = (clone $base)->max('prijs');
+
         return [
             'company' => [
                 'name' => $company->name,
                 'logo' => $company->logo_path ? asset('storage/' . $company->logo_path) : null,
             ],
             'settings' => $company->embed_settings ?? [],
+            'filters' => [
+                'merken' => (clone $base)->whereNotNull('merk')->where('merk', '!=', '')
+                    ->distinct()->orderBy('merk')->pluck('merk')->values(),
+                'brandstoffen' => (clone $base)->whereNotNull('brandstof_omschrijving')->where('brandstof_omschrijving', '!=', '')
+                    ->distinct()->orderBy('brandstof_omschrijving')->pluck('brandstof_omschrijving')->values(),
+                'prijs_max' => $maxPrijs ? (int) ceil($maxPrijs / 100) : null,
+            ],
             'cars' => $query->paginate(24)->through(fn (Car $car) => [
                 'id' => $car->id,
                 'title' => $car->display_title,

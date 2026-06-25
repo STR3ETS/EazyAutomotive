@@ -21,7 +21,7 @@ class EmbedApiController extends Controller
         }
 
         $result = $this->embedService->getCarsForEmbed($apiKey, $request->only([
-            'merk', 'brandstof', 'prijs_max', 'bouwjaar_min', 'page',
+            'search', 'merk', 'brandstof', 'prijs_min', 'prijs_max', 'bouwjaar_min', 'sort', 'page',
         ]));
 
         if (!$result) {
