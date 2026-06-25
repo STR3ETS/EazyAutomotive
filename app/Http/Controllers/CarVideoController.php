@@ -8,6 +8,7 @@ use App\Models\CarReel;
 use App\Models\CarVideo;
 use App\Services\Video\FalVideoService;
 use App\Services\Video\HiggsfieldService;
+use App\Services\Video\StudioComposer;
 use App\Services\Video\VideoPromptComposer;
 use App\Services\Video\VideoStitcher;
 use Illuminate\Http\JsonResponse;
@@ -21,6 +22,7 @@ class CarVideoController extends Controller
         private FalVideoService $fal,
         private HiggsfieldService $higgsfield,
         private VideoPromptComposer $composer,
+        private StudioComposer $studio,
     ) {}
 
     /** Kick off an AI promo-video generation for a car, from its photo. */
@@ -31,10 +33,16 @@ class CarVideoController extends Controller
         $validated = $request->validate([
             'prompt' => 'required|string|max:1000',
             'duration' => 'nullable|in:5,8,10,15', // model max is 15 seconds per render
+            'studio' => 'nullable|boolean',
             'car_image_ids' => 'nullable|array',
             'car_image_ids.*' => 'integer',
             'image_url' => 'nullable|url|max:1024', // local-dev override (the API cannot reach localhost photos)
         ]);
+
+        // Studio mode: car on a white backdrop with the garage logo.
+        if ($this->fal->isConfigured() && $request->boolean('studio')) {
+            return $this->storeStudio($request, $car, $validated);
+        }
 
         // Preferred path: fal.ai Seedance 2.0 builds one cinematic montage with
         // native audio from all selected photos in a single call.
@@ -218,6 +226,75 @@ class CarVideoController extends Controller
         $count = count($sources);
 
         return back()->with('success', "Je cinematische video wordt gemaakt van {$count} foto('s), inclusief muziek. Dit kan een paar minuten duren; de status ververst automatisch.");
+    }
+
+    /**
+     * Studio mode: cut the car out of its photo, place it on a white backdrop with
+     * the garage logo, then animate that branded still.
+     */
+    private function storeStudio(Request $request, Car $car, array $validated)
+    {
+        if (! $this->studio->isAvailable()) {
+            return back()->with('error', 'Studio-modus is niet beschikbaar: de beeldbibliotheek (GD) ontbreekt op de server.');
+        }
+
+        $logoPath = $car->company?->logo_path;
+        if (! $logoPath || ! Storage::disk('public')->exists($logoPath)) {
+            return back()->with('error', 'Upload eerst een logo bij Instellingen, dat komt op de witte achtergrond.');
+        }
+
+        // Pick one strong photo: the first selected, else the primary, else the first.
+        $img = ! empty($validated['car_image_ids'])
+            ? $car->images()->whereKey($validated['car_image_ids'])->first()
+            : null;
+        $img = $img ?: ($car->primaryImage ?: $car->images()->first());
+        if (! $img) {
+            return back()->with('error', 'Deze auto heeft nog geen foto.');
+        }
+
+        $bytes = $this->readImageBytes($img);
+        if ($bytes === null) {
+            return back()->with('error', 'De foto kon niet worden gelezen.');
+        }
+
+        try {
+            @set_time_limit(240);
+            $aspect = (string) config('services.fal.aspect_ratio', '16:9');
+
+            $sourceUrl = $this->fal->uploadImage($bytes, basename($img->path), $this->contentTypeFor($img->path));
+            $cutoutUrl = $this->fal->removeBackground($sourceUrl);
+            $cutoutBytes = (string) Http::timeout(60)->get($cutoutUrl)->body();
+            $composed = $this->studio->compose($cutoutBytes, Storage::disk('public')->get($logoPath), $aspect);
+            $composedUrl = $this->fal->uploadImage($composed, 'studio.jpg', 'image/jpeg');
+
+            $opts = empty($validated['duration']) ? [] : ['duration' => $validated['duration']];
+            $result = $this->fal->generateFromImage($composedUrl, $this->buildStudioPrompt($car), $opts);
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()->with('error', 'Genereren mislukt: ' . $e->getMessage());
+        }
+
+        $car->videos()->create([
+            'company_id' => $car->company_id,
+            'status' => $result['status'],
+            'prompt' => 'Studio-achtergrond (witte doek + logo)',
+            'model' => 'seedance-studio',
+            'source_image_url' => $img->url,
+            'request_id' => $result['request_id'],
+            'result_url' => $result['result_url'],
+        ]);
+
+        return back()->with('success', 'Je studio-video wordt gemaakt: de auto op een witte achtergrond met jullie logo. Dit duurt een paar minuten; de status ververst automatisch.');
+    }
+
+    /** Prompt for the studio still: keep the composed branded frame, move only the camera. */
+    private function buildStudioPrompt(Car $car): string
+    {
+        return 'Professional automotive studio commercial of the ' . $car->display_title . '. '
+            . 'The car stands still on a clean white seamless studio backdrop with the dealership logo on the wall behind it. '
+            . 'Slow, smooth cinematic camera move: a gentle dolly-in with a slight orbit, soft even studio lighting, a subtle reflection on the floor. '
+            . 'Keep the car, the white backdrop and the logo exactly as in the image and fully intact; only the camera moves. Photorealistic, no warping or distortion.';
     }
 
     /** Read a car image's raw bytes from the public disk (null if unreadable). */

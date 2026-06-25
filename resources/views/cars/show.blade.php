@@ -140,6 +140,10 @@
                                 @if(config('app.env') !== 'production')
                                     <input type="url" name="image_url" placeholder="Test: publieke afbeeldings-URL (lokaal nodig, fal kan localhost niet bereiken)" class="block w-full px-4 py-2 mb-3 rounded-xl border-[#215558]/10 text-xs focus:border-eazy focus:ring-eazy">
                                 @endif
+                                <label class="flex items-start gap-2 mb-3 cursor-pointer">
+                                    <input type="checkbox" name="studio" value="1" class="mt-0.5 rounded border-[#215558]/20 text-eazy focus:ring-eazy">
+                                    <span class="text-xs text-[#215558] opacity-80">Studio-achtergrond: zet de auto op een witte doek met jullie logo (gebruikt 1 foto; logo instelbaar bij Instellingen).</span>
+                                </label>
                                 <label class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1.5">Lengte</label>
                                 <select name="duration" class="block w-full sm:w-48 px-4 py-2.5 mb-3 rounded-xl border-[#215558]/10 text-sm focus:border-eazy focus:ring-eazy">
                                     <option value="5">5 seconden</option>

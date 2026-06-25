@@ -57,6 +57,9 @@ return [
         'key' => env('FAL_KEY'),
         'base_url' => env('FAL_BASE_URL', 'https://queue.fal.run'),
         'model' => env('FAL_MODEL', 'bytedance/seedance-2.0/reference-to-video'),
+        // Single-still animation (studio-background videos) and background removal.
+        'image_to_video_model' => env('FAL_IMAGE_MODEL', 'bytedance/seedance-2.0/fast/image-to-video'),
+        'bg_removal_model' => env('FAL_BG_MODEL', 'fal-ai/birefnet/v2'),
         'resolution' => env('FAL_RESOLUTION', '720p'),
         'duration' => env('FAL_DURATION', 'auto'),
         'aspect_ratio' => env('FAL_ASPECT_RATIO', '16:9'),

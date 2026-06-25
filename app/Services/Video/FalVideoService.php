@@ -57,6 +57,84 @@ class FalVideoService
     }
 
     /**
+     * Animate a single still image (image-to-video). Used for studio-background
+     * videos where the whole branded frame is composed up front.
+     *
+     * @return array{status: string, request_id: ?string, result_url: ?string}
+     */
+    public function generateFromImage(string $imageUrl, string $prompt, array $opts = []): array
+    {
+        $model = trim((string) config('services.fal.image_to_video_model', 'bytedance/seedance-2.0/fast/image-to-video'), '/');
+
+        $body = array_filter([
+            'prompt' => $prompt,
+            'image_url' => $imageUrl,
+            'resolution' => $opts['resolution'] ?? config('services.fal.resolution', '720p'),
+            'duration' => $opts['duration'] ?? config('services.fal.duration', 'auto'),
+            'aspect_ratio' => $opts['aspect_ratio'] ?? config('services.fal.aspect_ratio', '16:9'),
+            'generate_audio' => $opts['generate_audio'] ?? config('services.fal.generate_audio', true),
+        ], fn ($v) => $v !== null && $v !== '');
+
+        $response = $this->client()->post($this->base() . '/' . $model, $body);
+        if (! $response->successful()) {
+            throw new \RuntimeException($this->errorMessage($response));
+        }
+
+        return [
+            'status' => 'in_progress',
+            'request_id' => $response->json('request_id'),
+            'result_url' => $response->json('response_url'),
+        ];
+    }
+
+    /**
+     * Remove the background from an image via BiRefNet and return a fal URL to the
+     * transparent PNG. BiRefNet is quick, so we poll inline for a short while.
+     */
+    public function removeBackground(string $imageUrl): string
+    {
+        $model = trim((string) config('services.fal.bg_removal_model', 'fal-ai/birefnet/v2'), '/');
+
+        $submit = $this->client()->post($this->base() . '/' . $model, [
+            'image_url' => $imageUrl,
+            'output_format' => 'png',
+            'refine_foreground' => true,
+        ]);
+        if (! $submit->successful()) {
+            throw new \RuntimeException($this->errorMessage($submit));
+        }
+
+        $resultUrl = rtrim((string) $submit->json('response_url'), '/');
+        if ($resultUrl === '') {
+            throw new \RuntimeException('fal: achtergrond verwijderen kon niet starten.');
+        }
+
+        for ($i = 0; $i < 30; $i++) {
+            $status = $this->client()->get($resultUrl . '/status');
+            if (! $status->successful()) {
+                throw new \RuntimeException($this->errorMessage($status));
+            }
+            $state = strtoupper((string) $status->json('status'));
+
+            if ($state === 'COMPLETED') {
+                $res = $this->client()->get($resultUrl);
+                $url = $res->json('image.url');
+                if (! $url) {
+                    throw new \RuntimeException('fal: geen uitsnede ontvangen.');
+                }
+
+                return $url;
+            }
+            if (! in_array($state, ['IN_QUEUE', 'IN_PROGRESS'], true)) {
+                throw new \RuntimeException('fal: achtergrond verwijderen mislukte.');
+            }
+            sleep(2);
+        }
+
+        throw new \RuntimeException('fal: achtergrond verwijderen duurde te lang.');
+    }
+
+    /**
      * Upload raw image bytes to fal storage and return the fal-hosted URL. This
      * lets the model read the image from fal's own CDN, so fal never has to reach
      * our server (which fal's network often cannot, e.g. behind a hosting firewall).
