@@ -8,6 +8,7 @@ use App\Http\Controllers\CarVideoController;
 use App\Http\Controllers\CompanySettingsController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FeedController;
+use App\Http\Controllers\LeadController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\ProefritController;
 use App\Http\Controllers\ProfileController;
@@ -65,6 +66,14 @@ Route::middleware(['auth', 'verified', 'company.ownership'])->group(function () 
 
     // Integratie (Embed Code + Guide)
     Route::get('/integratie', [CompanySettingsController::class, 'integratie'])->name('integratie');
+
+    // CRM / leadbeheer (alle leads samen: proefrit, contact, inruil, financiering, handmatig)
+    Route::get('/leads', [LeadController::class, 'index'])->name('leads.index');
+    Route::post('/leads', [LeadController::class, 'store'])->name('leads.store');
+    Route::get('/leads/{lead}', [LeadController::class, 'show'])->name('leads.show');
+    Route::patch('/leads/{lead}', [LeadController::class, 'update'])->name('leads.update');
+    Route::patch('/leads/{lead}/status', [LeadController::class, 'updateStatus'])->name('leads.status');
+    Route::delete('/leads/{lead}', [LeadController::class, 'destroy'])->name('leads.destroy');
 
     // Proefrit-aanvragen (leads uit de embed-widget)
     Route::get('/proefritten', [ProefritController::class, 'index'])->name('proefritten');

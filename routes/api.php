@@ -1,6 +1,7 @@
 <?php
 
 use App\Http\Controllers\Api\EmbedApiController;
+use App\Http\Controllers\Api\LeadEmbedController;
 use App\Http\Controllers\Api\ProefritEmbedController;
 use Illuminate\Support\Facades\Route;
 
@@ -13,4 +14,7 @@ Route::prefix('embed/v1')->middleware('embed.api')->group(function () {
     // Proefrit (test-drive) widget
     Route::get('/proefrit/config', [ProefritEmbedController::class, 'config']);
     Route::post('/proefrit', [ProefritEmbedController::class, 'store'])->middleware('throttle:15,1');
+
+    // Contact / interest form -> CRM lead
+    Route::post('/lead', [LeadEmbedController::class, 'store'])->middleware('throttle:15,1');
 });

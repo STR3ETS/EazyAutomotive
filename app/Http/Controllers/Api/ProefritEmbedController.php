@@ -107,6 +107,25 @@ class ProefritEmbedController extends Controller
 
         $this->notifyDealer($company, $aanvraag);
 
+        // Also land the request in the unified CRM (non-blocking).
+        try {
+            $company->leads()->create([
+                'car_id' => $carId,
+                'type' => 'proefrit',
+                'naam' => $validated['naam'],
+                'email' => $validated['email'],
+                'telefoon' => $validated['telefoon'],
+                'bericht' => $validated['bericht'] ?? null,
+                'status' => 'nieuw',
+                'source' => 'proefrit',
+                'data' => ['gewenste_datum' => $validated['gewenste_datum'] ?? null],
+                'ip_address' => $request->ip(),
+                'user_agent' => $request->userAgent(),
+            ]);
+        } catch (\Throwable $e) {
+            report($e);
+        }
+
         return response()->json([
             'ok' => true,
             'message' => $settings['proefrit_bedankt'] ?? 'Bedankt! Je proefrit-aanvraag is verstuurd. We nemen snel contact met je op.',

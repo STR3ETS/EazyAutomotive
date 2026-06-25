@@ -72,4 +72,9 @@ class Company extends Model
     {
         return $this->hasMany(ProefritAanvraag::class);
     }
+
+    public function leads(): HasMany
+    {
+        return $this->hasMany(Lead::class);
+    }
 }
