@@ -34,12 +34,12 @@ class StudioComposer
         if ($bg !== false) {
             imagecopyresampled($canvas, $bg, 0, 0, 0, 0, $w, $h, imagesx($bg), imagesy($bg));
             imagedestroy($bg);
-            // Platform geometry tuned to the showroom backdrop.
-            $baseY = (int) round($h * 0.665);
-            $carWFrac = 0.58;
-            $maxCHFrac = 0.42;
-            $logoY = (int) round($h * 0.07);
-            $logoWFrac = 0.24;
+            // Flat-floor showroom: the car stands on the floor, logo on the wall.
+            $baseY = (int) round($h * 0.84);
+            $carWFrac = 0.74;
+            $maxCHFrac = 0.50;
+            $logoY = (int) round($h * 0.11);
+            $logoWFrac = 0.22;
         } else {
             // Fallback: soft white studio cove.
             $floorY = (int) round($h * 0.70);
