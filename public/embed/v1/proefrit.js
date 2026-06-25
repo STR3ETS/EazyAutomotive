@@ -43,7 +43,7 @@
         return '' +
             ':host{all:initial}' +
             '*{box-sizing:border-box;font-family:' + font + '}' +
-            '.ea-card{max-width:520px;background:#fff;border:1px solid rgba(15,23,42,.08);border-radius:' + cardRadius + 'px;padding:24px;box-shadow:0 10px 30px rgba(15,23,42,.06);color:#1f2937}' +
+            '.ea-card{max-width:520px;background:#fff;border:1px solid rgba(15,23,42,.08);border-radius:' + cardRadius + 'px;padding:24px;box-shadow:0 10px 30px rgba(15,23,42,.06);color:#1f2937;animation:ea-cardin .25s ease}' +
             '.ea-h{font-size:19px;font-weight:800;margin:0 0 4px;color:#111827}' +
             '.ea-sub{font-size:13px;color:#6b7280;margin:0 0 18px}' +
             '.ea-row{margin-bottom:13px}' +
@@ -61,11 +61,18 @@
             '.ea-btn:disabled{opacity:.65;cursor:default}' +
             '.ea-err{display:none;background:#fef2f2;color:#b91c1c;font-size:13px;padding:9px 12px;border-radius:10px;margin-bottom:13px}' +
             '.ea-ok{text-align:center;padding:18px 6px}' +
-            '.ea-ok-ic{width:54px;height:54px;border-radius:50%;background:' + color + '1a;color:' + color + ';display:flex;align-items:center;justify-content:center;margin:0 auto 12px}' +
+            '.ea-ok-ic{width:54px;height:54px;border-radius:50%;background:' + color + '1a;color:' + color + ';display:flex;align-items:center;justify-content:center;margin:0 auto 12px;animation:ea-pop .4s ease}' +
             '.ea-ok-h{font-size:17px;font-weight:800;color:#111827;margin:0 0 4px}' +
             '.ea-ok-p{font-size:14px;color:#6b7280;margin:0}' +
             '.ea-foot{margin-top:14px;text-align:center;font-size:11px;color:#9ca3af}' +
-            '.ea-foot a{color:#9ca3af;text-decoration:none}';
+            '.ea-foot a{color:#9ca3af;text-decoration:none}' +
+            '.ea-badge{width:42px;height:42px;border-radius:13px;background:' + color + '1a;color:' + color + ';display:flex;align-items:center;justify-content:center;margin-bottom:12px}' +
+            '.ea-invalid{border-color:#ef4444 !important;box-shadow:0 0 0 3px #ef444422 !important}' +
+            '.ea-fielderr{color:#b91c1c;font-size:11.5px;margin-top:4px;font-weight:500}' +
+            '.ea-spin{display:inline-block;width:15px;height:15px;border:2px solid rgba(255,255,255,.4);border-top-color:#fff;border-radius:50%;animation:ea-spin .6s linear infinite;vertical-align:-2px}' +
+            '@keyframes ea-spin{to{transform:rotate(360deg)}}' +
+            '@keyframes ea-pop{0%{transform:scale(.6);opacity:0}60%{transform:scale(1.1)}100%{transform:scale(1);opacity:1}}' +
+            '@keyframes ea-cardin{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}';
     }
 
     function carsField(cars, p) {
@@ -104,6 +111,7 @@
         }
 
         return '<div class="ea-card">' +
+            '<div class="ea-badge"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M5 17H3v-6l2-5h9l4 5h1a2 2 0 012 2v4h-2"/><circle cx="7.5" cy="17.5" r="1.5"/><circle cx="16.5" cy="17.5" r="1.5"/></svg></div>' +
             '<h3 class="ea-h">' + esc(p.titel || 'Plan een proefrit') + '</h3>' +
             '<p class="ea-sub">' + esc(intro) + '</p>' +
             '<div class="ea-err" id="ea-err"></div>' +
@@ -158,30 +166,60 @@
         var errEl = shadow.getElementById('ea-err');
         var btn = shadow.getElementById('ea-submit');
 
+        var submitLabel = p.knop || 'Proefrit aanvragen';
+
         function fail(msg) {
             errEl.textContent = msg;
             errEl.style.display = 'block';
         }
 
+        function clearErrors() {
+            errEl.style.display = 'none';
+            form.querySelectorAll('.ea-invalid').forEach(function (el) { el.classList.remove('ea-invalid'); });
+            form.querySelectorAll('.ea-fielderr').forEach(function (el) { el.remove(); });
+        }
+
+        function invalid(name, msg) {
+            var el = form.querySelector('[name="' + name + '"]');
+            if (!el) { return; }
+            el.classList.add('ea-invalid');
+            if (msg) {
+                var row = el.closest('.ea-row') || el.parentNode;
+                if (row && !row.querySelector('.ea-fielderr')) {
+                    var d = document.createElement('div');
+                    d.className = 'ea-fielderr';
+                    d.textContent = msg;
+                    row.appendChild(d);
+                }
+            }
+        }
+
+        form.addEventListener('input', function (e) {
+            if (e.target && e.target.classList) { e.target.classList.remove('ea-invalid'); }
+        });
+
         form.addEventListener('submit', function (e) {
             e.preventDefault();
-            errEl.style.display = 'none';
+            clearErrors();
 
             var data = {};
             new FormData(form).forEach(function (v, k) { data[k] = v; });
 
-            if (!data.naam || !data.email || !data.telefoon) {
-                return fail('Vul je naam, e-mail en telefoonnummer in.');
-            }
-            if (p.auto_verplicht && !data.car_id) {
-                return fail('Kies een auto voor de proefrit.');
-            }
-            if (p.privacy && !data.privacy) {
-                return fail('Ga akkoord met de privacyvoorwaarden om door te gaan.');
+            var bad = false;
+            if (!data.naam) { invalid('naam', 'Vul je naam in.'); bad = true; }
+            if (!data.email) { invalid('email', 'Vul je e-mail in.'); bad = true; }
+            else if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) { invalid('email', 'Controleer je e-mailadres.'); bad = true; }
+            if (!data.telefoon) { invalid('telefoon', 'Vul je telefoonnummer in.'); bad = true; }
+            if (p.auto_verplicht && !data.car_id) { invalid('car_id', 'Kies een auto voor de proefrit.'); bad = true; }
+            if (p.privacy && !data.privacy) { invalid('privacy', 'Ga akkoord om door te gaan.'); bad = true; }
+            if (bad) {
+                var first = form.querySelector('.ea-invalid');
+                if (first) { first.focus(); }
+                return;
             }
 
             btn.disabled = true;
-            btn.textContent = 'Versturen...';
+            btn.innerHTML = '<span class="ea-spin"></span>';
 
             fetch(BASE_URL + '/api/embed/v1/proefrit?api_key=' + encodeURIComponent(API_KEY), {
                 method: 'POST',
@@ -198,7 +236,7 @@
                             : (res.body && res.body.message) || 'Er ging iets mis. Probeer het opnieuw.';
                         fail(msg);
                         btn.disabled = false;
-                        btn.textContent = p.knop || 'Proefrit aanvragen';
+                        btn.textContent = submitLabel;
                     }
                 })
                 .catch(function () {
