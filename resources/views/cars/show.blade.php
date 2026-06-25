@@ -193,22 +193,7 @@
                             </div>
                         @endif
 
-                        @php
-                            $completedCount = $car->videos->where('status', 'completed')->filter(fn ($v) => ! empty($v->video_url))->count();
-                        @endphp
-                        @if($completedCount >= 2)
-                            <div class="mt-5 pt-5 border-t border-[#215558]/5">
-                                <form method="POST" action="{{ route('cars.reel.store', $car) }}" x-data="{ busy: false }" @submit="busy = true">
-                                    @csrf
-                                    <p class="text-xs text-[#215558] opacity-60 mb-2">Plak je {{ $completedCount }} afgeronde clips achter elkaar tot één reel.</p>
-                                    <button type="submit" :disabled="busy" class="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 bg-[#215558] text-white rounded-full text-sm font-bold hover:bg-eazy-darker disabled:opacity-50 transition">
-                                        <i class="fa-solid" :class="busy ? 'fa-spinner fa-spin' : 'fa-film'"></i>
-                                        <span x-text="busy ? 'Samenvoegen...' : 'Combineer tot één reel'"></span>
-                                    </button>
-                                    <span x-show="busy" class="ml-2 text-[11px] text-[#215558] opacity-50">Dit kan even duren, pagina niet sluiten.</span>
-                                </form>
-                            </div>
-                        @endif
+                        {{-- Reel-stitching (ffmpeg) is vervangen door fal: Seedance levert al een complete montage met audio in één video. --}}
 
                         @if($car->reels->count() > 0)
                             <div class="mt-5 pt-5 border-t border-[#215558]/5 space-y-4">
