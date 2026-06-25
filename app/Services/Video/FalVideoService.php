@@ -28,7 +28,7 @@ class FalVideoService
      * Submit a reference-to-video job.
      *
      * @param  array<int, string>  $imageUrls  Publicly reachable image URLs (max 9).
-     * @return array{status: string, request_id: ?string}
+     * @return array{status: string, request_id: ?string, result_url: ?string}
      */
     public function generate(array $imageUrls, string $prompt, array $opts = []): array
     {
@@ -47,22 +47,26 @@ class FalVideoService
             throw new \RuntimeException($this->errorMessage($response));
         }
 
+        // The queue path differs from the submit path (fal drops the sub-model
+        // segments), so we keep the canonical response_url fal hands back.
         return [
             'status' => 'in_progress',
             'request_id' => $response->json('request_id'),
+            'result_url' => $response->json('response_url'),
         ];
     }
 
     /**
-     * Poll a request: returns the normalized status and, when finished, the video URL.
+     * Poll a request using the response_url fal returned at submit time. The status
+     * lives at "{resultUrl}/status"; the finished payload at "{resultUrl}".
      *
      * @return array{status: string, video_url: ?string, thumbnail_url: ?string, error: ?string}
      */
-    public function status(string $requestId): array
+    public function status(string $resultUrl): array
     {
-        $requestBase = $this->base() . '/' . $this->model() . '/requests/' . rawurlencode($requestId);
+        $resultUrl = rtrim($resultUrl, '/');
 
-        $status = $this->client()->get($requestBase . '/status');
+        $status = $this->client()->get($resultUrl . '/status');
         if (! $status->successful()) {
             throw new \RuntimeException($this->errorMessage($status));
         }
@@ -74,7 +78,7 @@ class FalVideoService
             return ['status' => 'in_progress', 'video_url' => null, 'thumbnail_url' => null, 'error' => null];
         }
 
-        $result = $this->client()->get($requestBase);
+        $result = $this->client()->get($resultUrl);
         if (! $result->successful()) {
             return ['status' => 'failed', 'video_url' => null, 'thumbnail_url' => null, 'error' => $this->errorMessage($result)];
         }

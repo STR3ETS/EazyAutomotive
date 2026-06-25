@@ -8,7 +8,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 
 #[Fillable([
     'company_id', 'car_id', 'status', 'prompt', 'model', 'motion_id',
-    'source_image_url', 'request_id', 'video_url', 'thumbnail_url', 'error',
+    'source_image_url', 'request_id', 'result_url', 'video_url', 'thumbnail_url', 'error',
 ])]
 class CarVideo extends Model
 {

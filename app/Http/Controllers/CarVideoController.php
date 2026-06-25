@@ -184,6 +184,7 @@ class CarVideoController extends Controller
             'model' => $this->fal->modelLabel(),
             'source_image_url' => $imageUrls[0],
             'request_id' => $result['request_id'],
+            'result_url' => $result['result_url'],
         ]);
 
         $count = count($imageUrls);
@@ -215,10 +216,12 @@ class CarVideoController extends Controller
         abort_unless($car->company_id === $request->user()->company_id, 403);
         abort_unless($video->car_id === $car->id, 404);
 
-        if ($video->isPending() && $video->request_id) {
+        $isFal = str_contains((string) $video->model, 'seedance');
+
+        if ($video->isPending() && (($isFal && $video->result_url) || (! $isFal && $video->request_id))) {
             try {
-                $s = str_contains((string) $video->model, 'seedance')
-                    ? $this->fal->status($video->request_id)
+                $s = $isFal
+                    ? $this->fal->status((string) $video->result_url)
                     : $this->higgsfield->status($video->request_id);
                 $video->update([
                     'status' => $s['status'],
