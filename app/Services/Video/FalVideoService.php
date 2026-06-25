@@ -38,7 +38,7 @@ class FalVideoService
             'resolution' => $opts['resolution'] ?? config('services.fal.resolution', '720p'),
             'duration' => $opts['duration'] ?? config('services.fal.duration', 'auto'),
             'aspect_ratio' => $opts['aspect_ratio'] ?? config('services.fal.aspect_ratio', '16:9'),
-            'generate_audio' => $opts['generate_audio'] ?? true,
+            'generate_audio' => $opts['generate_audio'] ?? config('services.fal.generate_audio', true),
         ], fn ($v) => $v !== null && $v !== '' && $v !== []);
 
         $response = $this->client()->post($this->base() . '/' . $this->model(), $body);

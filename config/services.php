@@ -60,6 +60,9 @@ return [
         'resolution' => env('FAL_RESOLUTION', '720p'),
         'duration' => env('FAL_DURATION', 'auto'),
         'aspect_ratio' => env('FAL_ASPECT_RATIO', '16:9'),
+        // Native audio. fal's moderation can flag generated music as sensitive;
+        // set FAL_GENERATE_AUDIO=false for a guaranteed silent render.
+        'generate_audio' => env('FAL_GENERATE_AUDIO', true),
     ],
 
     // Path to the ffmpeg binary, used to stitch per-photo clips into one reel.

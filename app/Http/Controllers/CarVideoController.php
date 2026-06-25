@@ -245,12 +245,14 @@ class CarVideoController extends Controller
     /** Compose a strong cinematic prompt for Seedance, augmented with the user's idea. */
     private function buildFalPrompt(Car $car, string $idea): string
     {
-        $prompt = 'Premium cinematic automotive commercial of the ' . $car->display_title . '. '
+        $prompt = 'Cinematic ' . $car->display_title . ' commercial. '
+            . 'Open on a dramatic exterior reveal at golden hour, camera dolly-in along the glossy paint. '
+            . 'Cut to a smooth sweep across the interior and the glowing dashboard, then a tight detail shot of the alloy wheel, '
+            . 'ending on a hero wide shot of the car. '
             . 'Use the provided photos as the exact car and keep its shape, color and details consistent. '
-            . 'Smooth flowing camera: a slow dolly past the front, a sweeping orbit around the body, a low tracking '
-            . 'shot along the side, close details of the wheels, headlights and grille, ending on a hero wide shot. '
-            . 'Showroom and golden-hour lighting, reflections on the paint, shallow depth of field, color graded, '
-            . '24fps film look. The car stays parked and still; only the camera moves. Add subtle modern background music.';
+            . 'Premium automotive commercial, photorealistic, reflections on the paint, shallow depth of field, color graded, '
+            . '24fps film look. The car stays parked and still; only the camera moves. '
+            . 'Subtle modern instrumental background music, no vocals or speech.';
 
         $idea = trim($idea);
         if ($idea !== '') {
