@@ -259,15 +259,21 @@ class CarVideoController extends Controller
 
         try {
             @set_time_limit(240);
-            $aspect = (string) config('services.fal.aspect_ratio', '16:9');
 
             $sourceUrl = $this->fal->uploadImage($bytes, basename($img->path), $this->contentTypeFor($img->path));
             $cutoutUrl = $this->fal->removeBackground($sourceUrl);
             $cutoutBytes = (string) Http::timeout(60)->get($cutoutUrl)->body();
-            $composed = $this->studio->compose($cutoutBytes, Storage::disk('public')->get($logoPath), $aspect);
+
+            $backdropPath = public_path('images/studio/showroom.jpg');
+            $backdrop = is_file($backdropPath) ? (string) file_get_contents($backdropPath) : null;
+
+            $composed = $this->studio->compose($cutoutBytes, Storage::disk('public')->get($logoPath), $backdrop);
             $composedUrl = $this->fal->uploadImage($composed, 'studio.jpg', 'image/jpeg');
 
-            $opts = empty($validated['duration']) ? [] : ['duration' => $validated['duration']];
+            $opts = ['aspect_ratio' => '16:9'];
+            if (! empty($validated['duration'])) {
+                $opts['duration'] = $validated['duration'];
+            }
             $result = $this->fal->generateFromImage($composedUrl, $this->buildStudioPrompt($car), $opts);
         } catch (\Throwable $e) {
             report($e);
@@ -291,10 +297,10 @@ class CarVideoController extends Controller
     /** Prompt for the studio still: keep the composed branded frame, move only the camera. */
     private function buildStudioPrompt(Car $car): string
     {
-        return 'Professional automotive studio commercial of the ' . $car->display_title . '. '
-            . 'The car stands still on a clean white seamless studio backdrop with the dealership logo on the wall behind it. '
-            . 'Slow, smooth cinematic camera move: a gentle dolly-in with a slight orbit, soft even studio lighting, a subtle reflection on the floor. '
-            . 'Keep the car, the white backdrop and the logo exactly as in the image and fully intact; only the camera moves. Photorealistic, no warping or distortion.';
+        return 'Cinematic automotive showroom commercial of the ' . $car->display_title . '. '
+            . 'The car stands on a round turntable platform in a luxury showroom, with a wood-slat feature wall and the dealership logo on the wall behind it. '
+            . 'Slow, smooth cinematic camera move: a gentle dolly-in with a slight orbit, soft studio lighting, glossy floor reflections. '
+            . 'Keep the car, the showroom, the platform and the logo exactly as in the image and fully intact; only the camera moves. Photorealistic, no warping or distortion.';
     }
 
     /** Read a car image's raw bytes from the public disk (null if unreadable). */

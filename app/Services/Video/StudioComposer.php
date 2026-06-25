@@ -3,9 +3,10 @@
 namespace App\Services\Video;
 
 /**
- * Builds a branded studio still with GD: a clean white backdrop, the garage logo
- * on the backdrop, and the cut-out car in front. The result is a single frame
- * that gets animated, so the logo and background stay crisp and consistent.
+ * Builds a branded studio still with GD: the cut-out car placed on a photoreal
+ * showroom backdrop (a round platform on a reflective floor with a feature wall),
+ * the garage logo on the wall, and a soft contact shadow under the wheels. The
+ * result is a single frame that gets animated, so it stays crisp and consistent.
  */
 class StudioComposer
 {
@@ -16,51 +17,65 @@ class StudioComposer
 
     /**
      * @param  string  $carPng  Transparent PNG of the car (background already removed).
-     * @param  string  $logoBytes  The garage logo (PNG with transparency is ideal).
+     * @param  string  $logoBytes  The garage logo (transparent PNG or logo-on-dark works best).
+     * @param  string|null  $backdropBytes  Photoreal showroom backdrop; null falls back to a white cove.
      * @return string  JPEG bytes of the composed studio frame.
      */
-    public function compose(string $carPng, string $logoBytes, string $aspect = '16:9'): string
+    public function compose(string $carPng, string $logoBytes, ?string $backdropBytes = null): string
     {
-        [$w, $h] = $aspect === '4:3' ? [1280, 960] : ($aspect === '9:16' ? [720, 1280] : [1280, 720]);
+        $w = 1280;
+        $h = 720;
         $blur = function_exists('imagefilter');
 
         $canvas = imagecreatetruecolor($w, $h);
         imagealphablending($canvas, true);
 
-        // Studio cove: a lighter wall up top, a slightly deeper floor band below the horizon.
-        $floorY = (int) round($h * 0.70);
-        for ($y = 0; $y < $h; $y++) {
-            if ($y < $floorY) {
-                $shade = (int) round(252 - ($y / max($floorY, 1)) * 7);
-            } else {
-                $t = ($y - $floorY) / max($h - $floorY, 1);
-                $shade = (int) round(236 - $t * 14);
+        $bg = $backdropBytes !== null ? @imagecreatefromstring($backdropBytes) : false;
+        if ($bg !== false) {
+            imagecopyresampled($canvas, $bg, 0, 0, 0, 0, $w, $h, imagesx($bg), imagesy($bg));
+            imagedestroy($bg);
+            // Platform geometry tuned to the showroom backdrop.
+            $baseY = (int) round($h * 0.665);
+            $carWFrac = 0.58;
+            $maxCHFrac = 0.42;
+            $logoY = (int) round($h * 0.07);
+            $logoWFrac = 0.24;
+        } else {
+            // Fallback: soft white studio cove.
+            $floorY = (int) round($h * 0.70);
+            for ($y = 0; $y < $h; $y++) {
+                $shade = $y < $floorY
+                    ? (int) round(252 - ($y / max($floorY, 1)) * 7)
+                    : (int) round(236 - (($y - $floorY) / max($h - $floorY, 1)) * 14);
+                imageline($canvas, 0, $y, $w, $y, imagecolorallocate($canvas, $shade, $shade, $shade));
             }
-            imageline($canvas, 0, $y, $w, $y, imagecolorallocate($canvas, $shade, $shade, $shade));
+            $baseY = (int) round($h * 0.86);
+            $carWFrac = 0.74;
+            $maxCHFrac = 0.50;
+            $logoY = (int) round($h * 0.12);
+            $logoWFrac = 0.40;
         }
 
-        // --- Logo as a branded wall behind the car (the car will overlap its lower part). ---
+        // --- Logo on the wall (behind the car). ---
         $logo = @imagecreatefromstring($logoBytes);
         if ($logo !== false) {
             imagealphablending($logo, true);
             $lw = imagesx($logo);
             $lh = imagesy($logo);
             if ($lw > 0 && $lh > 0) {
-                $lW = (int) round($w * 0.40);
+                $lW = (int) round($w * $logoWFrac);
                 $lH = (int) round($lh * ($lW / $lw));
-                $maxLH = (int) round($h * 0.46);
+                $maxLH = (int) round($h * 0.40);
                 if ($lH > $maxLH) {
                     $lH = $maxLH;
                     $lW = (int) round($lw * ($lH / $lh));
                 }
-                $lX = (int) round(($w - $lW) / 2);
-                $lY = (int) round($h * 0.12);
-                imagecopyresampled($canvas, $logo, $lX, $lY, 0, 0, $lW, $lH, $lw, $lh);
+                imagecopyresampled($canvas, $logo, (int) round(($w - $lW) / 2), $logoY, 0, 0, $lW, $lH, $lw, $lh);
             }
             imagedestroy($logo);
         }
 
-        // --- Car cut-out: trim the transparent padding so the real wheels sit on the floor. ---
+        // --- Car cut-out, trimmed tight so the wheels sit on the platform. ---
         $car = @imagecreatefromstring($carPng);
         if ($car === false) {
             imagedestroy($canvas);
@@ -74,23 +89,22 @@ class StudioComposer
         imagealphablending($car, true);
         $cw = imagesx($car);
         $ch = imagesy($car);
-        $cW = (int) round($w * 0.74);
+        $cW = (int) round($w * $carWFrac);
         $cH = (int) round($ch * ($cW / $cw));
-        $maxCH = (int) round($h * 0.50);
+        $maxCH = (int) round($h * $maxCHFrac);
         if ($cH > $maxCH) {
             $cH = $maxCH;
             $cW = (int) round($cw * ($cH / $ch));
         }
         $cX = (int) round(($w - $cW) / 2);
-        $baseY = (int) round($h * 0.86);
         $cY = $baseY - $cH;
 
-        // Soft contact shadow right under the wheels so the car is grounded.
+        // Soft contact shadow so the car sits on the platform, not above it.
         $shadow = imagecreatetruecolor($w, $h);
         imagealphablending($shadow, false);
         imagesavealpha($shadow, true);
         imagefill($shadow, 0, 0, imagecolorallocatealpha($shadow, 0, 0, 0, 127));
-        imagefilledellipse($shadow, (int) ($cX + $cW / 2), $baseY, (int) ($cW * 0.86), (int) ($h * 0.06), imagecolorallocatealpha($shadow, 0, 0, 0, 80));
+        imagefilledellipse($shadow, (int) ($cX + $cW / 2), $baseY + 2, (int) ($cW * 0.82), (int) ($h * 0.05), imagecolorallocatealpha($shadow, 0, 0, 0, 88));
         if ($blur) {
             for ($b = 0; $b < 9; $b++) {
                 imagefilter($shadow, IMG_FILTER_GAUSSIAN_BLUR);
