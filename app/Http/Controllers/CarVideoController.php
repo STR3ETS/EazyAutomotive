@@ -30,6 +30,7 @@ class CarVideoController extends Controller
 
         $validated = $request->validate([
             'prompt' => 'required|string|max:1000',
+            'duration' => 'nullable|in:5,8,10,15', // model max is 15 seconds per render
             'car_image_ids' => 'nullable|array',
             'car_image_ids.*' => 'integer',
             'image_url' => 'nullable|url|max:1024', // local-dev override (the API cannot reach localhost photos)
@@ -196,7 +197,8 @@ class CarVideoController extends Controller
                 fn ($s) => $this->fal->uploadImage($s['bytes'], $s['name'], $s['type']),
                 $sources
             );
-            $result = $this->fal->generate($falUrls, $this->buildFalPrompt($car, $validated['prompt']));
+            $opts = empty($validated['duration']) ? [] : ['duration' => $validated['duration']];
+            $result = $this->fal->generate($falUrls, $this->buildFalPrompt($car, $validated['prompt']), $opts);
         } catch (\Throwable $e) {
             report($e);
 

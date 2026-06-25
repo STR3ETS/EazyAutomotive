@@ -140,6 +140,13 @@
                                 @if(config('app.env') !== 'production')
                                     <input type="url" name="image_url" placeholder="Test: publieke afbeeldings-URL (lokaal nodig, fal kan localhost niet bereiken)" class="block w-full px-4 py-2 mb-3 rounded-xl border-[#215558]/10 text-xs focus:border-eazy focus:ring-eazy">
                                 @endif
+                                <label class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1.5">Lengte</label>
+                                <select name="duration" class="block w-full sm:w-48 px-4 py-2.5 mb-3 rounded-xl border-[#215558]/10 text-sm focus:border-eazy focus:ring-eazy">
+                                    <option value="5">5 seconden</option>
+                                    <option value="8" selected>8 seconden</option>
+                                    <option value="10">10 seconden</option>
+                                    <option value="15">15 seconden (max)</option>
+                                </select>
                                 <button type="submit" :disabled="submitting || sel.length === 0" class="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 bg-eazy text-white rounded-full text-sm font-bold hover:bg-eazy-dark disabled:opacity-50 disabled:cursor-default transition">
                                     <i class="fa-solid" :class="submitting ? 'fa-spinner fa-spin' : 'fa-clapperboard'"></i>
                                     <span x-text="submitting ? 'Bezig...' : 'Genereer cinematische video'"></span>

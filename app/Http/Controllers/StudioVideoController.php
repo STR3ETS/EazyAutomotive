@@ -34,6 +34,7 @@ class StudioVideoController extends Controller
 
         $validated = $request->validate([
             'prompt' => 'required|string|max:1500',
+            'duration' => 'nullable|in:5,8,10,15', // model max is 15 seconds per render
             'images' => 'required|array|min:1|max:9',
             'images.*' => 'image|mimes:jpeg,jpg,png,webp|max:20480', // 20 MB each
         ]);
@@ -50,7 +51,8 @@ class StudioVideoController extends Controller
                 );
             }
 
-            $result = $this->fal->generate($falUrls, $this->buildPrompt($validated['prompt']));
+            $opts = empty($validated['duration']) ? [] : ['duration' => $validated['duration']];
+            $result = $this->fal->generate($falUrls, $this->buildPrompt($validated['prompt']), $opts);
         } catch (\Throwable $e) {
             report($e);
 
