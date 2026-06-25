@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Car;
+use App\Models\CarImage;
 use App\Models\CarReel;
 use App\Models\CarVideo;
 use App\Services\Video\FalVideoService;
@@ -11,6 +12,7 @@ use App\Services\Video\VideoPromptComposer;
 use App\Services\Video\VideoStitcher;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Storage;
 
 class CarVideoController extends Controller
@@ -149,28 +151,52 @@ class CarVideoController extends Controller
      */
     private function storeFal(Request $request, Car $car, array $validated)
     {
-        $imageUrls = [];
+        // Collect the source photos as raw bytes. fal's network often cannot reach
+        // a dealer's server, so we upload the bytes to fal storage first and feed
+        // the model fal-hosted URLs instead of our own.
+        $sources = [];
 
         if (! empty($validated['image_url'])) {
-            $imageUrls = [$validated['image_url']];
-        } elseif (! empty($validated['car_image_ids'])) {
-            $imageUrls = $car->images()->whereKey($validated['car_image_ids'])->get()
-                ->map(fn ($img) => $img->url)->filter()->unique()->values()->all();
+            $resp = Http::timeout(30)->get($validated['image_url']);
+            if ($resp->successful()) {
+                $sources[] = [
+                    'url' => $validated['image_url'],
+                    'bytes' => $resp->body(),
+                    'name' => 'image.jpg',
+                    'type' => $resp->header('Content-Type') ?: 'image/jpeg',
+                ];
+            }
+        } else {
+            $images = ! empty($validated['car_image_ids'])
+                ? $car->images()->whereKey($validated['car_image_ids'])->get()
+                : $car->images()->get();
+
+            foreach ($images as $img) {
+                $bytes = $this->readImageBytes($img);
+                if ($bytes !== null) {
+                    $sources[] = [
+                        'url' => $img->url,
+                        'bytes' => $bytes,
+                        'name' => basename($img->path),
+                        'type' => $this->contentTypeFor($img->path),
+                    ];
+                }
+            }
         }
 
-        if ($imageUrls === []) {
-            $imageUrls = $car->images()->get()
-                ->map(fn ($img) => $img->url)->filter()->unique()->values()->all();
+        if ($sources === []) {
+            return back()->with('error', 'Deze auto heeft nog geen leesbare foto. Voeg eerst een foto toe of geef een afbeeldings-URL op.');
         }
 
-        if ($imageUrls === []) {
-            return back()->with('error', 'Deze auto heeft nog geen foto. Voeg eerst een foto toe of geef een afbeeldings-URL op.');
-        }
-
-        $imageUrls = array_slice($imageUrls, 0, 9);
+        $sources = array_slice($sources, 0, 9);
 
         try {
-            $result = $this->fal->generate($imageUrls, $this->buildFalPrompt($car, $validated['prompt']));
+            @set_time_limit(180);
+            $falUrls = array_map(
+                fn ($s) => $this->fal->uploadImage($s['bytes'], $s['name'], $s['type']),
+                $sources
+            );
+            $result = $this->fal->generate($falUrls, $this->buildFalPrompt($car, $validated['prompt']));
         } catch (\Throwable $e) {
             report($e);
 
@@ -182,14 +208,38 @@ class CarVideoController extends Controller
             'status' => $result['status'],
             'prompt' => $validated['prompt'],
             'model' => $this->fal->modelLabel(),
-            'source_image_url' => $imageUrls[0],
+            'source_image_url' => $sources[0]['url'],
             'request_id' => $result['request_id'],
             'result_url' => $result['result_url'],
         ]);
 
-        $count = count($imageUrls);
+        $count = count($sources);
 
         return back()->with('success', "Je cinematische video wordt gemaakt van {$count} foto('s), inclusief muziek. Dit kan een paar minuten duren; de status ververst automatisch.");
+    }
+
+    /** Read a car image's raw bytes from the public disk (null if unreadable). */
+    private function readImageBytes(CarImage $img): ?string
+    {
+        try {
+            $disk = Storage::disk('public');
+
+            return $disk->exists($img->path) ? $disk->get($img->path) : null;
+        } catch (\Throwable $e) {
+            report($e);
+
+            return null;
+        }
+    }
+
+    private function contentTypeFor(string $path): string
+    {
+        return match (strtolower(pathinfo($path, PATHINFO_EXTENSION))) {
+            'png' => 'image/png',
+            'webp' => 'image/webp',
+            'gif' => 'image/gif',
+            default => 'image/jpeg',
+        };
     }
 
     /** Compose a strong cinematic prompt for Seedance, augmented with the user's idea. */

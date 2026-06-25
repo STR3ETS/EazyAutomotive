@@ -57,6 +57,36 @@ class FalVideoService
     }
 
     /**
+     * Upload raw image bytes to fal storage and return the fal-hosted URL. This
+     * lets the model read the image from fal's own CDN, so fal never has to reach
+     * our server (which fal's network often cannot, e.g. behind a hosting firewall).
+     */
+    public function uploadImage(string $bytes, string $fileName, string $contentType = 'image/jpeg'): string
+    {
+        $init = $this->client()->post(
+            'https://rest.alpha.fal.ai/storage/upload/initiate?storage_type=fal-cdn-v3',
+            ['content_type' => $contentType, 'file_name' => $fileName]
+        );
+
+        if (! $init->successful()) {
+            throw new \RuntimeException($this->errorMessage($init));
+        }
+
+        $uploadUrl = $init->json('upload_url');
+        $fileUrl = $init->json('file_url');
+        if (! $uploadUrl || ! $fileUrl) {
+            throw new \RuntimeException('fal: kon de upload niet starten.');
+        }
+
+        $put = Http::withBody($bytes, $contentType)->timeout(60)->put($uploadUrl);
+        if (! $put->successful()) {
+            throw new \RuntimeException('fal: uploaden van de foto mislukte (HTTP ' . $put->status() . ').');
+        }
+
+        return $fileUrl;
+    }
+
+    /**
      * Poll a request using the response_url fal returned at submit time. The status
      * lives at "{resultUrl}/status"; the finished payload at "{resultUrl}".
      *
