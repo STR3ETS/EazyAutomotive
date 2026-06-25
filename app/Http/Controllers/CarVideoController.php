@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Car;
 use App\Models\CarReel;
 use App\Models\CarVideo;
+use App\Services\Video\FalVideoService;
 use App\Services\Video\HiggsfieldService;
 use App\Services\Video\VideoPromptComposer;
 use App\Services\Video\VideoStitcher;
@@ -15,6 +16,7 @@ use Illuminate\Support\Facades\Storage;
 class CarVideoController extends Controller
 {
     public function __construct(
+        private FalVideoService $fal,
         private HiggsfieldService $higgsfield,
         private VideoPromptComposer $composer,
     ) {}
@@ -24,16 +26,22 @@ class CarVideoController extends Controller
     {
         abort_unless($car->company_id === $request->user()->company_id, 403);
 
-        if (! $this->higgsfield->isConfigured()) {
-            return back()->with('error', 'Videogeneratie is nog niet geconfigureerd (HIGGSFIELD_CREDENTIALS ontbreekt).');
-        }
-
         $validated = $request->validate([
             'prompt' => 'required|string|max:1000',
             'car_image_ids' => 'nullable|array',
             'car_image_ids.*' => 'integer',
-            'image_url' => 'nullable|url|max:1024', // local-dev override (Higgsfield cannot reach localhost photos)
+            'image_url' => 'nullable|url|max:1024', // local-dev override (the API cannot reach localhost photos)
         ]);
+
+        // Preferred path: fal.ai Seedance 2.0 builds one cinematic montage with
+        // native audio from all selected photos in a single call.
+        if ($this->fal->isConfigured()) {
+            return $this->storeFal($request, $car, $validated);
+        }
+
+        if (! $this->higgsfield->isConfigured()) {
+            return back()->with('error', 'Videogeneratie is nog niet geconfigureerd (FAL_KEY of HIGGSFIELD_CREDENTIALS ontbreekt).');
+        }
 
         // DoP accepts one photo per generation, so we generate one clip per chosen
         // photo. Resolve the source photos: a manual URL (local testing), the
@@ -135,7 +143,73 @@ class CarVideoController extends Controller
         return back()->with('success', 'De video wordt gegenereerd. Dit kan een paar minuten duren; de status ververst automatisch.');
     }
 
-    /** Poll Higgsfield for a pending video and return the current state as JSON. */
+    /**
+     * fal.ai path: one Seedance 2.0 call turns up to nine photos into a single
+     * cinematic montage with native audio. No per-photo clips, no stitching.
+     */
+    private function storeFal(Request $request, Car $car, array $validated)
+    {
+        $imageUrls = [];
+
+        if (! empty($validated['image_url'])) {
+            $imageUrls = [$validated['image_url']];
+        } elseif (! empty($validated['car_image_ids'])) {
+            $imageUrls = $car->images()->whereKey($validated['car_image_ids'])->get()
+                ->map(fn ($img) => $img->url)->filter()->unique()->values()->all();
+        }
+
+        if ($imageUrls === []) {
+            $imageUrls = $car->images()->get()
+                ->map(fn ($img) => $img->url)->filter()->unique()->values()->all();
+        }
+
+        if ($imageUrls === []) {
+            return back()->with('error', 'Deze auto heeft nog geen foto. Voeg eerst een foto toe of geef een afbeeldings-URL op.');
+        }
+
+        $imageUrls = array_slice($imageUrls, 0, 9);
+
+        try {
+            $result = $this->fal->generate($imageUrls, $this->buildFalPrompt($car, $validated['prompt']));
+        } catch (\Throwable $e) {
+            report($e);
+
+            return back()->with('error', 'Genereren mislukt: ' . $e->getMessage());
+        }
+
+        $car->videos()->create([
+            'company_id' => $car->company_id,
+            'status' => $result['status'],
+            'prompt' => $validated['prompt'],
+            'model' => $this->fal->modelLabel(),
+            'source_image_url' => $imageUrls[0],
+            'request_id' => $result['request_id'],
+        ]);
+
+        $count = count($imageUrls);
+
+        return back()->with('success', "Je cinematische video wordt gemaakt van {$count} foto('s), inclusief muziek. Dit kan een paar minuten duren; de status ververst automatisch.");
+    }
+
+    /** Compose a strong cinematic prompt for Seedance, augmented with the user's idea. */
+    private function buildFalPrompt(Car $car, string $idea): string
+    {
+        $prompt = 'Premium cinematic automotive commercial of the ' . $car->display_title . '. '
+            . 'Use the provided photos as the exact car and keep its shape, color and details consistent. '
+            . 'Smooth flowing camera: a slow dolly past the front, a sweeping orbit around the body, a low tracking '
+            . 'shot along the side, close details of the wheels, headlights and grille, ending on a hero wide shot. '
+            . 'Showroom and golden-hour lighting, reflections on the paint, shallow depth of field, color graded, '
+            . '24fps film look. The car stays parked and still; only the camera moves. Add subtle modern background music.';
+
+        $idea = trim($idea);
+        if ($idea !== '') {
+            $prompt .= ' Style direction: ' . $idea;
+        }
+
+        return $prompt;
+    }
+
+    /** Poll the provider for a pending video and return the current state as JSON. */
     public function status(Request $request, Car $car, CarVideo $video): JsonResponse
     {
         abort_unless($car->company_id === $request->user()->company_id, 403);
@@ -143,7 +217,9 @@ class CarVideoController extends Controller
 
         if ($video->isPending() && $video->request_id) {
             try {
-                $s = $this->higgsfield->status($video->request_id);
+                $s = str_contains((string) $video->model, 'seedance')
+                    ? $this->fal->status($video->request_id)
+                    : $this->higgsfield->status($video->request_id);
                 $video->update([
                     'status' => $s['status'],
                     'video_url' => $s['video_url'] ?? $video->video_url,

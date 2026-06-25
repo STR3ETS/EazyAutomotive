@@ -50,6 +50,18 @@ return [
         'flf_variant' => env('HIGGSFIELD_FLF_VARIANT', 'turbo'),
     ],
 
+    // fal.ai video generation. The official Seedance 2.0 API: one call with up to
+    // nine car photos returns a single cinematic montage with native audio. The key
+    // is a single token sent as "Authorization: Key <key>".
+    'fal' => [
+        'key' => env('FAL_KEY'),
+        'base_url' => env('FAL_BASE_URL', 'https://queue.fal.run'),
+        'model' => env('FAL_MODEL', 'bytedance/seedance-2.0/reference-to-video'),
+        'resolution' => env('FAL_RESOLUTION', '720p'),
+        'duration' => env('FAL_DURATION', 'auto'),
+        'aspect_ratio' => env('FAL_ASPECT_RATIO', '16:9'),
+    ],
+
     // Path to the ffmpeg binary, used to stitch per-photo clips into one reel.
     // Local dev points at the bundled Laragon binary; on the server set FFMPEG_PATH
     // to "ffmpeg" (if on PATH) or the absolute path.

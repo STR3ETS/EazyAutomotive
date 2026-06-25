@@ -95,12 +95,12 @@
                             </div>
                             <div>
                                 <h3 class="text-sm font-bold text-[#215558]">Promovideo's (AI)</h3>
-                                <p class="text-[11px] text-[#215558] opacity-50">Genereer een cinematische video van deze auto. Je korte omschrijving wordt automatisch uitgewerkt tot een filmische prompt.</p>
+                                <p class="text-[11px] text-[#215558] opacity-50">Genereer in één klik een cinematische video met muziek van al je foto's. Seedance 2.0 maakt er een vloeiende montage van.</p>
                             </div>
                         </div>
 
                         @if($car->images->count() === 0)
-                            <p class="text-sm text-[#215558] opacity-60">Voeg eerst een foto toe. De video wordt gemaakt op basis van de eerste foto.</p>
+                            <p class="text-sm text-[#215558] opacity-60">Voeg eerst foto's toe. De video wordt gemaakt van de foto's van deze auto.</p>
                         @else
                             @php $allImageIds = $car->images->pluck('id')->values(); @endphp
                             <form method="POST" action="{{ route('cars.videos.store', $car) }}" x-data="{ submitting: false, allIds: @js($allImageIds), sel: @js($allImageIds) }" @submit="submitting = true">
@@ -119,7 +119,7 @@
                                             </label>
                                         @endforeach
                                     </div>
-                                    <p class="text-[11px] text-[#215558] opacity-50 mb-3"><span x-text="sel.length"></span> foto('s) geselecteerd. Bij 2 of meer foto's loopt de camera vloeiend van de ene naar de andere foto, alsof je om de auto loopt. Elke overgang kost credits.</p>
+                                    <p class="text-[11px] text-[#215558] opacity-50 mb-3"><span x-text="sel.length"></span> foto('s) geselecteerd. Alle geselecteerde foto's (max 9) worden samengevoegd tot één cinematische video met muziek.</p>
                                 @else
                                     <input type="hidden" name="car_image_ids[]" value="{{ $allImageIds->first() }}">
                                 @endif
@@ -138,11 +138,11 @@
                                     @endforeach
                                 </div>
                                 @if(config('app.env') !== 'production')
-                                    <input type="url" name="image_url" placeholder="Test: publieke afbeeldings-URL (lokaal nodig, Higgsfield kan localhost niet bereiken)" class="block w-full px-4 py-2 mb-3 rounded-xl border-[#215558]/10 text-xs focus:border-eazy focus:ring-eazy">
+                                    <input type="url" name="image_url" placeholder="Test: publieke afbeeldings-URL (lokaal nodig, fal kan localhost niet bereiken)" class="block w-full px-4 py-2 mb-3 rounded-xl border-[#215558]/10 text-xs focus:border-eazy focus:ring-eazy">
                                 @endif
                                 <button type="submit" :disabled="submitting || sel.length === 0" class="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 bg-eazy text-white rounded-full text-sm font-bold hover:bg-eazy-dark disabled:opacity-50 disabled:cursor-default transition">
                                     <i class="fa-solid" :class="submitting ? 'fa-spinner fa-spin' : 'fa-clapperboard'"></i>
-                                    <span x-text="submitting ? 'Bezig...' : (sel.length > 1 ? 'Genereer walk-around' : 'Genereer video')"></span>
+                                    <span x-text="submitting ? 'Bezig...' : 'Genereer cinematische video'"></span>
                                 </button>
                             </form>
                         @endif
