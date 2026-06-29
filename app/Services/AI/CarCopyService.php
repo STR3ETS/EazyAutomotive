@@ -99,7 +99,7 @@ Structuur en toon:
 - Sluit niet af met een generieke verkoopzin of een oproep om contact op te nemen, tenzij dat echt natuurlijk past.
 
 Harde stijlregels:
-- Gebruik NOOIT een em-streepje (—) of lang streepje (–) als leesteken. Gebruik gewone komma's en punten.
+- Gebruik NOOIT lange streepjes (em-dash of en-dash) als leesteken. Gebruik alleen gewone komma's, punten en gewone koppelstreepjes.
 - Vermijd AI-taal en clichés. Gebruik onder andere NIET: "of je nu", "naadloos", "in de wereld van", "maak kennis met", "niet alleen ... maar ook", "een ware", "het beste van twee werelden", "wanneer het aankomt op", "boordevol", "tot in de puntjes", "een lust voor het oog", "betrouwbare metgezel", "perfecte combinatie", "geen wonder dat". Schrijf in plaats daarvan concreet en specifiek over deze auto.
 - Geen tekst in HOOFDLETTERS en geen overdreven uitroeptekens.
 

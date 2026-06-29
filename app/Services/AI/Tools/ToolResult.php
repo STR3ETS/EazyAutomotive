@@ -18,7 +18,7 @@ class ToolResult
 
     /**
      * Successful result. Pass a `summary` (+ optional `undo`) only for mutating
-     * actions — that's the signal to log the action to the activity feed.
+     * actions; that is the signal to log the action to the activity feed.
      *
      * @param array<string,mixed>|string $data
      * @param array<string,mixed>|null   $undo
