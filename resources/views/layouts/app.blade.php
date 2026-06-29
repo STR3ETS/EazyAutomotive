@@ -5,7 +5,24 @@
         <meta name="viewport" content="width=device-width, initial-scale=1">
         <meta name="csrf-token" content="{{ csrf_token() }}">
 
-        <title>{{ config('app.name', 'Laravel') }}</title>
+        @php
+            $pageTitle = collect([
+                'dashboard' => 'Dashboard',
+                'cars.*' => "Auto's",
+                'onderzoek' => 'Onderzoek',
+                'ontwerpen' => 'Ontwerpen',
+                'integratie' => 'Integratie',
+                'publiceren*' => 'Publiceren',
+                'leads.*' => 'Leads',
+                'proefritten' => 'Proefritten',
+                'studio.*' => 'Video Studio',
+                'invoices.*' => 'Facturen',
+                'customers.*' => 'Klanten',
+                'settings.*' => 'Instellingen',
+                'profile.*' => 'Profiel',
+            ])->first(fn ($label, $pattern) => request()->routeIs($pattern));
+        @endphp
+        <title>{{ ($pageTitle ? $pageTitle . ' · ' : '') . config('app.name', 'EazyAutomotive') }}</title>
 
         <!-- Fonts -->
         <link rel="preconnect" href="https://fonts.googleapis.com">
