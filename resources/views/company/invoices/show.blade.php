@@ -1,5 +1,5 @@
 <x-app-layout>
-    @php use App\Models\Invoice; $badge = $invoice->status_badge; @endphp
+    @php $badge = $invoice->status_badge; @endphp
     <div class="py-8" x-data="{ payOpen: false }">
         <div class="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
 
@@ -76,7 +76,7 @@
                                 <td class="py-2.5 text-[#215558]">{{ $line->description }}</td>
                                 <td class="py-2.5 text-right text-[#215558] opacity-70">{{ rtrim(rtrim(number_format($line->quantity, 2, ',', '.'), '0'), ',') }}</td>
                                 @if($invoice->vat_scheme === 'btw')<td class="py-2.5 text-right text-[#215558] opacity-70">{{ $line->vat_rate }}%</td>@endif
-                                <td class="py-2.5 text-right font-semibold text-[#215558]">{{ Invoice::eur($invoice->vat_scheme === 'marge' ? $line->line_total : (int) round($line->line_total * (1 + $line->vat_rate / 100))) }}</td>
+                                <td class="py-2.5 text-right font-semibold text-[#215558]">{{ \App\Models\Invoice::eur($invoice->vat_scheme === 'marge' ? $line->line_total : (int) round($line->line_total * (1 + $line->vat_rate / 100))) }}</td>
                             </tr>
                         @endforeach
                     </tbody>
@@ -86,13 +86,13 @@
                 <div class="flex justify-end">
                     <div class="w-full sm:w-72 space-y-1.5 text-sm">
                         @if($invoice->vat_scheme === 'btw')
-                            <div class="flex justify-between"><span class="text-[#215558] opacity-60">Subtotaal</span><span class="text-[#215558]">{{ Invoice::eur($invoice->subtotal) }}</span></div>
-                            <div class="flex justify-between"><span class="text-[#215558] opacity-60">BTW</span><span class="text-[#215558]">{{ Invoice::eur($invoice->vat_amount) }}</span></div>
+                            <div class="flex justify-between"><span class="text-[#215558] opacity-60">Subtotaal</span><span class="text-[#215558]">{{ \App\Models\Invoice::eur($invoice->subtotal) }}</span></div>
+                            <div class="flex justify-between"><span class="text-[#215558] opacity-60">BTW</span><span class="text-[#215558]">{{ \App\Models\Invoice::eur($invoice->vat_amount) }}</span></div>
                         @endif
-                        <div class="flex justify-between pt-2 border-t border-[#215558]/10"><span class="font-bold text-[#215558]">Totaal</span><span class="text-lg font-black text-[#215558]">{{ Invoice::eur($invoice->total) }}</span></div>
+                        <div class="flex justify-between pt-2 border-t border-[#215558]/10"><span class="font-bold text-[#215558]">Totaal</span><span class="text-lg font-black text-[#215558]">{{ \App\Models\Invoice::eur($invoice->total) }}</span></div>
                         @if($invoice->amount_paid > 0)
-                            <div class="flex justify-between text-emerald-600"><span>Betaald</span><span>{{ Invoice::eur($invoice->amount_paid) }}</span></div>
-                            <div class="flex justify-between font-semibold {{ $invoice->outstanding > 0 ? 'text-amber-600' : 'text-emerald-600' }}"><span>Openstaand</span><span>{{ Invoice::eur($invoice->outstanding) }}</span></div>
+                            <div class="flex justify-between text-emerald-600"><span>Betaald</span><span>{{ \App\Models\Invoice::eur($invoice->amount_paid) }}</span></div>
+                            <div class="flex justify-between font-semibold {{ $invoice->outstanding > 0 ? 'text-amber-600' : 'text-emerald-600' }}"><span>Openstaand</span><span>{{ \App\Models\Invoice::eur($invoice->outstanding) }}</span></div>
                         @endif
                     </div>
                 </div>
@@ -112,7 +112,7 @@
                     @foreach($invoice->payments as $p)
                         <div class="flex items-center justify-between py-2 border-b border-[#215558]/5 last:border-0 text-sm">
                             <span class="text-[#215558]">{{ $p->date->format('d-m-Y') }} <span class="opacity-50">{{ $p->method ? '· ' . ucfirst($p->method) : '' }} {{ $p->note }}</span></span>
-                            <span class="font-semibold text-[#215558]">{{ Invoice::eur($p->amount) }}</span>
+                            <span class="font-semibold text-[#215558]">{{ \App\Models\Invoice::eur($p->amount) }}</span>
                         </div>
                     @endforeach
                 </div>

@@ -4,6 +4,9 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>EazyAutomotive · Beheer je autovoorraad, bereik meer klanten</title>
+    <link rel="icon" type="image/svg+xml" href="{{ asset('favicon.svg') }}">
+    <link rel="icon" type="image/png" href="{{ asset('favicon.png') }}">
+    <link rel="apple-touch-icon" href="{{ asset('apple-touch-icon.png') }}">
     <meta name="description" content="Voeg auto's toe met RDW kentekenlookup, beheer je voorraad en toon je aanbod op je eigen website met één regel code. Speciaal voor autobedrijven.">
     <link rel="preconnect" href="https://fonts.bunny.net">
     <link href="https://fonts.bunny.net/css?family=inter-tight:300,400,500,600,700,800,900&family=caveat:400,700" rel="stylesheet" />

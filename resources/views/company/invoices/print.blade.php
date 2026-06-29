@@ -1,4 +1,4 @@
-@php use App\Models\Invoice; @endphp
+@use('App\Models\Invoice')
 <!DOCTYPE html>
 <html lang="nl">
 <head>

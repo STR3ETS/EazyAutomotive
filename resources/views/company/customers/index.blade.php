@@ -32,12 +32,8 @@
                             </div>
                         </div>
                         <span class="text-[11px] text-[#215558] opacity-50 shrink-0">{{ $customer->invoices_count }} {{ $customer->invoices_count === 1 ? 'factuur' : 'facturen' }}</span>
-                        <button @click='openEdit(@json([
-                            "id" => $customer->id, "type" => $customer->type, "naam" => $customer->naam,
-                            "bedrijfsnaam" => $customer->bedrijfsnaam, "email" => $customer->email, "telefoon" => $customer->telefoon,
-                            "adres" => $customer->adres, "postcode" => $customer->postcode, "plaats" => $customer->plaats,
-                            "kvk_nummer" => $customer->kvk_nummer, "btw_nummer" => $customer->btw_nummer, "notities" => $customer->notities,
-                        ]))' type="button" class="cursor-pointer text-xs font-semibold text-eazy hover:underline shrink-0">Bewerken</button>
+                        @php $cd = ['id' => $customer->id, 'type' => $customer->type, 'naam' => $customer->naam, 'bedrijfsnaam' => $customer->bedrijfsnaam, 'email' => $customer->email, 'telefoon' => $customer->telefoon, 'adres' => $customer->adres, 'postcode' => $customer->postcode, 'plaats' => $customer->plaats, 'kvk_nummer' => $customer->kvk_nummer, 'btw_nummer' => $customer->btw_nummer, 'notities' => $customer->notities]; @endphp
+                        <button @click="openEdit({{ \Illuminate\Support\Js::from($cd) }})" type="button" class="cursor-pointer text-xs font-semibold text-eazy hover:underline shrink-0">Bewerken</button>
                         <form method="POST" action="{{ route('customers.destroy', $customer) }}" onsubmit="return confirm('Deze klant verwijderen?')" class="shrink-0">
                             @csrf @method('DELETE')
                             <button type="submit" class="cursor-pointer w-8 h-8 text-red-400 hover:bg-red-50 rounded-full transition"><i class="fa-solid fa-trash text-[10px]"></i></button>

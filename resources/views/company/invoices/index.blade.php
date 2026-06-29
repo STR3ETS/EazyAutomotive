@@ -1,5 +1,4 @@
 <x-app-layout>
-    @php use App\Models\Invoice; @endphp
     <div class="py-8">
         <div class="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
 
@@ -30,8 +29,8 @@
             <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
                 @php
                     $cards = [
-                        ['Openstaand', Invoice::eur($stats['openstaand']), 'fa-hourglass-half', 'text-amber-600'],
-                        ['Omzet dit jaar', Invoice::eur($stats['omzet_jaar']), 'fa-euro-sign', 'text-emerald-600'],
+                        ['Openstaand', \App\Models\Invoice::eur($stats['openstaand']), 'fa-hourglass-half', 'text-amber-600'],
+                        ['Omzet dit jaar', \App\Models\Invoice::eur($stats['omzet_jaar']), 'fa-euro-sign', 'text-emerald-600'],
                         ['Concepten', $stats['concepten'], 'fa-pen', 'text-gray-500'],
                         ['Vervallen', $stats['vervallen'], 'fa-triangle-exclamation', 'text-red-500'],
                     ];
@@ -48,7 +47,7 @@
             <form method="GET" class="flex flex-wrap items-center gap-2 mb-4">
                 <div class="flex flex-wrap gap-1.5">
                     <a href="{{ route('invoices.index') }}" class="px-3 py-1.5 rounded-full text-xs font-semibold {{ !request('status') ? 'bg-eazy text-white' : 'bg-white border border-[#215558]/10 text-[#215558]' }}">Alle</a>
-                    @foreach(Invoice::STATUSES as $val => $meta)
+                    @foreach(\App\Models\Invoice::STATUSES as $val => $meta)
                         <a href="{{ route('invoices.index', ['status' => $val]) }}" class="px-3 py-1.5 rounded-full text-xs font-semibold {{ request('status') === $val ? 'bg-eazy text-white' : 'bg-white border border-[#215558]/10 text-[#215558]' }}">{{ $meta['label'] }}</a>
                     @endforeach
                 </div>
@@ -71,9 +70,9 @@
                             <div class="text-[11px] text-[#215558] opacity-50">{{ $invoice->vat_scheme === 'marge' ? 'Margeregeling' : 'BTW' }}</div>
                         </div>
                         <div class="text-right shrink-0">
-                            <div class="text-sm font-bold text-[#215558]">{{ Invoice::eur($invoice->total) }}</div>
+                            <div class="text-sm font-bold text-[#215558]">{{ \App\Models\Invoice::eur($invoice->total) }}</div>
                             @if($invoice->outstanding > 0 && !$invoice->isConcept())
-                                <div class="text-[11px] text-amber-600">open: {{ Invoice::eur($invoice->outstanding) }}</div>
+                                <div class="text-[11px] text-amber-600">open: {{ \App\Models\Invoice::eur($invoice->outstanding) }}</div>
                             @endif
                         </div>
                         <span class="shrink-0 w-32 text-right">

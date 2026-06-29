@@ -1,6 +1,5 @@
 <x-app-layout>
     @php
-        use App\Models\Invoice;
         $initLines = [];
         if ($invoice) {
             foreach ($invoice->lines as $l) {
