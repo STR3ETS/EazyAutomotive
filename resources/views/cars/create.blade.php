@@ -155,6 +155,10 @@
                 </div>
             </div>
 
+            <div class="mt-4 text-center">
+                <a href="{{ route('cars.manual') }}" class="text-sm font-semibold text-eazy hover:underline">Of voeg een auto handmatig toe, zonder kenteken</a>
+            </div>
+
         </div>
     </div>
 </x-app-layout>

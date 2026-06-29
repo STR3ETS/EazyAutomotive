@@ -39,6 +39,7 @@ Route::middleware(['auth', 'verified', 'company.ownership'])->group(function () 
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
     // Cars CRUD
+    Route::get('/cars/handmatig', [CarController::class, 'createManual'])->name('cars.manual');
     Route::resource('cars', CarController::class);
     Route::post('/cars/lookup-kenteken', [CarController::class, 'lookupKenteken'])->name('cars.lookup');
     Route::post('/cars/ai-copy', [CarCopyController::class, 'generate'])->name('cars.ai-copy');

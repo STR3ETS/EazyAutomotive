@@ -56,6 +56,12 @@ class CarController extends Controller
         return view('cars.create');
     }
 
+    /** Add a car by hand, without an RDW kenteken lookup. */
+    public function createManual()
+    {
+        return view('cars.create-form', ['carAttributes' => [], 'manual' => true]);
+    }
+
     public function lookupKenteken(Request $request)
     {
         $request->validate(['kenteken' => 'required|string|max:8']);
@@ -68,13 +74,13 @@ class CarController extends Controller
 
         $carAttributes = $this->rdwService->mapToCarAttributes($rdwData);
 
-        return view('cars.create-form', compact('carAttributes'));
+        return view('cars.create-form', ['carAttributes' => $carAttributes, 'manual' => false]);
     }
 
     public function store(Request $request)
     {
         $validated = $request->validate([
-            'kenteken' => 'required|string|max:8',
+            'kenteken' => 'nullable|string|max:8',
             'merk' => 'nullable|string|max:100',
             'handelsbenaming' => 'nullable|string|max:100',
             'voertuigsoort' => 'nullable|string|max:50',
@@ -120,7 +126,9 @@ class CarController extends Controller
         }
 
         $validated['company_id'] = $request->user()->company_id;
-        $validated['kenteken'] = $this->rdwService->normalizeKenteken($validated['kenteken']);
+        $validated['kenteken'] = ! empty($validated['kenteken'])
+            ? $this->rdwService->normalizeKenteken($validated['kenteken'])
+            : null;
 
         $images = $validated['images'] ?? [];
         unset($validated['images']);

@@ -15,16 +15,57 @@
 
             {{-- Page Header --}}
             <div class="mb-6">
-                <a href="{{ route('cars.create') }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-[#215558] opacity-50 hover:opacity-100 transition mb-3">
-                    <i class="fa-solid fa-arrow-left text-[10px]"></i> Ander kenteken opzoeken
-                </a>
+                @if($manual ?? false)
+                    <a href="{{ route('cars.index') }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-[#215558] opacity-50 hover:opacity-100 transition mb-3">
+                        <i class="fa-solid fa-arrow-left text-[10px]"></i> Terug naar overzicht
+                    </a>
+                @else
+                    <a href="{{ route('cars.create') }}" class="inline-flex items-center gap-1.5 text-xs font-semibold text-[#215558] opacity-50 hover:opacity-100 transition mb-3">
+                        <i class="fa-solid fa-arrow-left text-[10px]"></i> Ander kenteken opzoeken
+                    </a>
+                @endif
                 <h1 class="text-2xl font-black text-[#215558]">Nieuwe auto toevoegen</h1>
-                <p class="text-sm text-[#215558] opacity-50 font-medium mt-0.5">Controleer de gegevens en voeg je verkoopinformatie toe</p>
+                <p class="text-sm text-[#215558] opacity-50 font-medium mt-0.5">{{ ($manual ?? false) ? 'Vul de gegevens van de auto in, een kenteken is optioneel' : 'Controleer de gegevens en voeg je verkoopinformatie toe' }}</p>
             </div>
 
             <form method="POST" action="{{ route('cars.store') }}" enctype="multipart/form-data">
                 @csrf
 
+                @if($manual ?? false)
+                {{-- Manual vehicle data (no RDW) --}}
+                <div class="bg-white rounded-2xl border border-[#215558]/10 p-6 relative overflow-hidden mb-6">
+                    <div class="flex items-center gap-3 mb-5 pb-4 border-b border-[#215558]/5">
+                        <div class="w-9 h-9 rounded-xl bg-amber-50 flex items-center justify-center">
+                            <i class="fa-solid fa-car text-amber-500 text-sm"></i>
+                        </div>
+                        <div>
+                            <h3 class="text-sm font-bold text-[#215558]">Voertuiggegevens</h3>
+                            <p class="text-xs text-[#215558] opacity-50">Vul de gegevens van de auto in. Een kenteken is optioneel.</p>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+                        @php
+                            $manualFields = [
+                                ['kenteken', 'Kenteken (optioneel)', 'text', 'XX-999-X'],
+                                ['merk', 'Merk', 'text', 'bijv. Volkswagen'],
+                                ['handelsbenaming', 'Model', 'text', 'bijv. Golf'],
+                                ['bouwjaar', 'Bouwjaar', 'number', '2019'],
+                                ['brandstof_omschrijving', 'Brandstof', 'text', 'Benzine'],
+                                ['eerste_kleur', 'Kleur', 'text', 'Grijs'],
+                                ['inrichting', 'Carrosserie', 'text', 'Hatchback'],
+                                ['aantal_deuren', 'Aantal deuren', 'number', '5'],
+                                ['aantal_zitplaatsen', 'Zitplaatsen', 'number', '5'],
+                            ];
+                        @endphp
+                        @foreach($manualFields as [$name, $label, $type, $ph])
+                            <div>
+                                <label for="m_{{ $name }}" class="block text-[11px] font-bold text-[#215558] opacity-60 uppercase tracking-wider mb-1.5">{{ $label }}</label>
+                                <input type="{{ $type }}" name="{{ $name }}" id="m_{{ $name }}" value="{{ old($name) }}" placeholder="{{ $ph }}" @if($type === 'number') min="0" @endif class="block w-full px-3 py-2 rounded-xl border-[#215558]/10 text-sm focus:border-eazy focus:ring-eazy placeholder:text-[#215558]/20">
+                            </div>
+                        @endforeach
+                    </div>
+                </div>
+                @else
                 {{-- RDW Data --}}
                 <div class="bg-white rounded-2xl border border-[#215558]/10 p-6 relative overflow-hidden mb-6">
                     <div class="flex items-center gap-3 mb-5 pb-4 border-b border-[#215558]/5">
@@ -64,6 +105,7 @@
                     @endforeach
                     <input type="hidden" name="rdw_raw_data" value="{{ json_encode($carAttributes['rdw_raw_data'] ?? []) }}">
                 </div>
+                @endif
 
                 {{-- Dealer Fields --}}
                 <div class="bg-white rounded-2xl border border-[#215558]/10 p-6 relative overflow-hidden mb-6">
@@ -92,7 +134,9 @@
                             'apk' => $carAttributes['vervaldatum_apk'] ?? null,
                         ], fn ($v) => $v !== null && $v !== '' && $v !== 0);
                     @endphp
-                    @include('cars.partials.ai-copy', ['facts' => $aiFacts])
+                    @unless($manual ?? false)
+                        @include('cars.partials.ai-copy', ['facts' => $aiFacts])
+                    @endunless
 
                     <div class="grid grid-cols-1 md:grid-cols-2 gap-5">
                         <div>
@@ -214,8 +258,8 @@
 
                 {{-- Submit --}}
                 <div class="flex items-center justify-between">
-                    <a href="{{ route('cars.create') }}" class="inline-flex items-center gap-1.5 text-sm text-[#215558] opacity-50 hover:opacity-100 transition font-medium">
-                        <i class="fa-solid fa-arrow-left text-xs"></i> Ander kenteken
+                    <a href="{{ route('cars.index') }}" class="inline-flex items-center gap-1.5 text-sm text-[#215558] opacity-50 hover:opacity-100 transition font-medium">
+                        <i class="fa-solid fa-xmark text-xs"></i> Annuleren
                     </a>
                     <button type="submit" class="cursor-pointer inline-flex items-center gap-2 px-8 py-3 bg-eazy text-white rounded-full text-sm font-bold hover:bg-eazy-dark shadow-lg shadow-eazy/20 hover:shadow-eazy/30 transition-all">
                         <i class="fa-solid fa-floppy-disk"></i> Auto opslaan
