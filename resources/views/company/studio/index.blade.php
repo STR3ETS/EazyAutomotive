@@ -29,10 +29,10 @@
             {{-- Upload + prompt --}}
             <div class="bg-white rounded-2xl border border-[#215558]/10 p-6 mb-8">
                 <form method="POST" action="{{ route('studio.store') }}" enctype="multipart/form-data"
-                      x-data="{ submitting: false, files: 0 }" @submit="submitting = true">
+                      x-data="{ submitting: false, files: 0, vids: 0 }" @submit="submitting = true">
                     @csrf
 
-                    <label class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1.5">Foto's (1 tot 9)</label>
+                    <label class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1.5">Foto's (optioneel, tot 9)</label>
                     <label class="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-[#215558]/15 rounded-xl py-8 cursor-pointer hover:border-eazy hover:bg-eazy-50/40 transition mb-1.5">
                         <i class="fa-solid fa-cloud-arrow-up text-2xl text-[#215558] opacity-40"></i>
                         <span class="text-sm text-[#215558] opacity-70" x-text="files ? (files + ' foto(\'s) gekozen') : 'Klik om foto\'s te kiezen'"></span>
@@ -40,6 +40,15 @@
                                @change="files = $event.target.files.length">
                     </label>
                     <p class="text-[11px] text-[#215558] opacity-50 mb-4">JPG, PNG of WebP, max 20 MB per foto. Meerdere foto's worden tot één montage gemaakt.</p>
+
+                    <label class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1.5">Video's (optioneel, tot 3)</label>
+                    <label class="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-[#215558]/15 rounded-xl py-6 cursor-pointer hover:border-eazy hover:bg-eazy-50/40 transition mb-1.5">
+                        <i class="fa-solid fa-film text-2xl text-[#215558] opacity-40"></i>
+                        <span class="text-sm text-[#215558] opacity-70" x-text="vids ? (vids + ' video(\'s) gekozen') : 'Klik om video\'s te kiezen'"></span>
+                        <input type="file" name="videos[]" accept="video/mp4,video/quicktime,video/webm" multiple class="hidden"
+                               @change="vids = $event.target.files.length">
+                    </label>
+                    <p class="text-[11px] text-[#215558] opacity-50 mb-4">MP4, MOV of WebM, max 50 MB per video, samen ongeveer 15 seconden. De AI gebruikt ze als referentie naast je foto's.</p>
 
                     <label class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1.5">Beschrijf de video</label>
                     <textarea name="prompt" rows="3" maxlength="1500" required x-ref="prompt"
@@ -64,12 +73,12 @@
                         <option value="15">15 seconden (max)</option>
                     </select>
 
-                    <button type="submit" :disabled="submitting || files === 0"
+                    <button type="submit" :disabled="submitting || (files === 0 && vids === 0)"
                         class="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 bg-eazy text-white rounded-full text-sm font-bold hover:bg-eazy-dark disabled:opacity-50 disabled:cursor-default transition">
                         <i class="fa-solid" :class="submitting ? 'fa-spinner fa-spin' : 'fa-wand-magic-sparkles'"></i>
                         <span x-text="submitting ? 'Uploaden en genereren...' : 'Genereer video'"></span>
                     </button>
-                    <p x-show="submitting" class="text-[11px] text-[#215558] opacity-50 mt-2">Je foto's worden geupload en de video wordt gemaakt. Dit kan een paar minuten duren, pagina niet sluiten.</p>
+                    <p x-show="submitting" class="text-[11px] text-[#215558] opacity-50 mt-2">Je bestanden worden geupload en de video wordt gemaakt. Dit kan een paar minuten duren, pagina niet sluiten.</p>
                 </form>
             </div>
 
@@ -90,7 +99,7 @@
                                 @endphp
                                 <span class="shrink-0 inline-flex items-center gap-1.5 px-2 py-1 rounded-lg text-[10px] font-bold {{ $badge[0] }}"><i class="fa-solid {{ $badge[1] }} text-[9px]"></i> {{ $badge[2] }}</span>
                             </div>
-                            <p class="text-[10px] text-[#215558] opacity-40 mb-2">{{ $video->image_count }} foto('s) &middot; {{ $video->created_at->format('d-m-Y H:i') }}</p>
+                            <p class="text-[10px] text-[#215558] opacity-40 mb-2">{{ $video->image_count }} bestand{{ $video->image_count === 1 ? '' : 'en' }} &middot; {{ $video->created_at->format('d-m-Y H:i') }}</p>
 
                             @if($video->isCompleted() && $video->video_url)
                                 <video src="{{ $video->video_url }}" controls preload="metadata" class="w-full rounded-lg bg-black"></video>

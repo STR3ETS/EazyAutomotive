@@ -35,24 +35,45 @@ class StudioVideoController extends Controller
         $validated = $request->validate([
             'prompt' => 'required|string|max:1500',
             'duration' => 'nullable|in:5,8,10,15', // model max is 15 seconds per render
-            'images' => 'required|array|min:1|max:9',
+            'images' => 'nullable|array|max:9',
             'images.*' => 'image|mimes:jpeg,jpg,png,webp|max:20480', // 20 MB each
+            'videos' => 'nullable|array|max:3',
+            'videos.*' => 'mimetypes:video/mp4,video/quicktime,video/webm|max:51200', // 50 MB each
         ]);
 
-        try {
-            @set_time_limit(180);
+        $imageFiles = $request->file('images', []);
+        $videoFiles = $request->file('videos', []);
+        if (empty($imageFiles) && empty($videoFiles)) {
+            return back()->with('error', 'Upload minstens een foto of een video.');
+        }
 
-            $falUrls = [];
-            foreach ($request->file('images') as $file) {
-                $falUrls[] = $this->fal->uploadImage(
+        try {
+            @set_time_limit(300);
+
+            $imageUrls = [];
+            foreach ($imageFiles as $file) {
+                $imageUrls[] = $this->fal->uploadFile(
                     (string) file_get_contents($file->getRealPath()),
                     $file->getClientOriginalName() ?: 'image.jpg',
                     $file->getMimeType() ?: 'image/jpeg',
                 );
             }
 
-            $opts = empty($validated['duration']) ? [] : ['duration' => $validated['duration']];
-            $result = $this->fal->generate($falUrls, $this->buildPrompt($validated['prompt']), $opts);
+            $videoUrls = [];
+            foreach ($videoFiles as $file) {
+                $videoUrls[] = $this->fal->uploadFile(
+                    (string) file_get_contents($file->getRealPath()),
+                    $file->getClientOriginalName() ?: 'clip.mp4',
+                    $file->getMimeType() ?: 'video/mp4',
+                );
+            }
+
+            $opts = ['video_urls' => $videoUrls];
+            if (! empty($validated['duration'])) {
+                $opts['duration'] = $validated['duration'];
+            }
+
+            $result = $this->fal->generate($imageUrls, $this->buildPrompt($validated['prompt']), $opts);
         } catch (\Throwable $e) {
             report($e);
 
@@ -64,14 +85,20 @@ class StudioVideoController extends Controller
             'status' => $result['status'],
             'prompt' => $validated['prompt'],
             'model' => $this->fal->modelLabel(),
-            'image_count' => count($falUrls),
+            'image_count' => count($imageUrls) + count($videoUrls),
             'request_id' => $result['request_id'],
             'result_url' => $result['result_url'],
         ]);
 
-        $count = count($falUrls);
+        $parts = [];
+        if (count($imageUrls)) {
+            $parts[] = count($imageUrls) . ' foto' . (count($imageUrls) === 1 ? '' : "'s");
+        }
+        if (count($videoUrls)) {
+            $parts[] = count($videoUrls) . ' video' . (count($videoUrls) === 1 ? '' : "'s");
+        }
 
-        return back()->with('success', "Je video wordt gemaakt van {$count} foto('s). Dit duurt een paar minuten; de status ververst automatisch.");
+        return back()->with('success', 'Je video wordt gemaakt van ' . implode(' en ', $parts) . '. Dit duurt een paar minuten; de status ververst automatisch.');
     }
 
     public function status(Request $request, StudioVideo $studioVideo): JsonResponse

@@ -35,6 +35,7 @@ class FalVideoService
         $body = array_filter([
             'prompt' => $prompt,
             'image_urls' => array_values(array_slice($imageUrls, 0, 9)),
+            'video_urls' => isset($opts['video_urls']) ? array_values(array_slice($opts['video_urls'], 0, 3)) : null,
             'resolution' => $opts['resolution'] ?? config('services.fal.resolution', '720p'),
             'duration' => $opts['duration'] ?? config('services.fal.duration', 'auto'),
             'aspect_ratio' => $opts['aspect_ratio'] ?? config('services.fal.aspect_ratio', '16:9'),
@@ -134,12 +135,18 @@ class FalVideoService
         throw new \RuntimeException('fal: achtergrond verwijderen duurde te lang.');
     }
 
-    /**
-     * Upload raw image bytes to fal storage and return the fal-hosted URL. This
-     * lets the model read the image from fal's own CDN, so fal never has to reach
-     * our server (which fal's network often cannot, e.g. behind a hosting firewall).
-     */
+    /** Backwards-compatible alias for image uploads. */
     public function uploadImage(string $bytes, string $fileName, string $contentType = 'image/jpeg'): string
+    {
+        return $this->uploadFile($bytes, $fileName, $contentType);
+    }
+
+    /**
+     * Upload raw file bytes (image, video or audio) to fal storage and return the
+     * fal-hosted URL. This lets the model read the file from fal's own CDN, so fal
+     * never has to reach our server (which fal's network often cannot reach).
+     */
+    public function uploadFile(string $bytes, string $fileName, string $contentType = 'image/jpeg'): string
     {
         $init = $this->client()->post(
             'https://rest.alpha.fal.ai/storage/upload/initiate?storage_type=fal-cdn-v3',
