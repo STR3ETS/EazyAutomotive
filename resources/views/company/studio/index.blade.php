@@ -48,7 +48,7 @@
                         <input type="file" name="videos[]" accept="video/mp4,video/quicktime,video/webm" multiple class="hidden"
                                @change="vids = $event.target.files.length">
                     </label>
-                    <p class="text-[11px] text-[#215558] opacity-50 mb-4">MP4, MOV of WebM, max 50 MB per video, samen ongeveer 15 seconden. De AI gebruikt ze als referentie naast je foto's.</p>
+                    <p class="text-[11px] text-[#215558] opacity-50 mb-4">MP4, MOV of WebM. De AI gebruikt korte clips als referentie: het model accepteert een video van ongeveer 15 seconden en onder de 50 MB. Erg lange of grote video's worden door de AI (fal) geweigerd.</p>
 
                     <label class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1.5">Beschrijf de video</label>
                     <textarea name="prompt" rows="3" maxlength="1500" required x-ref="prompt"

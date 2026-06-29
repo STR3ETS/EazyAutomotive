@@ -38,7 +38,7 @@ class StudioVideoController extends Controller
             'images' => 'nullable|array|max:9',
             'images.*' => 'image|mimes:jpeg,jpg,png,webp|max:20480', // 20 MB each
             'videos' => 'nullable|array|max:3',
-            'videos.*' => 'mimetypes:video/mp4,video/quicktime,video/webm|max:51200', // 50 MB each
+            'videos.*' => 'mimetypes:video/mp4,video/quicktime,video/webm', // no app-side size cap; fal caps refs at ~50MB/15s
         ]);
 
         $imageFiles = $request->file('images', []);
