@@ -12,6 +12,8 @@ use App\Http\Controllers\LeadController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\ProefritController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PublicerenController;
 use App\Http\Controllers\RdwLookupController;
 use App\Http\Controllers\StudioVideoController;
@@ -81,6 +83,25 @@ Route::middleware(['auth', 'verified', 'company.ownership'])->group(function () 
     Route::post('/studio', [StudioVideoController::class, 'store'])->name('studio.store');
     Route::get('/studio/{studioVideo}/status', [StudioVideoController::class, 'status'])->name('studio.status');
     Route::delete('/studio/{studioVideo}', [StudioVideoController::class, 'destroy'])->name('studio.destroy');
+
+    // Facturatie
+    Route::get('/facturen', [InvoiceController::class, 'index'])->name('invoices.index');
+    Route::get('/facturen/nieuw', [InvoiceController::class, 'create'])->name('invoices.create');
+    Route::post('/facturen', [InvoiceController::class, 'store'])->name('invoices.store');
+    Route::get('/facturen/{invoice}', [InvoiceController::class, 'show'])->name('invoices.show');
+    Route::get('/facturen/{invoice}/bewerken', [InvoiceController::class, 'edit'])->name('invoices.edit');
+    Route::put('/facturen/{invoice}', [InvoiceController::class, 'update'])->name('invoices.update');
+    Route::post('/facturen/{invoice}/versturen', [InvoiceController::class, 'send'])->name('invoices.send');
+    Route::post('/facturen/{invoice}/betaling', [InvoiceController::class, 'registerPayment'])->name('invoices.payment');
+    Route::post('/facturen/{invoice}/annuleren', [InvoiceController::class, 'cancel'])->name('invoices.cancel');
+    Route::delete('/facturen/{invoice}', [InvoiceController::class, 'destroy'])->name('invoices.destroy');
+    Route::get('/facturen/{invoice}/print', [InvoiceController::class, 'print'])->name('invoices.print');
+
+    // Klanten (debiteuren)
+    Route::get('/klanten', [CustomerController::class, 'index'])->name('customers.index');
+    Route::post('/klanten', [CustomerController::class, 'store'])->name('customers.store');
+    Route::put('/klanten/{customer}', [CustomerController::class, 'update'])->name('customers.update');
+    Route::delete('/klanten/{customer}', [CustomerController::class, 'destroy'])->name('customers.destroy');
 
     // Proefrit-aanvragen (leads uit de embed-widget)
     Route::get('/proefritten', [ProefritController::class, 'index'])->name('proefritten');

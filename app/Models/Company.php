@@ -12,7 +12,8 @@ use Illuminate\Support\Str;
 #[Fillable([
     'name', 'slug', 'email', 'phone', 'address', 'city',
     'postal_code', 'country', 'website', 'kvk_number',
-    'btw_number', 'logo_path', 'embed_settings', 'is_active',
+    'btw_number', 'iban', 'invoice_prefix', 'invoice_payment_terms',
+    'invoice_footer', 'logo_path', 'embed_settings', 'is_active',
 ])]
 class Company extends Model
 {
@@ -76,5 +77,15 @@ class Company extends Model
     public function leads(): HasMany
     {
         return $this->hasMany(Lead::class);
+    }
+
+    public function customers(): HasMany
+    {
+        return $this->hasMany(Customer::class);
+    }
+
+    public function invoices(): HasMany
+    {
+        return $this->hasMany(Invoice::class);
     }
 }
