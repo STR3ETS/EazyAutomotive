@@ -12,7 +12,9 @@ use App\Http\Controllers\LeadController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\ProefritController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\BookkeepingController;
 use App\Http\Controllers\CustomerController;
+use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\InvoiceController;
 use App\Http\Controllers\PublicerenController;
 use App\Http\Controllers\RdwLookupController;
@@ -103,6 +105,17 @@ Route::middleware(['auth', 'verified', 'company.ownership'])->group(function () 
     Route::post('/klanten', [CustomerController::class, 'store'])->name('customers.store');
     Route::put('/klanten/{customer}', [CustomerController::class, 'update'])->name('customers.update');
     Route::delete('/klanten/{customer}', [CustomerController::class, 'destroy'])->name('customers.destroy');
+
+    // Inkoop & kosten
+    Route::get('/kosten', [ExpenseController::class, 'index'])->name('expenses.index');
+    Route::post('/kosten', [ExpenseController::class, 'store'])->name('expenses.store');
+    Route::put('/kosten/{expense}', [ExpenseController::class, 'update'])->name('expenses.update');
+    Route::delete('/kosten/{expense}', [ExpenseController::class, 'destroy'])->name('expenses.destroy');
+    Route::get('/kosten/{expense}/bijlage', [ExpenseController::class, 'attachment'])->name('expenses.attachment');
+
+    // Boekhouding (financieel overzicht + BTW-aangifte + export)
+    Route::get('/boekhouding', [BookkeepingController::class, 'index'])->name('bookkeeping.index');
+    Route::get('/boekhouding/export', [BookkeepingController::class, 'export'])->name('bookkeeping.export');
 
     // Proefrit-aanvragen (leads uit de embed-widget)
     Route::get('/proefritten', [ProefritController::class, 'index'])->name('proefritten');

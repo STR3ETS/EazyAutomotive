@@ -31,6 +31,8 @@
                 ['route' => 'studio.index', 'match' => 'studio*', 'icon' => 'fa-clapperboard', 'label' => 'Video Studio', 'tour' => 'nav-studio'],
                 ['route' => 'invoices.index', 'match' => 'invoices.*', 'icon' => 'fa-file-invoice', 'label' => 'Facturen', 'tour' => 'nav-invoices'],
                 ['route' => 'customers.index', 'match' => 'customers.*', 'icon' => 'fa-users', 'label' => 'Klanten', 'tour' => 'nav-customers'],
+                ['route' => 'expenses.index', 'match' => 'expenses.*', 'icon' => 'fa-receipt', 'label' => 'Kosten', 'tour' => 'nav-expenses'],
+                ['route' => 'bookkeeping.index', 'match' => 'bookkeeping.*', 'icon' => 'fa-chart-pie', 'label' => 'Boekhouding', 'tour' => 'nav-bookkeeping'],
                 ['route' => 'settings.edit', 'match' => 'settings.*', 'icon' => 'fa-gear', 'label' => 'Instellingen', 'tour' => 'nav-settings'],
             ];
         @endphp
