@@ -13,6 +13,7 @@ use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\ProefritController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BookkeepingController;
+use App\Http\Controllers\BrandbookController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\InvoiceController;
@@ -116,6 +117,12 @@ Route::middleware(['auth', 'verified', 'company.ownership'])->group(function () 
     // Boekhouding (financieel overzicht + BTW-aangifte + export)
     Route::get('/boekhouding', [BookkeepingController::class, 'index'])->name('bookkeeping.index');
     Route::get('/boekhouding/export', [BookkeepingController::class, 'export'])->name('bookkeeping.export');
+
+    // Brandbook + AI-logo generator
+    Route::get('/brandbook', [BrandbookController::class, 'index'])->name('brandbook.index');
+    Route::put('/brandbook', [BrandbookController::class, 'update'])->name('brandbook.update');
+    Route::post('/brandbook/logo', [BrandbookController::class, 'generateLogo'])->name('brandbook.logo');
+    Route::post('/brandbook/logo/gebruik', [BrandbookController::class, 'useLogo'])->name('brandbook.logo.use');
 
     // Proefrit-aanvragen (leads uit de embed-widget)
     Route::get('/proefritten', [ProefritController::class, 'index'])->name('proefritten');

@@ -13,7 +13,7 @@ use Illuminate\Support\Str;
     'name', 'slug', 'email', 'phone', 'address', 'city',
     'postal_code', 'country', 'website', 'kvk_number',
     'btw_number', 'iban', 'invoice_prefix', 'invoice_payment_terms',
-    'invoice_footer', 'logo_path', 'embed_settings', 'is_active',
+    'invoice_footer', 'logo_path', 'embed_settings', 'brand_settings', 'is_active',
 ])]
 class Company extends Model
 {
@@ -23,8 +23,15 @@ class Company extends Model
     {
         return [
             'embed_settings' => 'array',
+            'brand_settings' => 'array',
             'is_active' => 'boolean',
         ];
+    }
+
+    /** Read a brand-book value with a fallback. */
+    public function brand(string $key, mixed $default = null): mixed
+    {
+        return data_get($this->brand_settings, $key, $default);
     }
 
     protected static function booted(): void
