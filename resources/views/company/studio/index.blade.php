@@ -22,7 +22,7 @@
                 </div>
                 <div>
                     <h1 class="text-2xl font-black text-[#215558]">Video Studio</h1>
-                    <p class="text-sm text-[#215558] opacity-50">Upload foto's (huizen, producten, wat je wilt) en maak er een cinematische video van met AI.</p>
+                    <p class="text-sm text-[#215558] opacity-50">Upload foto's of video's, of laat ze leeg en genereer puur uit je beschrijving. AI maakt er een cinematische video van.</p>
                 </div>
             </div>
 
@@ -73,7 +73,7 @@
                         <option value="15">15 seconden (max)</option>
                     </select>
 
-                    <button type="submit" :disabled="submitting || (files === 0 && vids === 0)"
+                    <button type="submit" :disabled="submitting"
                         class="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 bg-eazy text-white rounded-full text-sm font-bold hover:bg-eazy-dark disabled:opacity-50 disabled:cursor-default transition">
                         <i class="fa-solid" :class="submitting ? 'fa-spinner fa-spin' : 'fa-wand-magic-sparkles'"></i>
                         <span x-text="submitting ? 'Uploaden en genereren...' : 'Genereer video'"></span>

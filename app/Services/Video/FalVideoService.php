@@ -58,6 +58,35 @@ class FalVideoService
     }
 
     /**
+     * Generate a video purely from a text prompt (text-to-video), no reference media.
+     *
+     * @return array{status: string, request_id: ?string, result_url: ?string}
+     */
+    public function generateFromText(string $prompt, array $opts = []): array
+    {
+        $model = trim((string) config('services.fal.text_to_video_model', 'bytedance/seedance-2.0/fast/text-to-video'), '/');
+
+        $body = array_filter([
+            'prompt' => $prompt,
+            'resolution' => $opts['resolution'] ?? config('services.fal.resolution', '720p'),
+            'duration' => $opts['duration'] ?? config('services.fal.duration', 'auto'),
+            'aspect_ratio' => $opts['aspect_ratio'] ?? config('services.fal.aspect_ratio', '16:9'),
+            'generate_audio' => $opts['generate_audio'] ?? config('services.fal.generate_audio', true),
+        ], fn ($v) => $v !== null && $v !== '');
+
+        $response = $this->client()->post($this->base() . '/' . $model, $body);
+        if (! $response->successful()) {
+            throw new \RuntimeException($this->errorMessage($response));
+        }
+
+        return [
+            'status' => 'in_progress',
+            'request_id' => $response->json('request_id'),
+            'result_url' => $response->json('response_url'),
+        ];
+    }
+
+    /**
      * Animate a single still image (image-to-video). Used for studio-background
      * videos where the whole branded frame is composed up front.
      *

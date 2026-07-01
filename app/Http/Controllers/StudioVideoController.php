@@ -43,37 +43,39 @@ class StudioVideoController extends Controller
 
         $imageFiles = $request->file('images', []);
         $videoFiles = $request->file('videos', []);
-        if (empty($imageFiles) && empty($videoFiles)) {
-            return back()->with('error', 'Upload minstens een foto of een video.');
-        }
 
         try {
             @set_time_limit(300);
 
-            $imageUrls = [];
-            foreach ($imageFiles as $file) {
-                $imageUrls[] = $this->fal->uploadFile(
-                    (string) file_get_contents($file->getRealPath()),
-                    $file->getClientOriginalName() ?: 'image.jpg',
-                    $file->getMimeType() ?: 'image/jpeg',
-                );
-            }
-
-            $videoUrls = [];
-            foreach ($videoFiles as $file) {
-                $videoUrls[] = $this->fal->uploadFile(
-                    (string) file_get_contents($file->getRealPath()),
-                    $file->getClientOriginalName() ?: 'clip.mp4',
-                    $file->getMimeType() ?: 'video/mp4',
-                );
-            }
-
-            $opts = ['video_urls' => $videoUrls];
+            $opts = [];
             if (! empty($validated['duration'])) {
                 $opts['duration'] = $validated['duration'];
             }
 
-            $result = $this->fal->generate($imageUrls, $this->buildPrompt($validated['prompt']), $opts);
+            $imageUrls = [];
+            $videoUrls = [];
+
+            if (empty($imageFiles) && empty($videoFiles)) {
+                // No media uploaded: generate purely from the text prompt.
+                $result = $this->fal->generateFromText($this->buildPrompt($validated['prompt']), $opts);
+            } else {
+                foreach ($imageFiles as $file) {
+                    $imageUrls[] = $this->fal->uploadFile(
+                        (string) file_get_contents($file->getRealPath()),
+                        $file->getClientOriginalName() ?: 'image.jpg',
+                        $file->getMimeType() ?: 'image/jpeg',
+                    );
+                }
+                foreach ($videoFiles as $file) {
+                    $videoUrls[] = $this->fal->uploadFile(
+                        (string) file_get_contents($file->getRealPath()),
+                        $file->getClientOriginalName() ?: 'clip.mp4',
+                        $file->getMimeType() ?: 'video/mp4',
+                    );
+                }
+                $opts['video_urls'] = $videoUrls;
+                $result = $this->fal->generate($imageUrls, $this->buildPrompt($validated['prompt']), $opts);
+            }
         } catch (\Throwable $e) {
             report($e);
 
@@ -97,8 +99,9 @@ class StudioVideoController extends Controller
         if (count($videoUrls)) {
             $parts[] = count($videoUrls) . ' video' . (count($videoUrls) === 1 ? '' : "'s");
         }
+        $bron = $parts === [] ? 'je beschrijving' : implode(' en ', $parts);
 
-        return back()->with('success', 'Je video wordt gemaakt van ' . implode(' en ', $parts) . '. Dit duurt een paar minuten; de status ververst automatisch.');
+        return back()->with('success', 'Je video wordt gemaakt van ' . $bron . '. Dit duurt een paar minuten; de status ververst automatisch.');
     }
 
     public function status(Request $request, StudioVideo $studioVideo): JsonResponse
