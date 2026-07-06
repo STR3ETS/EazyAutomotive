@@ -56,6 +56,7 @@ class PanoramaTourService
             '-r', '30',
             '-an',
             '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20',
+            '-pix_fmt', 'yuv420p', // brede browser-compatibiliteit (Safari/iOS)
             '-movflags', '+faststart',
             $outputPath,
         ]);
@@ -64,6 +65,99 @@ class PanoramaTourService
             $err = trim($result->errorOutput() ?: $result->output());
 
             throw new \RuntimeException('ffmpeg kon de 360-tour niet maken: ' . mb_substr($err, -300));
+        }
+    }
+
+    /**
+     * Maakt van meerdere 360-foto's (in kamer-volgorde) een doorlopende tour:
+     * per foto een rondkijk-segment, met een crossfade als overgang naar de
+     * volgende ruimte. Matterport-achtig: rondkijken en doorlopen.
+     *
+     * @param array<int, string> $inputPaths
+     * @param array{duration?:int,fov?:int,direction?:string,crossfade?:float,width?:int,height?:int} $opts
+     */
+    public function renderTour(array $inputPaths, string $outputPath, array $opts = []): void
+    {
+        $inputs = array_values(array_filter($inputPaths, 'is_file'));
+        if ($inputs === []) {
+            throw new \RuntimeException('Geen geldige panoramafoto ontvangen.');
+        }
+
+        if (count($inputs) === 1) {
+            $this->render($inputs[0], $outputPath, $opts);
+
+            return;
+        }
+
+        $duration = max(4, min(30, (int) ($opts['duration'] ?? 8)));
+        $crossfade = max(0.3, min(2.5, (float) ($opts['crossfade'] ?? 1.0)));
+        $width = (int) ($opts['width'] ?? 1280);
+        $height = (int) ($opts['height'] ?? 720);
+
+        $segDir = dirname($outputPath) . DIRECTORY_SEPARATOR . 'seg_' . bin2hex(random_bytes(4));
+        @mkdir($segDir, 0775, true);
+
+        $segments = [];
+        try {
+            foreach ($inputs as $i => $input) {
+                $seg = $segDir . DIRECTORY_SEPARATOR . 'seg' . $i . '.mp4';
+                $this->render($input, $seg, ['duration' => $duration] + $opts);
+                $segments[] = $seg;
+            }
+
+            $this->crossfade($segments, $outputPath, $duration, $crossfade, $width, $height);
+        } finally {
+            foreach ($segments as $seg) {
+                @unlink($seg);
+            }
+            @rmdir($segDir);
+        }
+    }
+
+    /**
+     * Voegt gelijk-lange segmenten samen met een crossfade tussen elk paar.
+     *
+     * @param array<int, string> $segments
+     */
+    private function crossfade(array $segments, string $outputPath, int $duration, float $crossfade, int $width, int $height): void
+    {
+        $count = count($segments);
+
+        $cmd = [$this->binary(), '-y', '-hide_banner', '-loglevel', 'error'];
+        foreach ($segments as $seg) {
+            $cmd[] = '-i';
+            $cmd[] = $seg;
+        }
+
+        // Ketting van xfade-filters. Alle segmenten zijn even lang, dus de
+        // startoffset van de j-de overgang is j * (duur - crossfade).
+        $filter = '';
+        $prev = '[0:v]';
+        for ($j = 1; $j < $count; $j++) {
+            $offset = sprintf('%.3f', $j * ($duration - $crossfade));
+            $label = $j === $count - 1 ? '[out]' : "[x{$j}]";
+            $filter .= "{$prev}[{$j}:v]xfade=transition=fade:duration={$crossfade}:offset={$offset}{$label};";
+            $prev = $label;
+        }
+        $filter = rtrim($filter, ';');
+
+        $cmd = array_merge($cmd, [
+            '-filter_complex', $filter,
+            '-map', '[out]',
+            '-r', '30',
+            '-an',
+            '-c:v', 'libx264', '-preset', 'veryfast', '-crf', '20',
+            '-pix_fmt', 'yuv420p', // brede browser-compatibiliteit (Safari/iOS)
+            '-movflags', '+faststart',
+            $outputPath,
+        ]);
+
+        $result = Process::timeout(300)->run($cmd);
+
+        if (! $result->successful()) {
+            $err = trim($result->errorOutput() ?: $result->output());
+
+            throw new \RuntimeException('ffmpeg kon de tour niet samenvoegen: ' . mb_substr($err, -300));
         }
     }
 

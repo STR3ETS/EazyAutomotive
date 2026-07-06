@@ -89,28 +89,29 @@
                     <h2 class="text-sm font-black text-[#215558]">360-panorama naar rondkijk-tour</h2>
                     <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-eazy/10 text-eazy uppercase tracking-wide">Lokaal &middot; geen AI</span>
                 </div>
-                <p class="text-[12px] text-[#215558] opacity-50 mb-4">Upload een equirectangular 360-foto (breedte is 2x de hoogte). Je krijgt een soepele, onvervormde rondkijk-video, ideaal voor een woningtour. Omdat het geen AI is, krijg je geen vervormingen of verzinsels: precies jouw ruimte.</p>
+                <p class="text-[12px] text-[#215558] opacity-50 mb-4">Upload een of meerdere equirectangular 360-foto's (breedte is 2x de hoogte). Bij meerdere foto's maakt hij er een doorlopende woningtour van: per ruimte rondkijken, met een soepele overgang naar de volgende. Onvervormd en geen AI, precies jouw ruimtes.</p>
 
                 <form method="POST" action="{{ route('studio.tour') }}" enctype="multipart/form-data"
-                      x-data="{ rendering: false, pano: '' }" @submit="rendering = true">
+                      x-data="{ rendering: false, panos: 0 }" @submit="rendering = true">
                     @csrf
 
                     <label class="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-[#215558]/15 rounded-xl py-8 cursor-pointer hover:border-eazy hover:bg-eazy-50/40 transition mb-1.5">
-                        <i class="fa-solid fa-image text-2xl text-[#215558] opacity-40"></i>
-                        <span class="text-sm text-[#215558] opacity-70" x-text="pano || 'Klik om je 360-panorama te kiezen'"></span>
-                        <input type="file" name="panorama" accept="image/jpeg,image/png" class="hidden" required
-                               @change="pano = $event.target.files[0]?.name || ''">
+                        <i class="fa-solid fa-images text-2xl text-[#215558] opacity-40"></i>
+                        <span class="text-sm text-[#215558] opacity-70" x-text="panos ? (panos + ' panorama(\'s) gekozen') : 'Klik om je 360-panorama\'s te kiezen'"></span>
+                        <input type="file" name="panoramas[]" accept="image/jpeg,image/png" multiple class="hidden" required
+                               @change="panos = $event.target.files.length">
                     </label>
-                    <p class="text-[11px] text-[#215558] opacity-50 mb-4">JPG of PNG, equirectangular (2:1), max 50 MB.</p>
+                    <p class="text-[11px] text-[#215558] opacity-50 mb-4">JPG of PNG, equirectangular (2:1), max 50 MB per foto, tot 12 foto's. De volgorde van selecteren = de looproute door het huis.</p>
 
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
                         <div>
-                            <label class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1.5">Lengte</label>
+                            <label class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1.5">Lengte per ruimte</label>
                             <select name="tour_duration" class="block w-full px-4 py-2.5 rounded-xl border-[#215558]/10 text-sm focus:border-eazy focus:ring-eazy">
-                                <option value="8">8 sec (vlot)</option>
-                                <option value="12" selected>12 sec</option>
-                                <option value="15">15 sec (rustig)</option>
-                                <option value="20">20 sec (heel rustig)</option>
+                                <option value="6">6 sec (vlot)</option>
+                                <option value="8" selected>8 sec</option>
+                                <option value="10">10 sec</option>
+                                <option value="12">12 sec (rustig)</option>
+                                <option value="15">15 sec (heel rustig)</option>
                             </select>
                         </div>
                         <div>

@@ -119,21 +119,24 @@ class StudioVideoController extends Controller
         }
 
         $validated = $request->validate([
-            'panorama' => 'required|image|mimes:jpeg,jpg,png|max:51200', // 50 MB
-            'tour_duration' => 'nullable|in:8,12,15,20',
+            'panoramas' => 'required|array|min:1|max:12',
+            'panoramas.*' => 'image|mimes:jpeg,jpg,png|max:51200', // 50 MB per foto
+            'tour_duration' => 'nullable|in:6,8,10,12,15',
             'direction' => 'nullable|in:left,right',
             'fov' => 'nullable|in:85,100,115',
         ]);
 
-        $file = $request->file('panorama');
-
-        // Een echte 360-foto is equirectangular: breedte is 2x de hoogte.
-        [$w, $h] = @getimagesize($file->getRealPath()) ?: [0, 0];
-        if ($w < 1000 || $h < 1 || abs(($w / max(1, $h)) - 2) > 0.2) {
-            return back()->with('error', 'Dit lijkt geen 360-panorama. Upload een equirectangular foto met een 2:1 verhouding (breedte is twee keer de hoogte).');
+        // Elke foto moet equirectangular zijn: breedte is 2x de hoogte.
+        $paths = [];
+        foreach ($request->file('panoramas') as $index => $file) {
+            [$w, $h] = @getimagesize($file->getRealPath()) ?: [0, 0];
+            if ($w < 1000 || $h < 1 || abs(($w / max(1, $h)) - 2) > 0.2) {
+                return back()->with('error', 'Foto ' . ($index + 1) . ' lijkt geen 360-panorama. Upload equirectangular foto\'s met een 2:1 verhouding (breedte is twee keer de hoogte).');
+            }
+            $paths[] = $file->getRealPath();
         }
 
-        @set_time_limit(300);
+        @set_time_limit(600);
 
         $fov = (int) ($validated['fov'] ?? 100);
         $uuid = (string) Str::uuid();
@@ -145,12 +148,12 @@ class StudioVideoController extends Controller
         $thumb = $dir . DIRECTORY_SEPARATOR . $uuid . '.jpg';
 
         try {
-            $tour->render($file->getRealPath(), $mp4, [
-                'duration' => (int) ($validated['tour_duration'] ?? 12),
+            $tour->renderTour($paths, $mp4, [
+                'duration' => (int) ($validated['tour_duration'] ?? 8),
                 'direction' => $validated['direction'] ?? 'right',
                 'fov' => $fov,
             ]);
-            $tour->poster($file->getRealPath(), $thumb, $fov);
+            $tour->poster($paths[0], $thumb, $fov);
         } catch (\Throwable $e) {
             report($e);
             @unlink($mp4);
@@ -158,17 +161,23 @@ class StudioVideoController extends Controller
             return back()->with('error', 'Tour maken mislukt: ' . $e->getMessage());
         }
 
+        $count = count($paths);
+
         StudioVideo::create([
             'company_id' => $request->user()->company_id,
             'status' => 'completed',
-            'prompt' => '360 rondkijk-tour uit panoramafoto',
+            'prompt' => $count === 1
+                ? '360 rondkijk-tour uit panoramafoto'
+                : "360 woningtour uit {$count} panoramafoto's",
             'model' => '360 tour (lokaal, ffmpeg)',
-            'image_count' => 1,
+            'image_count' => $count,
             'video_url' => Storage::disk('public')->url('tours/' . $uuid . '.mp4'),
             'thumbnail_url' => is_file($thumb) ? Storage::disk('public')->url('tours/' . $uuid . '.jpg') : null,
         ]);
 
-        return back()->with('success', 'Je 360-tour is gemaakt uit de panoramafoto.');
+        return back()->with('success', $count === 1
+            ? 'Je 360-tour is gemaakt uit de panoramafoto.'
+            : "Je 360-woningtour is gemaakt uit {$count} panoramafoto's.");
     }
 
     public function status(Request $request, StudioVideo $studioVideo): JsonResponse
