@@ -85,6 +85,8 @@ Route::middleware(['auth', 'verified', 'company.ownership'])->group(function () 
     // AI Video Studio: upload any photos + prompt -> fal Seedance montage
     Route::get('/studio', [StudioVideoController::class, 'index'])->name('studio.index');
     Route::post('/studio', [StudioVideoController::class, 'store'])->name('studio.store');
+    // 360-panorama -> soepele rondkijk-tour, lokaal via ffmpeg (geen AI)
+    Route::post('/studio/tour', [StudioVideoController::class, 'storeTour'])->name('studio.tour');
     Route::get('/studio/{studioVideo}/status', [StudioVideoController::class, 'status'])->name('studio.status');
     Route::delete('/studio/{studioVideo}', [StudioVideoController::class, 'destroy'])->name('studio.destroy');
 

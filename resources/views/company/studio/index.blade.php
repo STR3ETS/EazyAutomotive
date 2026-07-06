@@ -82,6 +82,63 @@
                 </form>
             </div>
 
+            {{-- 360-panorama naar rondkijk-tour (lokaal, geen AI) --}}
+            <div class="bg-white rounded-2xl border border-[#215558]/10 p-6 mb-8">
+                <div class="flex flex-wrap items-center gap-2 mb-1">
+                    <i class="fa-solid fa-panorama text-eazy"></i>
+                    <h2 class="text-sm font-black text-[#215558]">360-panorama naar rondkijk-tour</h2>
+                    <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-eazy/10 text-eazy uppercase tracking-wide">Lokaal &middot; geen AI</span>
+                </div>
+                <p class="text-[12px] text-[#215558] opacity-50 mb-4">Upload een equirectangular 360-foto (breedte is 2x de hoogte). Je krijgt een soepele, onvervormde rondkijk-video, ideaal voor een woningtour. Omdat het geen AI is, krijg je geen vervormingen of verzinsels: precies jouw ruimte.</p>
+
+                <form method="POST" action="{{ route('studio.tour') }}" enctype="multipart/form-data"
+                      x-data="{ rendering: false, pano: '' }" @submit="rendering = true">
+                    @csrf
+
+                    <label class="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-[#215558]/15 rounded-xl py-8 cursor-pointer hover:border-eazy hover:bg-eazy-50/40 transition mb-1.5">
+                        <i class="fa-solid fa-image text-2xl text-[#215558] opacity-40"></i>
+                        <span class="text-sm text-[#215558] opacity-70" x-text="pano || 'Klik om je 360-panorama te kiezen'"></span>
+                        <input type="file" name="panorama" accept="image/jpeg,image/png" class="hidden" required
+                               @change="pano = $event.target.files[0]?.name || ''">
+                    </label>
+                    <p class="text-[11px] text-[#215558] opacity-50 mb-4">JPG of PNG, equirectangular (2:1), max 50 MB.</p>
+
+                    <div class="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
+                        <div>
+                            <label class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1.5">Lengte</label>
+                            <select name="tour_duration" class="block w-full px-4 py-2.5 rounded-xl border-[#215558]/10 text-sm focus:border-eazy focus:ring-eazy">
+                                <option value="8">8 sec (vlot)</option>
+                                <option value="12" selected>12 sec</option>
+                                <option value="15">15 sec (rustig)</option>
+                                <option value="20">20 sec (heel rustig)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1.5">Kijkhoek</label>
+                            <select name="fov" class="block w-full px-4 py-2.5 rounded-xl border-[#215558]/10 text-sm focus:border-eazy focus:ring-eazy">
+                                <option value="85">Strak</option>
+                                <option value="100" selected>Normaal</option>
+                                <option value="115">Breed</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label class="block text-[11px] font-bold text-[#215558] opacity-80 uppercase tracking-wider mb-1.5">Draairichting</label>
+                            <select name="direction" class="block w-full px-4 py-2.5 rounded-xl border-[#215558]/10 text-sm focus:border-eazy focus:ring-eazy">
+                                <option value="right" selected>Naar rechts</option>
+                                <option value="left">Naar links</option>
+                            </select>
+                        </div>
+                    </div>
+
+                    <button type="submit" :disabled="rendering"
+                        class="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 bg-[#215558] text-white rounded-full text-sm font-bold hover:opacity-90 disabled:opacity-50 disabled:cursor-default transition">
+                        <i class="fa-solid" :class="rendering ? 'fa-spinner fa-spin' : 'fa-panorama'"></i>
+                        <span x-text="rendering ? 'Tour maken...' : 'Maak 360-tour'"></span>
+                    </button>
+                    <p x-show="rendering" class="text-[11px] text-[#215558] opacity-50 mt-2">De tour wordt lokaal gerenderd, dit duurt enkele seconden.</p>
+                </form>
+            </div>
+
             {{-- Generated videos --}}
             @if($videos->count() > 0)
                 <div class="grid grid-cols-1 sm:grid-cols-2 gap-5">
@@ -102,7 +159,7 @@
                             <p class="text-[10px] text-[#215558] opacity-40 mb-2">{{ $video->image_count }} bestand{{ $video->image_count === 1 ? '' : 'en' }} &middot; {{ $video->created_at->format('d-m-Y H:i') }}</p>
 
                             @if($video->isCompleted() && $video->video_url)
-                                <video src="{{ $video->video_url }}" controls preload="metadata" class="w-full rounded-lg bg-black"></video>
+                                <video src="{{ $video->video_url }}" controls preload="metadata" @if($video->thumbnail_url) poster="{{ $video->thumbnail_url }}" @endif class="w-full rounded-lg bg-black"></video>
                                 <div class="flex items-center justify-between mt-3">
                                     <a href="{{ $video->video_url }}" download target="_blank" rel="noopener" class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-eazy-dark text-white rounded-full text-xs font-bold hover:bg-eazy-darker transition"><i class="fa-solid fa-download text-[10px]"></i> Downloaden</a>
                                     <form method="POST" action="{{ route('studio.destroy', $video) }}" onsubmit="return confirm('Deze video verwijderen?')">

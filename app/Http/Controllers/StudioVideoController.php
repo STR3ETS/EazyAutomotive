@@ -4,8 +4,11 @@ namespace App\Http\Controllers;
 
 use App\Models\StudioVideo;
 use App\Services\Video\FalVideoService;
+use App\Services\Video\PanoramaTourService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 
 /**
  * Free-form AI video studio: upload any photos (houses, products, anything) plus
@@ -104,6 +107,70 @@ class StudioVideoController extends Controller
         return back()->with('success', 'Je video wordt gemaakt van ' . $bron . '. Dit duurt een paar minuten; de status ververst automatisch.');
     }
 
+    /**
+     * Maakt een soepele 360-rondkijk-video uit een equirectangular panoramafoto,
+     * volledig lokaal met ffmpeg. Geen AI, geen vervorming: de bol wordt netjes
+     * teruggeprojecteerd naar een recht camerabeeld dat rondpant.
+     */
+    public function storeTour(Request $request, PanoramaTourService $tour)
+    {
+        if (! $tour->isAvailable()) {
+            return back()->with('error', 'De 360-tour renderer (ffmpeg) is niet beschikbaar op deze server.');
+        }
+
+        $validated = $request->validate([
+            'panorama' => 'required|image|mimes:jpeg,jpg,png|max:51200', // 50 MB
+            'tour_duration' => 'nullable|in:8,12,15,20',
+            'direction' => 'nullable|in:left,right',
+            'fov' => 'nullable|in:85,100,115',
+        ]);
+
+        $file = $request->file('panorama');
+
+        // Een echte 360-foto is equirectangular: breedte is 2x de hoogte.
+        [$w, $h] = @getimagesize($file->getRealPath()) ?: [0, 0];
+        if ($w < 1000 || $h < 1 || abs(($w / max(1, $h)) - 2) > 0.2) {
+            return back()->with('error', 'Dit lijkt geen 360-panorama. Upload een equirectangular foto met een 2:1 verhouding (breedte is twee keer de hoogte).');
+        }
+
+        @set_time_limit(300);
+
+        $fov = (int) ($validated['fov'] ?? 100);
+        $uuid = (string) Str::uuid();
+        $dir = Storage::disk('public')->path('tours');
+        if (! is_dir($dir)) {
+            @mkdir($dir, 0775, true);
+        }
+        $mp4 = $dir . DIRECTORY_SEPARATOR . $uuid . '.mp4';
+        $thumb = $dir . DIRECTORY_SEPARATOR . $uuid . '.jpg';
+
+        try {
+            $tour->render($file->getRealPath(), $mp4, [
+                'duration' => (int) ($validated['tour_duration'] ?? 12),
+                'direction' => $validated['direction'] ?? 'right',
+                'fov' => $fov,
+            ]);
+            $tour->poster($file->getRealPath(), $thumb, $fov);
+        } catch (\Throwable $e) {
+            report($e);
+            @unlink($mp4);
+
+            return back()->with('error', 'Tour maken mislukt: ' . $e->getMessage());
+        }
+
+        StudioVideo::create([
+            'company_id' => $request->user()->company_id,
+            'status' => 'completed',
+            'prompt' => '360 rondkijk-tour uit panoramafoto',
+            'model' => '360 tour (lokaal, ffmpeg)',
+            'image_count' => 1,
+            'video_url' => Storage::disk('public')->url('tours/' . $uuid . '.mp4'),
+            'thumbnail_url' => is_file($thumb) ? Storage::disk('public')->url('tours/' . $uuid . '.jpg') : null,
+        ]);
+
+        return back()->with('success', 'Je 360-tour is gemaakt uit de panoramafoto.');
+    }
+
     public function status(Request $request, StudioVideo $studioVideo): JsonResponse
     {
         abort_unless($studioVideo->company_id === $request->user()->company_id, 403);
@@ -140,6 +207,14 @@ class StudioVideoController extends Controller
     public function destroy(Request $request, StudioVideo $studioVideo)
     {
         abort_unless($studioVideo->company_id === $request->user()->company_id, 403);
+
+        // Lokaal gerenderde tour-bestanden meteen opruimen.
+        if ($studioVideo->video_url && str_contains($studioVideo->video_url, '/storage/tours/')) {
+            $base = pathinfo((string) parse_url($studioVideo->video_url, PHP_URL_PATH), PATHINFO_FILENAME);
+            if ($base !== '') {
+                Storage::disk('public')->delete(["tours/{$base}.mp4", "tours/{$base}.jpg"]);
+            }
+        }
 
         $studioVideo->delete();
 
