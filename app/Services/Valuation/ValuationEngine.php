@@ -29,6 +29,17 @@ class ValuationEngine
         $brandstof = $v['brandstof'] ?? null;
 
         if ($merk && $year) {
+            // "Kijkende" taxatie: haal echte, actuele advertenties op van de
+            // publieke markt (Marktplaats) en bereken de waarde daaruit.
+            $live = app(LiveMarketLookup::class);
+            if ($live->isEnabled()) {
+                $rows = $live->comparables($merk, $model, $year, $brandstof);
+                if ($rows->count() >= self::MIN_COMPARABLES) {
+                    return $this->compute($rows, $km, 'marktplaats');
+                }
+            }
+
+            // Terugval op verzamelde marktdata (eigen voorraad + eventuele feed).
             $market = $this->fromMarket($merk, $model, $year, $brandstof, $km);
             if ($market) {
                 return $market;
@@ -69,7 +80,7 @@ class ValuationEngine
         return null;
     }
 
-    private function compute(Collection $rows, ?int $km): array
+    private function compute(Collection $rows, ?int $km, string $bron = 'marktdata'): array
     {
         $n = $rows->count();
         // euros
@@ -95,17 +106,21 @@ class ValuationEngine
         $high = max($high, $mid * 1.1);
 
         $vertrouwen = $n >= 25 ? 'hoog' : ($n >= 12 ? 'midden' : 'laag');
+        $kmCorrected = $km && $withKm->count() >= self::MIN_COMPARABLES;
+        $bronLabel = $bron === 'marktplaats'
+            ? 'actuele advertenties van Marktplaats'
+            : 'vergelijkbare advertenties uit de marktdata';
 
         return [
             'beschikbaar' => true,
-            'bron' => 'marktdata',
+            'bron' => $bron,
             'vertrouwen' => $vertrouwen,
             'aantal' => $n,
             'onder' => $this->roundTo($low),
             'midden' => $this->roundTo($mid),
             'boven' => $this->roundTo($high),
-            'toelichting' => "Gebaseerd op {$n} vergelijkbare advertenties uit de marktdata"
-                . ($km && $withKm->count() >= self::MIN_COMPARABLES ? ', gecorrigeerd voor kilometerstand' : '') . '.',
+            'toelichting' => "Gebaseerd op {$n} {$bronLabel}"
+                . ($kmCorrected ? ', gecorrigeerd voor kilometerstand' : '') . '.',
         ];
     }
 

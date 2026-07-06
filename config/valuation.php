@@ -7,6 +7,11 @@ return [
     'http_feed_url' => env('MARKET_FEED_URL'),
     'http_feed_token' => env('MARKET_FEED_TOKEN'),
 
+    // Live "kijkende" taxatie: bij een taxatie worden echte vergelijkbare
+    // advertenties van Marktplaats opgehaald en de waarde daaruit berekend.
+    // Uitschakelen kan met MARKET_LIVE_LOOKUP=false.
+    'live_lookup' => (bool) env('MARKET_LIVE_LOOKUP', true),
+
     // Listings not refreshed within this window are pruned, so the data stays live
     // (sold or removed cars drop out).
     'freshness_days' => (int) env('MARKET_FRESHNESS_DAYS', 90),

@@ -102,7 +102,9 @@
                     <h3 class="text-sm font-bold text-[#215558] mb-4 flex items-center gap-2">
                         <i class="fa-solid fa-tags text-eazy"></i> Indicatieve waardeschatting
                         @if($report['waarde']['beschikbaar'])
-                            @if(($report['waarde']['bron'] ?? '') === 'marktdata')
+                            @if(($report['waarde']['bron'] ?? '') === 'marktplaats')
+                                <span class="ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-eazy/10 text-eazy text-[10px] font-bold uppercase tracking-wide"><i class="fa-solid fa-satellite-dish text-[9px]"></i> Live marktprijs &middot; {{ $report['waarde']['aantal'] }} advertenties</span>
+                            @elseif(($report['waarde']['bron'] ?? '') === 'marktdata')
                                 <span class="ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-600 text-[10px] font-bold uppercase tracking-wide">Marktdata &middot; {{ $report['waarde']['aantal'] }} advertenties</span>
                             @else
                                 <span class="ml-1 inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-amber-50 text-amber-600 text-[10px] font-bold uppercase tracking-wide">Modelschatting</span>
