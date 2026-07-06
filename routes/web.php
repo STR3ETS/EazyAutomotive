@@ -12,6 +12,7 @@ use App\Http\Controllers\LeadController;
 use App\Http\Controllers\OnboardingController;
 use App\Http\Controllers\ProefritController;
 use App\Http\Controllers\ProfileController;
+use App\Http\Controllers\BedrijfsvoorraadController;
 use App\Http\Controllers\BookkeepingController;
 use App\Http\Controllers\BrandbookController;
 use App\Http\Controllers\CustomerController;
@@ -59,6 +60,11 @@ Route::middleware(['auth', 'verified', 'company.ownership'])->group(function () 
 
     // Voertuigrapport (research a car by kenteken)
     Route::get('/onderzoek', [VoertuigRapportController::class, 'index'])->name('onderzoek');
+
+    // RDW vrijwaring / bedrijfsvoorraad (echte registermutatie via ORV)
+    Route::get('/vrijwaring', [BedrijfsvoorraadController::class, 'index'])->name('bedrijfsvoorraad.index');
+    Route::post('/vrijwaring/vrijwaren', [BedrijfsvoorraadController::class, 'vrijwaren'])->name('bedrijfsvoorraad.vrijwaren');
+    Route::post('/vrijwaring/uit', [BedrijfsvoorraadController::class, 'uit'])->name('bedrijfsvoorraad.uit');
 
     // Company Settings
     Route::get('/settings', [CompanySettingsController::class, 'edit'])->name('settings.edit');

@@ -76,6 +76,25 @@ return [
         'path' => env('FFMPEG_PATH', 'ffmpeg'),
     ],
 
+    // RDW ORV (Online Registratie Voorraad / Vrijwaren): de transactionele
+    // registermutaties voor erkende bedrijven (voertuig in/uit bedrijfsvoorraad,
+    // vrijwaring). Dit is NIET de open data; het vereist een RDW-erkenning
+    // Bedrijfsvoorraad plus een productiecertificaat. Modes:
+    //   sandbox = lokaal simuleren (testen zonder RDW), soap = echte webservice.
+    'rdw' => [
+        'orv' => [
+            'mode' => env('RDW_ORV_MODE', 'sandbox'),
+            'wsdl' => env('RDW_ORV_WSDL'),                       // acceptatie- of productie-WSDL
+            'certificate' => env('RDW_ORV_CERT'),                // pad naar .pem clientcertificaat (productie)
+            'certificate_passphrase' => env('RDW_ORV_CERT_PASSPHRASE'),
+            'erkenning' => env('RDW_ORV_ERKENNING'),             // erkenningsnummer bedrijfsvoorraad
+            'volgnummer' => env('RDW_ORV_VOLGNUMMER'),           // pas/volgnummer indien vereist
+            // Operatienamen uit de RDW/A2SP technische documentatie (per erkend bedrijf).
+            'op_vrijwaren' => env('RDW_ORV_OP_VRIJWAREN', 'OpnemenVoertuigInBedrijfsvoorraad'),
+            'op_uitvoorraad' => env('RDW_ORV_OP_UITVOORRAAD', 'UitgevenVoertuigUitBedrijfsvoorraad'),
+        ],
+    ],
+
     // VWE / Finnik data services. Powers the premium parts of het voertuigrapport
     // (taxatie, tellerstandhistorie, onderhoudshistorie, terugroepdetails, schade,
     // WOK, fabrieksopties). Leave empty to keep the report on free RDW data only.

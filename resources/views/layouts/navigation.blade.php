@@ -23,6 +23,7 @@
                 ['route' => 'dashboard', 'match' => 'dashboard', 'icon' => 'fa-house', 'label' => 'Dashboard', 'tour' => 'nav-dashboard'],
                 ['route' => 'cars.index', 'match' => 'cars.*', 'icon' => 'fa-car', 'label' => "Auto's", 'tour' => 'nav-cars'],
                 ['route' => 'onderzoek', 'match' => 'onderzoek', 'icon' => 'fa-magnifying-glass-chart', 'label' => 'Onderzoek', 'tour' => 'nav-research'],
+                ['route' => 'bedrijfsvoorraad.index', 'match' => 'bedrijfsvoorraad.*', 'icon' => 'fa-file-signature', 'label' => 'Vrijwaring', 'tour' => 'nav-vrijwaring'],
                 ['route' => 'ontwerpen', 'match' => 'ontwerpen', 'icon' => 'fa-palette', 'label' => 'Ontwerpen', 'tour' => 'nav-design'],
                 ['route' => 'brandbook.index', 'match' => 'brandbook.*', 'icon' => 'fa-swatchbook', 'label' => 'Brandbook', 'tour' => 'nav-brandbook'],
                 ['route' => 'integratie', 'match' => 'integratie', 'icon' => 'fa-code', 'label' => 'Integratie', 'tour' => 'nav-embed'],
