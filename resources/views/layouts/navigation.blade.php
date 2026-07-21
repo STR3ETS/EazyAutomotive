@@ -17,44 +17,75 @@
     <div class="px-5"><div class="border-t border-gray-100"></div></div>
 
     {{-- Navigation --}}
-    <nav class="flex-1 px-4 py-5 space-y-1 overflow-y-auto">
+    <nav class="flex-1 px-3 py-4 overflow-y-auto">
+        {{-- Dashboard: altijd zichtbaar, buiten de secties --}}
+        @php $dashActive = request()->routeIs('dashboard'); @endphp
+        <a href="{{ route('dashboard') }}" @click="sidebarOpen = false" data-tour="nav-dashboard"
+           class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold transition-colors
+                  {{ $dashActive ? 'bg-eazy-50 text-eazy-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800' }}">
+            <span class="w-6 flex justify-center"><i class="fa-solid fa-house text-sm {{ $dashActive ? 'text-eazy' : 'text-gray-400' }}"></i></span>
+            <span>Dashboard</span>
+        </a>
+
         @php
-            $navItems = [
-                ['route' => 'dashboard', 'match' => 'dashboard', 'icon' => 'fa-house', 'label' => 'Dashboard', 'tour' => 'nav-dashboard'],
-                ['route' => 'cars.index', 'match' => 'cars.*', 'icon' => 'fa-car', 'label' => "Auto's", 'tour' => 'nav-cars'],
-                ['route' => 'onderzoek', 'match' => 'onderzoek', 'icon' => 'fa-magnifying-glass-chart', 'label' => 'Onderzoek', 'tour' => 'nav-research'],
-                ['route' => 'bedrijfsvoorraad.index', 'match' => 'bedrijfsvoorraad.*', 'icon' => 'fa-file-signature', 'label' => 'Vrijwaring', 'tour' => 'nav-vrijwaring'],
-                ['route' => 'ontwerpen', 'match' => 'ontwerpen', 'icon' => 'fa-palette', 'label' => 'Ontwerpen', 'tour' => 'nav-design'],
-                ['route' => 'brandbook.index', 'match' => 'brandbook.*', 'icon' => 'fa-swatchbook', 'label' => 'Brandbook', 'tour' => 'nav-brandbook'],
-                ['route' => 'integratie', 'match' => 'integratie', 'icon' => 'fa-code', 'label' => 'Integratie', 'tour' => 'nav-embed'],
-                ['route' => 'publiceren', 'match' => 'publiceren*', 'icon' => 'fa-share-nodes', 'label' => 'Publiceren', 'tour' => 'nav-publish'],
-                ['route' => 'leads.index', 'match' => 'leads*', 'icon' => 'fa-inbox', 'label' => 'Leads', 'tour' => 'nav-leads'],
-                ['route' => 'proefritten', 'match' => 'proefritten', 'icon' => 'fa-calendar-check', 'label' => 'Proefritten', 'tour' => 'nav-proefrit'],
-                ['route' => 'studio.index', 'match' => 'studio*', 'icon' => 'fa-clapperboard', 'label' => 'Video Studio', 'tour' => 'nav-studio'],
-                ['route' => 'invoices.index', 'match' => 'invoices.*', 'icon' => 'fa-file-invoice', 'label' => 'Facturen', 'tour' => 'nav-invoices'],
-                ['route' => 'customers.index', 'match' => 'customers.*', 'icon' => 'fa-users', 'label' => 'Klanten', 'tour' => 'nav-customers'],
-                ['route' => 'expenses.index', 'match' => 'expenses.*', 'icon' => 'fa-receipt', 'label' => 'Kosten', 'tour' => 'nav-expenses'],
-                ['route' => 'bookkeeping.index', 'match' => 'bookkeeping.*', 'icon' => 'fa-chart-pie', 'label' => 'Boekhouding', 'tour' => 'nav-bookkeeping'],
-                ['route' => 'settings.edit', 'match' => 'settings.*', 'icon' => 'fa-gear', 'label' => 'Instellingen', 'tour' => 'nav-settings'],
+            $groups = [
+                ['label' => 'Voorraad', 'items' => [
+                    ['route' => 'cars.index', 'match' => 'cars.*', 'icon' => 'fa-car', 'label' => "Auto's", 'tour' => 'nav-cars'],
+                    ['route' => 'onderzoek', 'match' => 'onderzoek', 'icon' => 'fa-magnifying-glass-chart', 'label' => 'Onderzoek', 'tour' => 'nav-research'],
+                    ['route' => 'bedrijfsvoorraad.index', 'match' => 'bedrijfsvoorraad.*', 'icon' => 'fa-file-signature', 'label' => 'Vrijwaring', 'tour' => 'nav-vrijwaring'],
+                ]],
+                ['label' => 'Marketing', 'items' => [
+                    ['route' => 'publiceren', 'match' => 'publiceren*', 'icon' => 'fa-share-nodes', 'label' => 'Publiceren', 'tour' => 'nav-publish'],
+                    ['route' => 'studio.index', 'match' => 'studio*', 'icon' => 'fa-clapperboard', 'label' => 'Video Studio', 'tour' => 'nav-studio'],
+                    ['route' => 'ontwerpen', 'match' => 'ontwerpen', 'icon' => 'fa-palette', 'label' => 'Ontwerpen', 'tour' => 'nav-design'],
+                    ['route' => 'brandbook.index', 'match' => 'brandbook.*', 'icon' => 'fa-swatchbook', 'label' => 'Brandbook', 'tour' => 'nav-brandbook'],
+                    ['route' => 'integratie', 'match' => 'integratie', 'icon' => 'fa-code', 'label' => 'Integratie', 'tour' => 'nav-embed'],
+                ]],
+                ['label' => 'Verkoop', 'items' => [
+                    ['route' => 'leads.index', 'match' => 'leads*', 'icon' => 'fa-inbox', 'label' => 'Leads', 'tour' => 'nav-leads'],
+                    ['route' => 'proefritten', 'match' => 'proefritten', 'icon' => 'fa-calendar-check', 'label' => 'Proefritten', 'tour' => 'nav-proefrit'],
+                ]],
+                ['label' => 'Administratie', 'items' => [
+                    ['route' => 'invoices.index', 'match' => 'invoices.*', 'icon' => 'fa-file-invoice', 'label' => 'Facturen', 'tour' => 'nav-invoices'],
+                    ['route' => 'customers.index', 'match' => 'customers.*', 'icon' => 'fa-users', 'label' => 'Klanten', 'tour' => 'nav-customers'],
+                    ['route' => 'expenses.index', 'match' => 'expenses.*', 'icon' => 'fa-receipt', 'label' => 'Kosten', 'tour' => 'nav-expenses'],
+                    ['route' => 'bookkeeping.index', 'match' => 'bookkeeping.*', 'icon' => 'fa-chart-pie', 'label' => 'Boekhouding', 'tour' => 'nav-bookkeeping'],
+                ]],
             ];
         @endphp
 
-        @foreach($navItems as $item)
-            @php $active = request()->routeIs($item['match']); @endphp
-            <a href="{{ route($item['route']) }}"
-               @click="sidebarOpen = false"
-               data-tour="{{ $item['tour'] }}"
-               class="flex items-center gap-3 px-3 py-2.5 rounded-xl text-sm font-semibold transition-all duration-150
-                      {{ $active
-                          ? 'bg-eazy-50 text-eazy-700'
-                          : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800' }}">
-                <div class="w-8 h-8 flex items-center justify-center rounded-lg
-                            {{ $active ? 'bg-eazy text-white' : 'bg-gray-100 text-gray-400' }}">
-                    <i class="fa-solid {{ $item['icon'] }} text-xs"></i>
+        @foreach($groups as $group)
+            @php $groupActive = collect($group['items'])->contains(fn ($i) => request()->routeIs($i['match'])); @endphp
+            <div x-data="{ open: {{ $groupActive ? 'true' : 'false' }} }" class="mt-3">
+                <button type="button" @click="open = !open"
+                    class="cursor-pointer w-full flex items-center justify-between px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-400 hover:text-gray-600 transition-colors">
+                    <span>{{ $group['label'] }}</span>
+                    <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="{ '-rotate-90': !open }"></i>
+                </button>
+                <div x-show="open" x-transition.opacity.duration.150ms class="mt-1 space-y-0.5" @unless($groupActive) style="display:none" @endunless>
+                    @foreach($group['items'] as $item)
+                        @php $active = request()->routeIs($item['match']); @endphp
+                        <a href="{{ route($item['route']) }}" @click="sidebarOpen = false" data-tour="{{ $item['tour'] }}"
+                           class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold transition-colors
+                                  {{ $active ? 'bg-eazy-50 text-eazy-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800' }}">
+                            <span class="w-6 flex justify-center"><i class="fa-solid {{ $item['icon'] }} text-sm {{ $active ? 'text-eazy' : 'text-gray-400' }}"></i></span>
+                            <span>{{ $item['label'] }}</span>
+                        </a>
+                    @endforeach
                 </div>
-                <span>{{ $item['label'] }}</span>
-            </a>
+            </div>
         @endforeach
+
+        {{-- Instellingen: standalone onderaan --}}
+        @php $setActive = request()->routeIs('settings.*'); @endphp
+        <div class="mt-3 pt-3 border-t border-gray-100">
+            <a href="{{ route('settings.edit') }}" @click="sidebarOpen = false" data-tour="nav-settings"
+               class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold transition-colors
+                      {{ $setActive ? 'bg-eazy-50 text-eazy-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800' }}">
+                <span class="w-6 flex justify-center"><i class="fa-solid fa-gear text-sm {{ $setActive ? 'text-eazy' : 'text-gray-400' }}"></i></span>
+                <span>Instellingen</span>
+            </a>
+        </div>
     </nav>
 
     {{-- User section --}}
