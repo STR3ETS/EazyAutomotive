@@ -5,6 +5,9 @@ namespace App\Http\Controllers;
 use App\Models\Car;
 use App\Services\RdwService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Storage;
+use Illuminate\Support\Str;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 
 /**
@@ -31,7 +34,13 @@ class VoorraadImportController extends Controller
         'kleur' => 'eerste_kleur', 'color' => 'eerste_kleur', 'colour' => 'eerste_kleur',
         'titel' => 'titel', 'title' => 'titel',
         'beschrijving' => 'beschrijving', 'omschrijving' => 'beschrijving', 'description' => 'beschrijving',
+        'fotos' => '_fotos', 'foto' => '_fotos', 'afbeelding' => '_fotos', 'afbeeldingen' => '_fotos',
+        'images' => '_fotos', 'image' => '_fotos', 'photo' => '_fotos', 'photos' => '_fotos',
+        'image_url' => '_fotos', 'foto_url' => '_fotos', 'imageurl' => '_fotos',
     ];
+
+    /** Max foto's per auto bij import. */
+    private const MAX_FOTOS_PER_CAR = 30;
 
     public function __construct(private RdwService $rdw) {}
 
@@ -165,18 +174,104 @@ class VoorraadImportController extends Controller
             $attrs['company_id'] = $request->user()->company_id;
             $attrs['status'] = $data['status'];
 
-            Car::create($attrs);
+            $car = Car::create($attrs);
             $result['created']++;
+
+            if (! empty($row['_fotos'])) {
+                $this->attachUrls($car, (string) $row['_fotos']);
+            }
         }
 
         return back()->with('import_result', $result);
     }
 
+    /**
+     * Foto's koppelen via een ZIP. De bestandsnaam begint met het kenteken
+     * (bijv. 12ABC3_1.jpg), zo weet het platform bij welke auto de foto hoort.
+     * Importeer dus eerst de auto's, upload daarna de foto's.
+     */
+    public function fotos(Request $request)
+    {
+        $request->validate([
+            'zip' => 'required|file|mimes:zip|max:204800', // 200 MB
+        ]);
+
+        if (! class_exists(\ZipArchive::class)) {
+            return back()->with('error', 'ZIP-verwerking is niet beschikbaar op deze server (de zip-extensie ontbreekt).');
+        }
+
+        @set_time_limit(600);
+
+        $zip = new \ZipArchive();
+        if ($zip->open($request->file('zip')->getRealPath()) !== true) {
+            return back()->with('error', 'Kon het ZIP-bestand niet openen.');
+        }
+
+        // Kentekens van dit bedrijf, langste eerst voor nauwkeurige prefix-matching.
+        $cars = Car::where('company_id', $request->user()->company_id)
+            ->whereNotNull('kenteken')->where('kenteken', '!=', '')
+            ->get(['id', 'kenteken'])->keyBy('kenteken');
+        $kentekens = $cars->keys()->sortByDesc(fn ($k) => strlen((string) $k))->values();
+
+        // Entries op naam sorteren zodat _1, _2, ... in volgorde gekoppeld worden.
+        $entries = [];
+        for ($i = 0; $i < $zip->numFiles; $i++) {
+            $name = $zip->getNameIndex($i);
+            if ($name === false || str_ends_with($name, '/') || str_contains($name, '__MACOSX')) {
+                continue;
+            }
+            $entries[] = ['i' => $i, 'name' => $name];
+        }
+        usort($entries, fn ($a, $b) => strnatcasecmp($a['name'], $b['name']));
+
+        $attached = 0;
+        $perCar = [];
+        $unmatched = [];
+
+        foreach ($entries as $entry) {
+            $base = pathinfo($entry['name'], PATHINFO_FILENAME);
+            $norm = strtoupper(preg_replace('/[^A-Za-z0-9]/', '', $base));
+            if ($norm === '') {
+                continue;
+            }
+
+            $kenteken = $kentekens->first(fn ($k) => str_starts_with($norm, (string) $k));
+            if (! $kenteken) {
+                $unmatched[$base] = true;
+                continue;
+            }
+            if (($perCar[$kenteken] ?? 0) >= self::MAX_FOTOS_PER_CAR) {
+                continue;
+            }
+
+            $bytes = $zip->getFromIndex($entry['i']);
+            if ($bytes === false) {
+                continue;
+            }
+            $ext = $this->imageExtension($bytes);
+            if ($ext === null) {
+                continue;
+            }
+
+            $this->storeImage($cars[$kenteken], $bytes, basename($entry['name']), $ext);
+            $perCar[$kenteken] = ($perCar[$kenteken] ?? 0) + 1;
+            $attached++;
+        }
+        $zip->close();
+
+        return back()->with('foto_result', [
+            'attached' => $attached,
+            'cars' => count($perCar),
+            'unmatched' => array_slice(array_keys($unmatched), 0, 30),
+            'unmatched_total' => count($unmatched),
+        ]);
+    }
+
     /** Downloadbaar CSV-sjabloon met de herkende kolommen. */
     public function template(): StreamedResponse
     {
-        $headers = ['kenteken', 'merk', 'model', 'bouwjaar', 'brandstof', 'kilometerstand', 'prijs', 'kleur', 'titel', 'beschrijving'];
-        $voorbeeld = ['12-ABC-3', 'Volkswagen', 'Golf', '2019', 'Benzine', '89000', '18950', 'Grijs', 'Volkswagen Golf 1.0 TSI', 'Netjes onderhouden, NAP.'];
+        $headers = ['kenteken', 'merk', 'model', 'bouwjaar', 'brandstof', 'kilometerstand', 'prijs', 'kleur', 'titel', 'beschrijving', 'fotos'];
+        $voorbeeld = ['12-ABC-3', 'Volkswagen', 'Golf', '2019', 'Benzine', '89000', '18950', 'Grijs', 'Volkswagen Golf 1.0 TSI', 'Netjes onderhouden, NAP.', 'https://site.nl/foto1.jpg | https://site.nl/foto2.jpg'];
 
         return response()->streamDownload(function () use ($headers, $voorbeeld) {
             $out = fopen('php://output', 'w');
@@ -268,6 +363,98 @@ class VoorraadImportController extends Controller
         fclose($handle);
 
         return $rows;
+    }
+
+    /** Download en koppel foto's uit een cel met een of meer URL's. */
+    private function attachUrls(Car $car, string $cell): void
+    {
+        $urls = preg_split('/[\s,|]+/', trim($cell)) ?: [];
+        $count = 0;
+
+        foreach ($urls as $url) {
+            if ($count >= self::MAX_FOTOS_PER_CAR) {
+                break;
+            }
+            $url = trim($url);
+            if ($url === '' || ! $this->isSafeUrl($url)) {
+                continue;
+            }
+
+            try {
+                $response = Http::timeout(15)->withHeaders(['User-Agent' => 'EazyAutomotive/1.0'])->get($url);
+            } catch (\Throwable) {
+                continue;
+            }
+            if (! $response->successful()) {
+                continue;
+            }
+
+            $bytes = $response->body();
+            if (strlen($bytes) < 100 || strlen($bytes) > 10 * 1024 * 1024) {
+                continue;
+            }
+            $ext = $this->imageExtension($bytes);
+            if ($ext === null) {
+                continue;
+            }
+
+            $name = basename((string) parse_url($url, PHP_URL_PATH)) ?: 'foto.' . $ext;
+            $this->storeImage($car, $bytes, $name, $ext);
+            $count++;
+        }
+    }
+
+    /** Slaat foto-bytes op bij een auto en maakt de eerste foto de hoofdfoto. */
+    private function storeImage(Car $car, string $bytes, string $originalName, string $ext): void
+    {
+        $filename = Str::random(40) . '.' . $ext;
+        $path = "cars/{$car->id}/{$filename}";
+        Storage::disk('public')->put($path, $bytes);
+
+        $isFirst = ! $car->images()->exists();
+        $car->images()->create([
+            'path' => $path,
+            'filename' => $originalName ?: $filename,
+            'sort_order' => ($car->images()->max('sort_order') ?? -1) + 1,
+            'is_primary' => $isFirst,
+        ]);
+    }
+
+    /** Valideert dat de bytes een echte afbeelding zijn en geeft de extensie. */
+    private function imageExtension(string $bytes): ?string
+    {
+        $info = @getimagesizefromstring($bytes);
+        if ($info === false) {
+            return null;
+        }
+
+        return match ($info['mime'] ?? '') {
+            'image/jpeg' => 'jpg',
+            'image/png' => 'png',
+            'image/webp' => 'webp',
+            default => null,
+        };
+    }
+
+    /** Basale SSRF-bescherming: alleen http(s) en geen interne/prive adressen. */
+    private function isSafeUrl(string $url): bool
+    {
+        $parts = parse_url($url);
+        if (! $parts || ! in_array(strtolower($parts['scheme'] ?? ''), ['http', 'https'], true)) {
+            return false;
+        }
+        $host = $parts['host'] ?? '';
+        if ($host === '') {
+            return false;
+        }
+
+        $ip = filter_var($host, FILTER_VALIDATE_IP) ? $host : gethostbyname($host);
+        if (filter_var($ip, FILTER_VALIDATE_IP)
+            && ! filter_var($ip, FILTER_VALIDATE_IP, FILTER_FLAG_NO_PRIV_RANGE | FILTER_FLAG_NO_RES_RANGE)) {
+            return false;
+        }
+
+        return true;
     }
 
     private function parsePrijs(?string $value): ?int

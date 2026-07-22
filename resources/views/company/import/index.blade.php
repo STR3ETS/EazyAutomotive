@@ -55,18 +55,43 @@
                 </div>
             @endif
 
+            {{-- Foto-resultaat (ZIP) --}}
+            @if(session('foto_result'))
+                @php $f = session('foto_result'); @endphp
+                <div class="mb-6 bg-white rounded-2xl border border-[#215558]/10 p-6">
+                    <div class="flex items-center gap-3 mb-2">
+                        <div class="w-9 h-9 rounded-lg bg-emerald-50 flex items-center justify-center"><i class="fa-solid fa-images text-emerald-600"></i></div>
+                        <div>
+                            <p class="text-sm font-black text-[#215558]">{{ $f['attached'] }} foto{{ $f['attached'] === 1 ? '' : "'s" }} gekoppeld aan {{ $f['cars'] }} auto{{ $f['cars'] === 1 ? '' : "'s" }}</p>
+                            <p class="text-xs text-[#215558] opacity-50">Bekijk het resultaat bij <a href="{{ route('cars.index') }}" class="text-eazy font-semibold hover:underline">Auto's</a>.</p>
+                        </div>
+                    </div>
+                    @if(!empty($f['unmatched']))
+                        <div class="bg-amber-50 border border-amber-100 rounded-xl px-4 py-3 text-sm mt-2">
+                            <p class="font-bold text-amber-700 text-xs uppercase tracking-wide mb-1">{{ $f['unmatched_total'] }} bestand{{ $f['unmatched_total'] === 1 ? '' : 'en' }} niet gekoppeld</p>
+                            <p class="text-amber-700/80 text-[12px] break-words">Geen auto met dat kenteken gevonden: {{ implode(', ', $f['unmatched']) }}{{ $f['unmatched_total'] > count($f['unmatched']) ? ', ...' : '' }}</p>
+                        </div>
+                    @endif
+                </div>
+            @endif
+
             <div x-data="{ tab: 'kentekens' }" class="bg-white rounded-2xl border border-[#215558]/10 overflow-hidden">
                 {{-- Tabs --}}
                 <div class="flex border-b border-[#215558]/10">
                     <button type="button" @click="tab = 'kentekens'"
-                        class="cursor-pointer flex-1 px-5 py-4 text-sm font-bold transition-colors"
+                        class="cursor-pointer flex-1 px-4 py-4 text-sm font-bold transition-colors"
                         :class="tab === 'kentekens' ? 'text-eazy border-b-2 border-eazy' : 'text-[#215558]/40 hover:text-[#215558]/70'">
-                        <i class="fa-solid fa-keyboard mr-1.5"></i> Kentekens plakken
+                        <i class="fa-solid fa-keyboard mr-1.5"></i> Kentekens
                     </button>
                     <button type="button" @click="tab = 'csv'"
-                        class="cursor-pointer flex-1 px-5 py-4 text-sm font-bold transition-colors"
+                        class="cursor-pointer flex-1 px-4 py-4 text-sm font-bold transition-colors"
                         :class="tab === 'csv' ? 'text-eazy border-b-2 border-eazy' : 'text-[#215558]/40 hover:text-[#215558]/70'">
-                        <i class="fa-solid fa-file-csv mr-1.5"></i> CSV uploaden
+                        <i class="fa-solid fa-file-csv mr-1.5"></i> CSV
+                    </button>
+                    <button type="button" @click="tab = 'fotos'"
+                        class="cursor-pointer flex-1 px-4 py-4 text-sm font-bold transition-colors"
+                        :class="tab === 'fotos' ? 'text-eazy border-b-2 border-eazy' : 'text-[#215558]/40 hover:text-[#215558]/70'">
+                        <i class="fa-solid fa-images mr-1.5"></i> Foto's (ZIP)
                     </button>
                 </div>
 
@@ -101,7 +126,7 @@
                 {{-- CSV --}}
                 <div x-show="tab === 'csv'" class="p-6" style="display:none">
                     <p class="text-[13px] text-[#215558] opacity-70 mb-1">Heb je een export uit een ander systeem? Upload het als CSV.</p>
-                    <p class="text-[12px] text-[#215558] opacity-50 mb-4">Herkende kolommen: kenteken, merk, model, bouwjaar, brandstof, kilometerstand, prijs, kleur, titel, beschrijving. <a href="{{ route('import.template') }}" class="text-eazy font-semibold hover:underline">Download voorbeeld-CSV</a></p>
+                    <p class="text-[12px] text-[#215558] opacity-50 mb-4">Herkende kolommen: kenteken, merk, model, bouwjaar, brandstof, kilometerstand, prijs, kleur, titel, beschrijving en <strong>fotos</strong> (een of meer foto-URL's, gescheiden door een spatie of <code class="bg-[#215558]/[0.06] px-1 rounded">|</code>). <a href="{{ route('import.template') }}" class="text-eazy font-semibold hover:underline">Download voorbeeld-CSV</a></p>
 
                     <form method="POST" action="{{ route('import.csv') }}" enctype="multipart/form-data" x-data="{ busy: false, file: '' }" @submit="busy = true">
                         @csrf
@@ -131,6 +156,30 @@
                                 <span x-text="busy ? 'Importeren...' : 'Importeer CSV'"></span>
                             </button>
                         </div>
+                    </form>
+                </div>
+
+                {{-- Foto's via ZIP --}}
+                <div x-show="tab === 'fotos'" class="p-6" style="display:none">
+                    <p class="text-[13px] text-[#215558] opacity-70 mb-1">Koppel foto's aan je auto's met een ZIP-bestand.</p>
+                    <p class="text-[12px] text-[#215558] opacity-50 mb-4">Importeer <strong>eerst</strong> je auto's (kentekens of CSV). Zet de foto's daarna in een ZIP en begin elke bestandsnaam met het kenteken, bijvoorbeeld <code class="bg-[#215558]/[0.06] px-1.5 py-0.5 rounded">12ABC3_1.jpg</code>, <code class="bg-[#215558]/[0.06] px-1.5 py-0.5 rounded">12ABC3_2.jpg</code>. De foto's worden op volgorde gekoppeld; de eerste wordt de hoofdfoto.</p>
+
+                    <form method="POST" action="{{ route('import.fotos') }}" enctype="multipart/form-data" x-data="{ busy: false, file: '' }" @submit="busy = true">
+                        @csrf
+                        <label class="flex flex-col items-center justify-center gap-2 border-2 border-dashed border-[#215558]/15 rounded-xl py-8 cursor-pointer hover:border-eazy hover:bg-eazy-50/40 transition mb-4">
+                            <i class="fa-solid fa-file-zipper text-2xl text-[#215558] opacity-40"></i>
+                            <span class="text-sm text-[#215558] opacity-70" x-text="file || 'Klik om je ZIP met foto\'s te kiezen'"></span>
+                            <input type="file" name="zip" accept=".zip,application/zip" class="hidden" required
+                                   @change="file = $event.target.files[0]?.name || ''">
+                        </label>
+                        <p class="text-[11px] text-[#215558] opacity-50 mb-4">ZIP met JPG, PNG of WebP, tot 200 MB. Max 30 foto's per auto.</p>
+
+                        <button type="submit" :disabled="busy"
+                            class="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 bg-eazy text-white rounded-full text-sm font-bold hover:bg-eazy-dark disabled:opacity-50 disabled:cursor-default transition">
+                            <i class="fa-solid" :class="busy ? 'fa-spinner fa-spin' : 'fa-images'"></i>
+                            <span x-text="busy ? 'Foto\'s koppelen...' : 'Upload foto\'s'"></span>
+                        </button>
+                        <p x-show="busy" class="text-[11px] text-[#215558] opacity-50 mt-2">De foto's worden gekoppeld, dit kan even duren bij een grote ZIP.</p>
                     </form>
                 </div>
             </div>

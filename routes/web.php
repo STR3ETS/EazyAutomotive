@@ -52,6 +52,7 @@ Route::middleware(['auth', 'verified', 'company.ownership'])->group(function () 
     Route::get('/voorraad-import', [VoorraadImportController::class, 'index'])->name('import.index');
     Route::post('/voorraad-import/kentekens', [VoorraadImportController::class, 'kentekens'])->name('import.kentekens');
     Route::post('/voorraad-import/csv', [VoorraadImportController::class, 'csv'])->name('import.csv');
+    Route::post('/voorraad-import/fotos', [VoorraadImportController::class, 'fotos'])->name('import.fotos');
     Route::get('/voorraad-import/sjabloon', [VoorraadImportController::class, 'template'])->name('import.template');
     Route::post('/cars/ai-copy', [CarCopyController::class, 'generate'])->name('cars.ai-copy');
 
