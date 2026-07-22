@@ -15,7 +15,7 @@
                     <h1 class="text-2xl font-black text-[#215558]">Proefritten</h1>
                     <p class="text-sm text-[#215558] opacity-50 font-medium mt-0.5">Aanvragen die via de proefrit-widget op je website binnenkomen.</p>
                 </div>
-                <a href="{{ route('integratie') }}" class="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 bg-[#215558] text-white rounded-full text-sm font-bold hover:bg-eazy-darker transition">
+                <a href="{{ route('widgets.proefrit') }}" class="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 bg-[#215558] text-white rounded-full text-sm font-bold hover:bg-eazy-darker transition">
                     <i class="fa-solid fa-code text-xs"></i> Widget-code
                 </a>
             </div>
@@ -105,7 +105,7 @@
                         </div>
                         <p class="text-[#215558] font-bold mb-1">Nog geen proefrit-aanvragen</p>
                         <p class="text-sm text-[#215558] opacity-50 mb-4">Plaats de proefrit-widget op je website zodat klanten een proefrit kunnen aanvragen.</p>
-                        <a href="{{ route('integratie') }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-eazy text-white rounded-full text-sm font-bold hover:bg-eazy-dark transition">
+                        <a href="{{ route('widgets.proefrit') }}" class="inline-flex items-center gap-2 px-5 py-2.5 bg-eazy text-white rounded-full text-sm font-bold hover:bg-eazy-dark transition">
                             <i class="fa-solid fa-code"></i> Widget-code ophalen
                         </a>
                     </div>

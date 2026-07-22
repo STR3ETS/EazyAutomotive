@@ -54,20 +54,6 @@ class CompanySettingsController extends Controller
         return back()->with('success', 'Nieuwe sleutel gegenereerd. Vergeet niet de code op je website te vervangen!');
     }
 
-    public function ontwerpen(Request $request)
-    {
-        $company = $request->user()->company;
-
-        return view('company.ontwerpen', compact('company'));
-    }
-
-    public function integratie(Request $request)
-    {
-        $company = $request->user()->company;
-
-        return view('company.integratie', compact('company'));
-    }
-
     public function updateEmbedSettings(Request $request)
     {
         $validated = $request->validate([

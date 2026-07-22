@@ -43,7 +43,7 @@
                     </div>
                     <i class="fa-solid fa-chevron-right text-gray-200 group-hover:text-eazy transition-colors"></i>
                 </a>
-                <a href="{{ route('ontwerpen') }}" class="cursor-pointer group bg-white rounded-2xl border border-[#215558]/10 p-4 relative overflow-hidden flex items-center gap-4 hover:border-eazy/30 transition-all">
+                <a href="{{ route('widgets.index') }}" class="cursor-pointer group bg-white rounded-2xl border border-[#215558]/10 p-4 relative overflow-hidden flex items-center gap-4 hover:border-eazy/30 transition-all">
                     <div class="w-11 h-11 rounded-xl bg-indigo-50 flex items-center justify-center group-hover:bg-indigo-500 transition-colors">
                         <i class="fa-solid fa-palette text-indigo-500 group-hover:text-white transition-colors"></i>
                     </div>

@@ -23,6 +23,7 @@ use App\Http\Controllers\RdwLookupController;
 use App\Http\Controllers\StudioVideoController;
 use App\Http\Controllers\VoertuigRapportController;
 use App\Http\Controllers\VoorraadImportController;
+use App\Http\Controllers\WidgetController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -87,14 +88,19 @@ Route::middleware(['auth', 'verified', 'company.ownership'])->group(function () 
     Route::put('/settings', [CompanySettingsController::class, 'update'])->name('settings.update');
     Route::post('/settings/regenerate-api-key', [CompanySettingsController::class, 'regenerateApiKey'])->name('settings.regenerate-key');
 
-    // Ontwerpen (Widget Design)
-    Route::get('/ontwerpen', [CompanySettingsController::class, 'ontwerpen'])->name('ontwerpen');
-    Route::put('/ontwerpen', [CompanySettingsController::class, 'updateEmbedSettings'])->name('ontwerpen.update');
-    Route::put('/ontwerpen/proefrit', [CompanySettingsController::class, 'updateProefritSettings'])->name('ontwerpen.proefrit');
-    Route::post('/ontwerpen/ai-design', [AiDesignController::class, 'generate'])->name('ontwerpen.ai');
+    // Widgets: ontwerp + insluitcode per widget (vervangt Ontwerpen + Integratie)
+    Route::get('/widgets', [WidgetController::class, 'index'])->name('widgets.index');
+    Route::get('/widgets/voorraad', [WidgetController::class, 'voorraad'])->name('widgets.voorraad');
+    Route::put('/widgets/voorraad', [WidgetController::class, 'updateVoorraad'])->name('widgets.voorraad.update');
+    Route::get('/widgets/contact', [WidgetController::class, 'contact'])->name('widgets.contact');
+    Route::get('/widgets/proefrit', [WidgetController::class, 'proefrit'])->name('widgets.proefrit');
+    Route::put('/widgets/proefrit', [WidgetController::class, 'updateProefrit'])->name('widgets.proefrit.update');
+    Route::get('/widgets/taxatie', [WidgetController::class, 'taxatie'])->name('widgets.taxatie');
+    Route::post('/widgets/ai-design', [AiDesignController::class, 'generate'])->name('widgets.ai');
 
-    // Integratie (Embed Code + Guide)
-    Route::get('/integratie', [CompanySettingsController::class, 'integratie'])->name('integratie');
+    // Oude routes -> redirect (backward-compat voor bestaande links en bookmarks)
+    Route::get('/ontwerpen', fn () => redirect()->route('widgets.voorraad'))->name('ontwerpen');
+    Route::get('/integratie', fn () => redirect()->route('widgets.index'))->name('integratie');
 
     // CRM / leadbeheer (alle leads samen: proefrit, contact, inruil, financiering, handmatig)
     Route::get('/leads', [LeadController::class, 'index'])->name('leads.index');

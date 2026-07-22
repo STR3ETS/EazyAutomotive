@@ -37,9 +37,8 @@
                 ]],
                 ['label' => 'Marketing', 'items' => [
                     ['route' => 'publiceren', 'match' => 'publiceren*', 'icon' => 'fa-share-nodes', 'label' => 'Publiceren', 'tour' => 'nav-publish'],
+                    ['route' => 'widgets.index', 'match' => 'widgets.*', 'icon' => 'fa-shapes', 'label' => 'Widgets', 'tour' => 'nav-widgets'],
                     ['route' => 'studio.index', 'match' => 'studio*', 'icon' => 'fa-clapperboard', 'label' => 'Video Studio', 'tour' => 'nav-studio'],
-                    ['route' => 'ontwerpen', 'match' => 'ontwerpen', 'icon' => 'fa-palette', 'label' => 'Ontwerpen', 'tour' => 'nav-design'],
-                    ['route' => 'integratie', 'match' => 'integratie', 'icon' => 'fa-code', 'label' => 'Integratie', 'tour' => 'nav-embed'],
                 ]],
                 ['label' => 'Verkoop', 'items' => [
                     ['route' => 'leads.index', 'match' => 'leads*', 'icon' => 'fa-inbox', 'label' => 'Leads', 'tour' => 'nav-leads'],
