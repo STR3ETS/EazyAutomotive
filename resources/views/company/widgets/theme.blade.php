@@ -6,9 +6,9 @@
     @endphp
 
     <style>
-        .pv-root { --p:#0F9B9F; --cardbg:#fff; --radius:12px; --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; --shadow:none; --title:#111827; --labelbg:#f3f4f6; --labeltext:#4b5563; --labelborder:#d1d5db; }
+        .pv-root { --p:#0F9B9F; --cardbg:#fff; --radius:12px; --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; --shadow:none; --title:#111827; --labelbg:#f3f4f6; --labeltext:#4b5563; --labelborder:#d1d5db; --cardborder:rgba(0,0,0,.06); }
         .pv-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
-        .pv-card { background:var(--cardbg); border:1px solid #eef1f4; border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); transition:transform .18s, box-shadow .18s; font-family:var(--font); }
+        .pv-card { background:var(--cardbg); border:1px solid var(--cardborder); border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); transition:transform .18s, box-shadow .18s; font-family:var(--font); }
         .pv-root[data-hover="lift"] .pv-card:hover { transform:translateY(-4px); box-shadow:0 12px 30px rgba(0,0,0,.12); }
         .pv-root[data-hover="scale"] .pv-card:hover { transform:scale(1.03); }
         .pv-root[data-hover="shadow"] .pv-card:hover { box-shadow:0 12px 35px rgba(0,0,0,.18); }
@@ -237,6 +237,7 @@
             root.style.setProperty('--labelbg', light ? '#f3f4f6' : 'rgba(255,255,255,.10)');
             root.style.setProperty('--labeltext', light ? '#4b5563' : '#e5e7eb');
             root.style.setProperty('--labelborder', light ? '#d1d5db' : 'rgba(255,255,255,.28)');
+            root.style.setProperty('--cardborder', light ? 'rgba(0,0,0,.08)' : 'rgba(255,255,255,.12)');
             root.dataset.hover = fld('hover_effect').value;
             root.dataset.label = fld('label_style').value;
             var layoutEl = document.querySelector('#designForm input[name="card_layout"]:checked');

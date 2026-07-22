@@ -19,6 +19,7 @@
         $labelBg = $lightBg ? '#f3f4f6' : 'rgba(255,255,255,.10)';
         $labelText = $lightBg ? '#4b5563' : '#e5e7eb';
         $labelBorder = $lightBg ? '#d1d5db' : 'rgba(255,255,255,.28)';
+        $cardBorder = $lightBg ? 'rgba(0,0,0,.08)' : 'rgba(255,255,255,.12)';
     @endphp
 
     @if(in_array($font, $googleFonts))
@@ -27,7 +28,7 @@
 
     <style>
         .pv-grid { display:grid; gap:12px; }
-        .pv-card { background:{{ $cardbg }}; border:1px solid #eef1f4; border-radius:{{ $radius }}px; overflow:hidden; box-shadow:{{ $shadow }}; transition:transform .18s, box-shadow .18s; font-family:{{ $fontStack }}; }
+        .pv-card { background:{{ $cardbg }}; border:1px solid {{ $cardBorder }}; border-radius:{{ $radius }}px; overflow:hidden; box-shadow:{{ $shadow }}; transition:transform .18s, box-shadow .18s; font-family:{{ $fontStack }}; }
         @if($hover==='lift') .pv-card:hover { transform:translateY(-4px); box-shadow:0 12px 30px rgba(0,0,0,.12); }
         @elseif($hover==='scale') .pv-card:hover { transform:scale(1.03); }
         @elseif($hover==='shadow') .pv-card:hover { box-shadow:0 12px 35px rgba(0,0,0,.18); }
