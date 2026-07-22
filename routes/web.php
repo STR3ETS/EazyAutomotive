@@ -17,6 +17,7 @@ use App\Http\Controllers\BookkeepingController;
 use App\Http\Controllers\CustomerController;
 use App\Http\Controllers\ExpenseController;
 use App\Http\Controllers\InvoiceController;
+use App\Http\Controllers\KoopovereenkomstController;
 use App\Http\Controllers\PublicerenController;
 use App\Http\Controllers\RdwLookupController;
 use App\Http\Controllers\StudioVideoController;
@@ -72,6 +73,14 @@ Route::middleware(['auth', 'verified', 'company.ownership'])->group(function () 
     Route::get('/vrijwaring', [BedrijfsvoorraadController::class, 'index'])->name('bedrijfsvoorraad.index');
     Route::post('/vrijwaring/vrijwaren', [BedrijfsvoorraadController::class, 'vrijwaren'])->name('bedrijfsvoorraad.vrijwaren');
     Route::post('/vrijwaring/uit', [BedrijfsvoorraadController::class, 'uit'])->name('bedrijfsvoorraad.uit');
+    Route::get('/vrijwaring/{mutatie}/bewijs', [BedrijfsvoorraadController::class, 'print'])->name('bedrijfsvoorraad.print');
+
+    // Verkoopdocumenten: koop-/verkoopovereenkomsten
+    Route::get('/koopovereenkomsten', [KoopovereenkomstController::class, 'index'])->name('koopovereenkomsten.index');
+    Route::get('/koopovereenkomsten/nieuw', [KoopovereenkomstController::class, 'create'])->name('koopovereenkomsten.create');
+    Route::post('/koopovereenkomsten', [KoopovereenkomstController::class, 'store'])->name('koopovereenkomsten.store');
+    Route::get('/koopovereenkomsten/{koopovereenkomst}/print', [KoopovereenkomstController::class, 'print'])->name('koopovereenkomsten.print');
+    Route::delete('/koopovereenkomsten/{koopovereenkomst}', [KoopovereenkomstController::class, 'destroy'])->name('koopovereenkomsten.destroy');
 
     // Company Settings
     Route::get('/settings', [CompanySettingsController::class, 'edit'])->name('settings.edit');

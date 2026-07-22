@@ -41,6 +41,17 @@ class BedrijfsvoorraadController extends Controller
         return $this->muteer($request, $client, 'uitvoorraad');
     }
 
+    /** Printbaar vrijwaringsbewijs (PDF via de browser) van een geslaagde mutatie. */
+    public function print(Request $request, BedrijfsvoorraadMutatie $mutatie)
+    {
+        abort_unless($mutatie->company_id === $request->user()->company_id, 403);
+        abort_unless($mutatie->isGeslaagd(), 404);
+
+        $mutatie->load(['company', 'car']);
+
+        return view('company.bedrijfsvoorraad.print', compact('mutatie'));
+    }
+
     private function muteer(Request $request, OrvClient $client, string $type)
     {
         $data = $request->validate([

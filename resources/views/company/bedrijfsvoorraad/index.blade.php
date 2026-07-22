@@ -143,7 +143,13 @@
                                                 <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-red-50 text-red-500 text-[10px] font-bold uppercase tracking-wide" title="{{ $mutatie->foutmelding }}"><i class="fa-solid fa-circle-xmark text-[9px]"></i> Mislukt</span>
                                             @endif
                                         </td>
-                                        <td class="px-5 py-3 text-[#215558] opacity-70">{{ $mutatie->vrijwaringsbewijs ?: '-' }}</td>
+                                        <td class="px-5 py-3 text-[#215558] opacity-70">
+                                            @if($mutatie->isGeslaagd())
+                                                <a href="{{ route('bedrijfsvoorraad.print', $mutatie) }}" target="_blank" rel="noopener" class="inline-flex items-center gap-1.5 text-eazy font-semibold hover:underline"><i class="fa-solid fa-print text-[10px]"></i> {{ $mutatie->vrijwaringsbewijs ?: 'Bewijs' }}</a>
+                                            @else
+                                                -
+                                            @endif
+                                        </td>
                                         <td class="px-5 py-3">
                                             <span class="text-[10px] font-bold px-2 py-0.5 rounded-full {{ $mutatie->mode === 'soap' ? 'bg-eazy/10 text-eazy' : 'bg-amber-50 text-amber-600' }} uppercase tracking-wide">{{ $mutatie->mode === 'soap' ? 'RDW' : 'Sandbox' }}</span>
                                         </td>

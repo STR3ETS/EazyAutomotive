@@ -44,6 +44,7 @@
                 ['label' => 'Verkoop', 'items' => [
                     ['route' => 'leads.index', 'match' => 'leads*', 'icon' => 'fa-inbox', 'label' => 'Leads', 'tour' => 'nav-leads'],
                     ['route' => 'proefritten', 'match' => 'proefritten', 'icon' => 'fa-calendar-check', 'label' => 'Proefritten', 'tour' => 'nav-proefrit'],
+                    ['route' => 'koopovereenkomsten.index', 'match' => 'koopovereenkomsten.*', 'icon' => 'fa-file-contract', 'label' => 'Koopcontracten', 'tour' => 'nav-koopcontracten'],
                 ]],
                 ['label' => 'Administratie', 'items' => [
                     ['route' => 'invoices.index', 'match' => 'invoices.*', 'icon' => 'fa-file-invoice', 'label' => 'Facturen', 'tour' => 'nav-invoices'],
