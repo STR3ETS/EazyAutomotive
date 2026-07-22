@@ -34,6 +34,9 @@ class LiveMarketLookup
     /** Advertenties binnen dit aantal jaar rond het bouwjaar tellen als vergelijkbaar. */
     private const YEAR_TOLERANCE = 2;
 
+    /** Zoveel motor-matchende advertenties nodig voor de nauwkeurige (uitvoering-)set. */
+    private const MIN_ENGINE_MATCH = 5;
+
     private const CACHE_HOURS = 6;
 
     public function isEnabled(): bool
@@ -46,9 +49,9 @@ class LiveMarketLookup
      *
      * @return Collection<int, object> objecten met ->prijs (centen) en ->kilometerstand (?int)
      */
-    public function comparables(string $merk, ?string $model, int $year, ?string $brandstof): Collection
+    public function comparables(string $merk, ?string $model, int $year, ?string $brandstof, ?int $cc = null): Collection
     {
-        $key = 'mktlive:v2:' . md5(implode('|', [
+        $key = 'mktlive:v3:' . md5(implode('|', [
             strtolower(trim($merk)),
             strtolower($this->queryModel($model)),
             $year,
@@ -65,7 +68,21 @@ class LiveMarketLookup
             }
         });
 
-        return collect($data)->map(fn ($r) => (object) $r);
+        // Filter op vergelijkbare motorinhoud, zodat bijv. een 330i (3.0) niet met
+        // 318i's (2.0) wordt vergeleken. Alleen als er genoeg exact-matchende zijn;
+        // anders de brede set, zodat er altijd een schatting mogelijk blijft.
+        if ($cc) {
+            $band = max(200, (int) round($cc * 0.12));
+            $matched = array_values(array_filter(
+                $data,
+                fn ($r) => ($r['cc'] ?? null) !== null && abs($r['cc'] - $cc) <= $band,
+            ));
+            if (count($matched) >= self::MIN_ENGINE_MATCH) {
+                $data = $matched;
+            }
+        }
+
+        return collect($data)->map(fn ($r) => (object) ['prijs' => $r['prijs'], 'kilometerstand' => $r['kilometerstand']]);
     }
 
     /** @return array<int, array{prijs:int, kilometerstand:?int}> */
@@ -115,10 +132,34 @@ class LiveMarketLookup
             $out[] = [
                 'prijs' => $priceCents,
                 'kilometerstand' => ($mileage >= 1000 && $mileage <= 500000) ? $mileage : null,
+                'cc' => $this->listingCc($attr, (string) data_get($listing, 'title', '')),
             ];
         }
 
         return $out;
+    }
+
+    /**
+     * Cilinderinhoud (cc) van een advertentie: eerst het gestructureerde
+     * engineDisplacement-attribuut, anders uit de titel ("3.0", "2.0").
+     */
+    private function listingCc(array $attr, string $title): ?int
+    {
+        if (isset($attr['engineDisplacement'])) {
+            $cc = (int) preg_replace('/\D/', '', (string) $attr['engineDisplacement']);
+            if ($cc >= 500 && $cc <= 8000) {
+                return $cc;
+            }
+        }
+
+        if (preg_match('/\b([1-6])[.,](\d)\b/', $title, $m)) {
+            $cc = (int) round(((float) ($m[1] . '.' . $m[2])) * 1000);
+            if ($cc >= 900 && $cc <= 6500) {
+                return $cc;
+            }
+        }
+
+        return null;
     }
 
     /**

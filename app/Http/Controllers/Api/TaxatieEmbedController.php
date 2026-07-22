@@ -140,6 +140,7 @@ class TaxatieEmbedController extends Controller
             'bouwjaar' => $attrs['bouwjaar'] ?? null,
             'brandstof' => $attrs['brandstof_omschrijving'] ?? null,
             'catalogusprijs' => $attrs['catalogusprijs'] ?? null,
+            'cilinderinhoud' => $attrs['cilinderinhoud'] ?? null,
         ], $km);
 
         $voertuig = [

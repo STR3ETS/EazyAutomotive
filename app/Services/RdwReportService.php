@@ -260,6 +260,7 @@ class RdwReportService
             'bouwjaar' => $this->year($v['datum_eerste_toelating'] ?? null),
             'brandstof' => $v['brandstof_omschrijving'] ?? null,
             'catalogusprijs' => $v['catalogusprijs'] ?? null,
+            'cilinderinhoud' => $v['cilinderinhoud'] ?? null,
         ], $km);
 
         if (!($est['beschikbaar'] ?? false)) {

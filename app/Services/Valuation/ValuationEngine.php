@@ -27,13 +27,15 @@ class ValuationEngine
         $model = $v['model'] ?? null;
         $year = isset($v['bouwjaar']) && $v['bouwjaar'] ? (int) $v['bouwjaar'] : null;
         $brandstof = $v['brandstof'] ?? null;
+        $cc = isset($v['cilinderinhoud']) && $v['cilinderinhoud'] ? (int) $v['cilinderinhoud'] : null;
 
         if ($merk && $year) {
             // "Kijkende" taxatie: haal echte, actuele advertenties op van de
-            // publieke markt (Marktplaats) en bereken de waarde daaruit.
+            // publieke markt (Marktplaats) en bereken de waarde daaruit. De
+            // cilinderinhoud houdt uitvoeringen uit elkaar (330i vs 318i).
             $live = app(LiveMarketLookup::class);
             if ($live->isEnabled()) {
-                $rows = $live->comparables($merk, $model, $year, $brandstof);
+                $rows = $live->comparables($merk, $model, $year, $brandstof, $cc);
                 if ($rows->count() >= self::MIN_COMPARABLES) {
                     return $this->compute($rows, $km, 'marktplaats');
                 }
