@@ -31,7 +31,8 @@
         .pv-root[data-layout="list"] .pv-body { flex:1; display:flex; flex-direction:column; justify-content:center; }
         .pv-root[data-layout="overlay"] .pv-card { position:relative; }
         .pv-root[data-layout="overlay"] .pv-body { position:absolute; left:0; right:0; bottom:0; padding-top:2rem; background:linear-gradient(to top, rgba(0,0,0,.85), rgba(0,0,0,.2) 65%, transparent); }
-        .pv-root[data-layout="overlay"] .pv-title, .pv-root[data-layout="overlay"] .pv-price { color:#fff; }
+        .pv-root[data-layout="overlay"] .pv-title { color:#fff; text-shadow:0 1px 6px rgba(0,0,0,.65); }
+        .pv-root[data-layout="overlay"] .pv-price { text-shadow:0 1px 6px rgba(0,0,0,.7); }
         .pv-root[data-layout="overlay"] .pv-label { color:#fff; background:rgba(255,255,255,.18); border-color:rgba(255,255,255,.45); }
         .pv-root[data-layout="list"] .pv-btn, .pv-root[data-layout="overlay"] .pv-btn { display:none; }
         .ctl-label { display:block; font-size:11px; font-weight:700; color:#215558; opacity:.8; text-transform:uppercase; letter-spacing:.04em; margin-bottom:6px; }
@@ -69,15 +70,11 @@
                                 @foreach($themes as $t)
                                     <button type="button" onclick='applyTheme(@json($t))'
                                         class="cursor-pointer text-left border border-[#215558]/10 rounded-xl p-3 hover:border-eazy hover:bg-eazy-50/40 transition">
-                                        <span class="flex items-center gap-2 mb-1.5">
-                                            <span class="w-4 h-4 rounded-full" style="background: {{ $t['primary_color'] }}"></span>
+                                        <span class="flex items-center gap-2 mb-1">
+                                            <span class="w-4 h-4 rounded-full border border-black/5" style="background: {{ $t['primary_color'] }}"></span>
                                             <span class="text-xs font-bold text-[#215558]">{{ $t['naam'] }}</span>
                                         </span>
-                                        <span class="flex gap-1">
-                                            <span class="h-1.5 w-6 rounded-full" style="background: {{ $t['primary_color'] }}"></span>
-                                            <span class="h-1.5 w-3 rounded-full bg-[#215558]/10"></span>
-                                            <span class="h-1.5 w-2 rounded-full bg-[#215558]/10"></span>
-                                        </span>
+                                        <span class="block text-[10px] text-[#215558] opacity-50 leading-tight">{{ $t['omschrijving'] }}</span>
                                     </button>
                                 @endforeach
                             </div>

@@ -24,12 +24,13 @@ class WidgetController extends Controller
      * Bewust markant verschillend in kleur, hoeken, schaduw en labelstijl.
      */
     public const THEMES = [
-        ['id' => 'modern', 'naam' => 'Strak modern', 'card_layout' => 'classic', 'primary_color' => '#0F9B9F', 'card_bg_color' => '#ffffff', 'card_border_radius' => 14, 'card_shadow' => 'md', 'hover_effect' => 'lift', 'label_style' => 'pill', 'font_family' => 'Inter'],
-        ['id' => 'magazine', 'naam' => 'Magazine', 'card_layout' => 'overlay', 'primary_color' => '#7c6bf5', 'card_bg_color' => '#ffffff', 'card_border_radius' => 22, 'card_shadow' => 'lg', 'hover_effect' => 'scale', 'label_style' => 'pill', 'font_family' => 'Poppins'],
-        ['id' => 'lijst', 'naam' => 'Compacte lijst', 'card_layout' => 'list', 'primary_color' => '#111827', 'card_bg_color' => '#ffffff', 'card_border_radius' => 6, 'card_shadow' => 'sm', 'hover_effect' => 'shadow', 'label_style' => 'outline', 'font_family' => 'system'],
-        ['id' => 'warm', 'naam' => 'Warm & zonnig', 'card_layout' => 'classic', 'primary_color' => '#f97316', 'card_bg_color' => '#fff7ed', 'card_border_radius' => 18, 'card_shadow' => 'sm', 'hover_effect' => 'shadow', 'label_style' => 'pill', 'font_family' => 'Lato'],
-        ['id' => 'premium', 'naam' => 'Donker magazine', 'card_layout' => 'overlay', 'primary_color' => '#2dd4bf', 'card_bg_color' => '#0f172a', 'card_border_radius' => 14, 'card_shadow' => 'lg', 'hover_effect' => 'glow', 'label_style' => 'pill', 'font_family' => 'Montserrat'],
-        ['id' => 'zakelijk', 'naam' => 'Zakelijke lijst', 'card_layout' => 'list', 'primary_color' => '#2563eb', 'card_bg_color' => '#ffffff', 'card_border_radius' => 10, 'card_shadow' => 'md', 'hover_effect' => 'lift', 'label_style' => 'badge', 'font_family' => 'Roboto'],
+        // Namen en kleuren afgestemd op de autobranche.
+        ['id' => 'showroom', 'naam' => 'Showroom', 'omschrijving' => 'Clean & professioneel', 'card_layout' => 'classic', 'primary_color' => '#2563eb', 'card_bg_color' => '#ffffff', 'card_border_radius' => 12, 'card_shadow' => 'md', 'hover_effect' => 'lift', 'label_style' => 'pill', 'font_family' => 'Inter'],
+        ['id' => 'sport', 'naam' => 'Sport', 'omschrijving' => 'Dynamisch & rood', 'card_layout' => 'overlay', 'primary_color' => '#e11d48', 'card_bg_color' => '#0b0e14', 'card_border_radius' => 10, 'card_shadow' => 'lg', 'hover_effect' => 'scale', 'label_style' => 'pill', 'font_family' => 'Montserrat'],
+        ['id' => 'prestige', 'naam' => 'Prestige', 'omschrijving' => 'Donker & goud', 'card_layout' => 'overlay', 'primary_color' => '#d4af37', 'card_bg_color' => '#0f172a', 'card_border_radius' => 8, 'card_shadow' => 'lg', 'hover_effect' => 'glow', 'label_style' => 'pill', 'font_family' => 'Poppins'],
+        ['id' => 'occasion', 'naam' => 'Occasion', 'omschrijving' => 'Overzichtelijke lijst', 'card_layout' => 'list', 'primary_color' => '#16a34a', 'card_bg_color' => '#ffffff', 'card_border_radius' => 8, 'card_shadow' => 'sm', 'hover_effect' => 'shadow', 'label_style' => 'badge', 'font_family' => 'Lato'],
+        ['id' => 'elektrisch', 'naam' => 'Elektrisch', 'omschrijving' => 'Fris & modern', 'card_layout' => 'classic', 'primary_color' => '#0891b2', 'card_bg_color' => '#f0fdfa', 'card_border_radius' => 16, 'card_shadow' => 'md', 'hover_effect' => 'lift', 'label_style' => 'pill', 'font_family' => 'Inter'],
+        ['id' => 'garage', 'naam' => 'Garage', 'omschrijving' => 'Strak & zakelijk', 'card_layout' => 'list', 'primary_color' => '#334155', 'card_bg_color' => '#ffffff', 'card_border_radius' => 4, 'card_shadow' => 'sm', 'hover_effect' => 'shadow', 'label_style' => 'outline', 'font_family' => 'system'],
     ];
 
     public function index(Request $request)

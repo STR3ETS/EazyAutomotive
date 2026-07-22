@@ -50,7 +50,8 @@
         .pv-grid[data-layout="list"] .pv-body { flex:1; display:flex; flex-direction:column; justify-content:center; }
         .pv-grid[data-layout="overlay"] .pv-card { position:relative; }
         .pv-grid[data-layout="overlay"] .pv-body { position:absolute; left:0; right:0; bottom:0; padding-top:2rem; background:linear-gradient(to top, rgba(0,0,0,.85), rgba(0,0,0,.2) 65%, transparent); }
-        .pv-grid[data-layout="overlay"] .pv-title, .pv-grid[data-layout="overlay"] .pv-price { color:#fff !important; }
+        .pv-grid[data-layout="overlay"] .pv-title { color:#fff !important; text-shadow:0 1px 6px rgba(0,0,0,.65); }
+        .pv-grid[data-layout="overlay"] .pv-price { text-shadow:0 1px 6px rgba(0,0,0,.7); }
         .pv-grid[data-layout="overlay"] .pv-label { color:#fff !important; background:rgba(255,255,255,.18) !important; border-color:rgba(255,255,255,.45) !important; }
     </style>
 

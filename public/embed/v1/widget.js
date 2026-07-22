@@ -85,8 +85,8 @@
                     padding-top: 3rem;
                     background: linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.25) 65%, transparent);
                 }
-                .eazy-card[data-layout="overlay"] .eazy-card-title,
-                .eazy-card[data-layout="overlay"] .eazy-card-price { color: #ffffff; }
+                .eazy-card[data-layout="overlay"] .eazy-card-title { color: #ffffff; text-shadow: 0 1px 6px rgba(0,0,0,0.65); }
+                .eazy-card[data-layout="overlay"] .eazy-card-price { text-shadow: 0 1px 6px rgba(0,0,0,0.7); }
                 .eazy-card[data-layout="overlay"] .eazy-spec { color: #ffffff; background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.45); }
                 .eazy-powered {
                     text-align: center;
