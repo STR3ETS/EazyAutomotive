@@ -37,11 +37,19 @@ class WidgetController extends Controller
         ]);
     }
 
+    /** Globale huisstijl die voor alle widgets geldt. */
+    public function theme(Request $request)
+    {
+        return view('company.widgets.theme', [
+            'company' => $request->user()->company,
+            'themes' => self::THEMES,
+        ]);
+    }
+
     public function voorraad(Request $request)
     {
         return view('company.widgets.voorraad', [
             'company' => $request->user()->company,
-            'themes' => self::THEMES,
         ]);
     }
 
@@ -60,13 +68,10 @@ class WidgetController extends Controller
         return view('company.widgets.taxatie', ['company' => $request->user()->company]);
     }
 
-    /** Opslaan van de voorraadwidget: alleen de vereenvoudigde set, rest blijft. */
-    public function updateVoorraad(Request $request)
+    /** Opslaan van de globale huisstijl (geldt voor alle widgets). */
+    public function updateTheme(Request $request)
     {
         $validated = $request->validate([
-            'columns' => 'nullable|integer|min:1|max:4',
-            'image_position' => 'nullable|in:top,bottom',
-            'image_height' => 'nullable|integer|min:120|max:340',
             'primary_color' => 'nullable|regex:/^#[0-9A-Fa-f]{6}$/',
             'card_bg_color' => 'nullable|regex:/^#[0-9A-Fa-f]{6}$/',
             'card_border_radius' => 'nullable|integer|min:0|max:30',
@@ -76,13 +81,27 @@ class WidgetController extends Controller
             'label_style' => 'nullable|in:badge,outline,icon-text,pill',
         ]);
 
+        $this->mergeSettings($request, $validated);
+
+        return redirect()->route('widgets.theme')->with('success', 'Huisstijl opgeslagen! Dit geldt voor al je widgets.');
+    }
+
+    /** Opslaan van de voorraadwidget: alleen layout en zichtbaarheid. */
+    public function updateVoorraad(Request $request)
+    {
+        $validated = $request->validate([
+            'columns' => 'nullable|integer|min:1|max:4',
+            'image_position' => 'nullable|in:top,bottom',
+            'image_height' => 'nullable|integer|min:120|max:340',
+        ]);
+
         $validated['show_price'] = $request->boolean('show_price');
         $validated['show_km'] = $request->boolean('show_km');
         $validated['show_fuel'] = $request->boolean('show_fuel');
 
         $this->mergeSettings($request, $validated);
 
-        return redirect()->route('widgets.voorraad')->with('success', 'Ontwerp opgeslagen!');
+        return redirect()->route('widgets.voorraad')->with('success', 'Voorraad-widget opgeslagen!');
     }
 
     /** Opslaan van de proefritwidget (teksten + zichtbaarheid). */

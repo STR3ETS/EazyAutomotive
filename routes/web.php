@@ -90,6 +90,8 @@ Route::middleware(['auth', 'verified', 'company.ownership'])->group(function () 
 
     // Widgets: ontwerp + insluitcode per widget (vervangt Ontwerpen + Integratie)
     Route::get('/widgets', [WidgetController::class, 'index'])->name('widgets.index');
+    Route::get('/widgets/huisstijl', [WidgetController::class, 'theme'])->name('widgets.theme');
+    Route::put('/widgets/huisstijl', [WidgetController::class, 'updateTheme'])->name('widgets.theme.update');
     Route::get('/widgets/voorraad', [WidgetController::class, 'voorraad'])->name('widgets.voorraad');
     Route::put('/widgets/voorraad', [WidgetController::class, 'updateVoorraad'])->name('widgets.voorraad.update');
     Route::get('/widgets/contact', [WidgetController::class, 'contact'])->name('widgets.contact');

@@ -20,6 +20,21 @@
                 </div>
             </div>
 
+            {{-- Huisstijl (globaal) --}}
+            <a href="{{ route('widgets.theme') }}" class="group flex items-center gap-4 bg-gradient-to-br from-eazy-50/70 to-white border border-eazy/20 rounded-2xl p-5 mb-5 hover:border-eazy hover:shadow-lg hover:shadow-eazy/5 transition-all">
+                <div class="w-12 h-12 rounded-xl bg-eazy flex items-center justify-center shrink-0">
+                    <i class="fa-solid fa-palette text-white text-lg"></i>
+                </div>
+                <div class="flex-1 min-w-0">
+                    <div class="flex items-center gap-2">
+                        <h3 class="text-base font-black text-[#215558]">Huisstijl</h3>
+                        <span class="text-[10px] font-bold px-2 py-0.5 rounded-full bg-eazy/10 text-eazy uppercase tracking-wide">Alle widgets</span>
+                    </div>
+                    <p class="text-[13px] text-[#215558] opacity-50 mt-0.5">Kleur, lettertype en stijl. Eén keer instellen, overal consistent.</p>
+                </div>
+                <i class="fa-solid fa-arrow-right text-sm text-eazy group-hover:translate-x-0.5 transition-transform"></i>
+            </a>
+
             {{-- Widget-kaarten --}}
             <div class="grid grid-cols-1 sm:grid-cols-2 gap-5 mb-8">
                 @foreach($widgets as $w)

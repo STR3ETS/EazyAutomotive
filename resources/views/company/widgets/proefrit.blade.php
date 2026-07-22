@@ -58,7 +58,7 @@
 
                 <div class="mt-5 pt-4 border-t border-[#215558]/5 flex items-center gap-3">
                     <button type="submit" class="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 bg-eazy text-white rounded-full text-sm font-bold hover:bg-eazy-dark transition"><i class="fa-solid fa-floppy-disk text-xs"></i> Opslaan</button>
-                    <span class="text-xs text-[#215558] opacity-40">Kleur en lettertype volgen je widget-thema.</span>
+                    <span class="text-xs text-[#215558] opacity-40">Kleur en lettertype volgen je <a href="{{ route('widgets.theme') }}" class="hover:underline">Huisstijl</a>.</span>
                 </div>
             </form>
 
