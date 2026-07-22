@@ -22,6 +22,7 @@ use App\Http\Controllers\PublicerenController;
 use App\Http\Controllers\RdwLookupController;
 use App\Http\Controllers\StudioVideoController;
 use App\Http\Controllers\VoertuigRapportController;
+use App\Http\Controllers\VoorraadImportController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', function () {
@@ -46,6 +47,12 @@ Route::middleware(['auth', 'verified', 'company.ownership'])->group(function () 
     Route::get('/cars/handmatig', [CarController::class, 'createManual'])->name('cars.manual');
     Route::resource('cars', CarController::class);
     Route::post('/cars/lookup-kenteken', [CarController::class, 'lookupKenteken'])->name('cars.lookup');
+
+    // Voorraad-import / onboarding (kentekens plakken of CSV, RDW-verrijkt)
+    Route::get('/voorraad-import', [VoorraadImportController::class, 'index'])->name('import.index');
+    Route::post('/voorraad-import/kentekens', [VoorraadImportController::class, 'kentekens'])->name('import.kentekens');
+    Route::post('/voorraad-import/csv', [VoorraadImportController::class, 'csv'])->name('import.csv');
+    Route::get('/voorraad-import/sjabloon', [VoorraadImportController::class, 'template'])->name('import.template');
     Route::post('/cars/ai-copy', [CarCopyController::class, 'generate'])->name('cars.ai-copy');
 
     // AI promo-video's per auto (Higgsfield image-to-video)

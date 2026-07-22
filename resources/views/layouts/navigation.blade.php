@@ -31,6 +31,7 @@
             $groups = [
                 ['label' => 'Voorraad', 'items' => [
                     ['route' => 'cars.index', 'match' => 'cars.*', 'icon' => 'fa-car', 'label' => "Auto's", 'tour' => 'nav-cars'],
+                    ['route' => 'import.index', 'match' => 'import.*', 'icon' => 'fa-file-import', 'label' => 'Importeren', 'tour' => 'nav-import'],
                     ['route' => 'onderzoek', 'match' => 'onderzoek', 'icon' => 'fa-magnifying-glass-chart', 'label' => 'Onderzoek', 'tour' => 'nav-research'],
                     ['route' => 'bedrijfsvoorraad.index', 'match' => 'bedrijfsvoorraad.*', 'icon' => 'fa-file-signature', 'label' => 'Vrijwaring', 'tour' => 'nav-vrijwaring'],
                 ]],

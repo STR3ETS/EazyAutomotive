@@ -15,9 +15,14 @@
                     <h1 class="text-2xl font-black text-[#215558]">Auto's</h1>
                     <p class="text-sm text-[#215558] opacity-50 font-medium mt-0.5">Beheer je complete autoaanbod</p>
                 </div>
-                <a href="{{ route('cars.create') }}" class="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 bg-eazy text-white rounded-full text-sm font-bold hover:bg-eazy-dark shadow-lg shadow-eazy/20 hover:shadow-eazy/30 transition-all">
-                    <i class="fa-solid fa-plus"></i> Nieuwe auto
-                </a>
+                <div class="flex items-center gap-2">
+                    <a href="{{ route('import.index') }}" class="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 bg-white border border-[#215558]/15 text-[#215558] rounded-full text-sm font-bold hover:border-eazy hover:text-eazy transition-all">
+                        <i class="fa-solid fa-file-import"></i> Importeren
+                    </a>
+                    <a href="{{ route('cars.create') }}" class="cursor-pointer inline-flex items-center gap-2 px-5 py-2.5 bg-eazy text-white rounded-full text-sm font-bold hover:bg-eazy-dark shadow-lg shadow-eazy/20 hover:shadow-eazy/30 transition-all">
+                        <i class="fa-solid fa-plus"></i> Nieuwe auto
+                    </a>
+                </div>
             </div>
 
             {{-- Filters --}}
