@@ -48,9 +48,9 @@ class LiveMarketLookup
      */
     public function comparables(string $merk, ?string $model, int $year, ?string $brandstof): Collection
     {
-        $key = 'mktlive:' . md5(implode('|', [
+        $key = 'mktlive:v2:' . md5(implode('|', [
             strtolower(trim($merk)),
-            strtolower(trim((string) $model)),
+            strtolower($this->queryModel($model)),
             $year,
             (string) $this->normaliseFuel($brandstof),
         ]));
@@ -76,7 +76,7 @@ class LiveMarketLookup
             'Accept' => 'application/json',
         ])->connectTimeout(5)->timeout(12)->get(self::SEARCH_URL, [
             'l1CategoryId' => self::CATEGORY_AUTOS,
-            'query' => trim($merk . ' ' . (string) $model),
+            'query' => trim($merk . ' ' . $this->queryModel($model)),
             'limit' => 100,
             'searchInTitleAndDescription' => 'true',
         ]);
@@ -119,6 +119,27 @@ class LiveMarketLookup
         }
 
         return $out;
+    }
+
+    /**
+     * Zet RDW-modelnamen om naar wat op de Nederlandse markt gangbaar is, zodat
+     * de zoekopdracht op Marktplaats aanslaat. De RDW gebruikt vaak Duitse namen:
+     *   "3ER REIHE" -> "3-serie" (BMW), "C-KLASSE" -> "C-klasse" (Mercedes).
+     */
+    private function queryModel(?string $model): string
+    {
+        $m = trim((string) $model);
+        if ($m === '') {
+            return '';
+        }
+        if (preg_match('/^(\d)\s*ER\s+REIHE\b/i', $m, $mm)) {
+            return $mm[1] . '-serie';
+        }
+        if (preg_match('/^([A-Za-z]{1,3})[\s-]*KLASSE\b/i', $m, $mm)) {
+            return strtoupper($mm[1]) . '-klasse';
+        }
+
+        return $m;
     }
 
     /**
