@@ -1,9 +1,9 @@
-(function(){(function(){"use strict";let e=document.currentScript,t=e?.getAttribute(`data-api-key`),n=(e?.getAttribute(`data-base-url`)||``).replace(/\/$/,``),r=e?.getAttribute(`data-container`)||`eazy-automotive-widget`;if(!t){console.error(`[EazyAutomotive] data-api-key attribuut ontbreekt op het script tag.`);return}if(!n){console.error(`[EazyAutomotive] data-base-url attribuut ontbreekt op het script tag.`);return}let i={none:`none`,sm:`0 1px 3px rgba(0,0,0,0.08)`,md:`0 4px 12px rgba(0,0,0,0.1)`,lg:`0 10px 30px rgba(0,0,0,0.15)`},a={EUR:`€`,USD:`$`,GBP:`£`,none:``},o={year:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,fuel:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 22V5a2 2 0 012-2h8a2 2 0 012 2v17"/><path d="M15 10h2a2 2 0 012 2v3a2 2 0 002 2h0a2 2 0 002-2V9.83a2 2 0 00-.59-1.42L18 6"/></svg>`,km:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,color:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12" r="2.5"/><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12a10 10 0 005.012 8.662"/></svg>`},s={Merk:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17m-2 0a2 2 0 104 0 2 2 0 10-4 0"/><path d="M17 17m-2 0a2 2 0 104 0 2 2 0 10-4 0"/><path d="M5 17H3v-6l2-5h9l4 5h1a2 2 0 012 2v4h-2m-4 0H9"/></svg>`,Model:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17m-2 0a2 2 0 104 0 2 2 0 10-4 0"/><path d="M17 17m-2 0a2 2 0 104 0 2 2 0 10-4 0"/><path d="M5 17H3v-6l2-5h9l4 5h1a2 2 0 012 2v4h-2m-4 0H9"/></svg>`,Bouwjaar:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,Kilometerstand:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>`,Brandstof:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 22V5a2 2 0 012-2h8a2 2 0 012 2v17"/><path d="M15 10h2a2 2 0 012 2v3a2 2 0 002 2v0a2 2 0 002-2V9.83a2 2 0 00-.59-1.42L18 6"/></svg>`,Kleur:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12" r="2.5"/><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12a10 10 0 005.012 8.662"/></svg>`,"Tweede kleur":`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12" r="2.5"/><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12a10 10 0 005.012 8.662"/></svg>`,Carrosserie:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17m-2 0a2 2 0 104 0 2 2 0 10-4 0"/><path d="M17 17m-2 0a2 2 0 104 0 2 2 0 10-4 0"/><path d="M5 17H3v-6l2-5h9l4 5h1a2 2 0 012 2v4h-2m-4 0H9"/></svg>`,Vermogen:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>`,Cilinderinhoud:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>`,Zitplaatsen:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>`,Deuren:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg>`,"APK tot":`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,"1e toelating":`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,Kenteken:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>`},c=`-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`,l=[`Inter`,`Roboto`,`Open Sans`,`Lato`,`Montserrat`,`Poppins`];function u(e){if(!e||e===`system`||!l.includes(e))return;let t=`eazy-gfont-`+e.replace(/\s/g,`-`).toLowerCase();if(document.getElementById(t))return;let n=document.createElement(`link`);n.id=t,n.rel=`stylesheet`,n.href=`https://fonts.googleapis.com/css2?family=${e.replace(/\s/g,`+`)}:wght@400;500;600;700&display=swap`,document.head.appendChild(n)}class d{constructor(){this.cars=[],this.settings={},this.companyInfo={},this.facets={merken:[],brandstoffen:[],prijs_max:null},this.pagination={},this.filters={search:``,merk:``,brandstof:``,prijs_max:``,sort:`nieuwste`,page:1},this.init()}async init(){let t=document.getElementById(r);if(t||(t=document.createElement(`div`),t.id=r,e.parentNode.insertBefore(t,e)),this.shadow=t.attachShadow({mode:`open`}),this.shadow.innerHTML=this.loadingHTML(),!await this.fetchCars()){this.shadow.innerHTML=this.errorHTML();return}this.loadFont(),this.renderShell()}async fetchCars(){try{let e=new URLSearchParams({api_key:t,page:this.filters.page});this.filters.search&&e.set(`search`,this.filters.search),this.filters.merk&&e.set(`merk`,this.filters.merk),this.filters.brandstof&&e.set(`brandstof`,this.filters.brandstof),this.filters.prijs_max&&e.set(`prijs_max`,this.filters.prijs_max),this.filters.sort&&this.filters.sort!==`nieuwste`&&e.set(`sort`,this.filters.sort);let r=await fetch(`${n}/api/embed/v1/cars?${e.toString()}`);if(!r.ok)throw Error(`HTTP ${r.status}`);let i=await r.json();return this.cars=i.cars?.data||[],this.settings=i.settings||{},this.companyInfo=i.company||{},this.facets=i.filters||this.facets,this.pagination=i.cars||{},!0}catch(e){return console.error(`[EazyAutomotive]`,e),!1}}async fetchCarDetail(e){try{let r=`${n}/api/embed/v1/cars/${e}?api_key=${encodeURIComponent(t)}`,i=await fetch(r);if(!i.ok)throw Error(`HTTP ${i.status}`);return(await i.json()).car}catch(e){return console.error(`[EazyAutomotive] Detail fetch error:`,e),null}}get s(){return this.settings}opt(e,t){return this.s[e]??t}get primaryColor(){return this.opt(`primary_color`,`#4f46e5`)}get fontStack(){let e=this.opt(`font_family`,`system`);return e===`system`?c:`'${e}', ${c}`}formatPrice(e){if(!e)return``;let t=a[this.opt(`currency`,`EUR`)]??`€`,n=e.replace(/^[€$£]\s*/,``);return t?`${t} ${n}`:n}loadFont(){u(this.opt(`font_family`,`system`))}get detailCustom(){return this.opt(`detail_custom`,!1)}detailOpt(e,t){return this.detailCustom?this.opt(e,t):t}getDetailVarsComment(){return``}getHoverCSS(){let e=this.opt(`hover_effect`,`lift`),t=this.primaryColor;switch(e){case`lift`:return`.eazy-card:hover { box-shadow: 0 12px 30px rgba(0,0,0,0.12); transform: translateY(-4px); }`;case`shadow`:return`.eazy-card:hover { box-shadow: 0 12px 35px rgba(0,0,0,0.18); }`;case`scale`:return`.eazy-card:hover { transform: scale(1.03); }`;case`glow`:return`.eazy-card:hover { box-shadow: 0 0 20px ${t}44; }`;case`none`:return``;default:return`.eazy-card:hover { box-shadow: 0 12px 30px rgba(0,0,0,0.12); transform: translateY(-4px); }`}}getStyles(){let e=this.opt(`columns`,3),t=this.opt(`card_bg_color`,`#ffffff`),n=this.opt(`card_border_radius`,12),r=this.opt(`card_padding`,16),a=this.opt(`card_border_color`,`#e5e7eb`),o=this.opt(`card_border_width`,1),s=i[this.opt(`card_shadow`,`none`)]||`none`,c=this.opt(`image_height`,200),l=this.opt(`title_size`,16),u=this.opt(`title_color`,`#111827`),d=this.opt(`price_size`,20),f=this.opt(`label_bg_color`,`#f3f4f6`),p=this.opt(`label_text_color`,`#4b5563`),m=this.opt(`label_radius`,4),h=this.opt(`label_padding_x`,8),g=this.opt(`label_padding_y`,3),_=this.opt(`label_gap`,6),v=this.opt(`label_style`,`badge`),y=this.detailCustom,b=y?this.opt(`detail_bg_color`,t):t,x=y?this.opt(`detail_border_color`,a):a,S=y?this.opt(`detail_border_width`,o):o,C=y?this.opt(`detail_border_radius`,n):n,w=y?this.opt(`detail_padding`,r):r,T=y?this.opt(`detail_title_size`,24):24,E=y?this.opt(`detail_title_color`,u):u,D=this.opt(`detail_subtitle_color`,`#9ca3af`),O=y?this.opt(`detail_price_size`,24):24,k=y?this.opt(`detail_price_color`,this.primaryColor):this.primaryColor,A=this.opt(`detail_desc_color`,`#6b7280`),j=this.opt(`detail_desc_size`,14),M=y?this.opt(`detail_gallery_height`,350):350,N=y?this.opt(`detail_spec_columns`,2):2,P=this.opt(`detail_spec_bg_color`,`#f9fafb`),F=this.opt(`detail_spec_label_color`,`#6b7280`),I=this.opt(`detail_spec_value_color`,E),L=this.opt(`detail_spec_radius`,6),R=this.opt(`detail_spec_gap`,6),z=this.opt(`detail_badge_style`,`pill`),B=this.opt(`detail_badge_bg_color`,`#f3f4f6`),V=this.opt(`detail_badge_text_color`,k),H=this.opt(`detail_badge_radius`,4),U={none:`none`,sm:`0 4px 12px rgba(0,0,0,0.1)`,md:`0 10px 25px rgba(0,0,0,0.18)`,lg:`0 25px 50px rgba(0,0,0,0.25)`},W=U[this.opt(`detail_shadow`,`lg`)]||U.lg;return`
+(function(){(function(){"use strict";let e=document.currentScript,t=e?.getAttribute(`data-api-key`),n=(e?.getAttribute(`data-base-url`)||``).replace(/\/$/,``),r=e?.getAttribute(`data-container`)||`eazy-automotive-widget`;if(!t){console.error(`[EazyAutomotive] data-api-key attribuut ontbreekt op het script tag.`);return}if(!n){console.error(`[EazyAutomotive] data-base-url attribuut ontbreekt op het script tag.`);return}let i={none:`none`,sm:`0 1px 3px rgba(0,0,0,0.08)`,md:`0 4px 12px rgba(0,0,0,0.1)`,lg:`0 10px 30px rgba(0,0,0,0.15)`},a={EUR:`€`,USD:`$`,GBP:`£`,none:``},o={year:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,fuel:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 22V5a2 2 0 012-2h8a2 2 0 012 2v17"/><path d="M15 10h2a2 2 0 012 2v3a2 2 0 002 2h0a2 2 0 002-2V9.83a2 2 0 00-.59-1.42L18 6"/></svg>`,km:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>`,color:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12" r="2.5"/><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12a10 10 0 005.012 8.662"/></svg>`},s={Merk:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17m-2 0a2 2 0 104 0 2 2 0 10-4 0"/><path d="M17 17m-2 0a2 2 0 104 0 2 2 0 10-4 0"/><path d="M5 17H3v-6l2-5h9l4 5h1a2 2 0 012 2v4h-2m-4 0H9"/></svg>`,Model:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17m-2 0a2 2 0 104 0 2 2 0 10-4 0"/><path d="M17 17m-2 0a2 2 0 104 0 2 2 0 10-4 0"/><path d="M5 17H3v-6l2-5h9l4 5h1a2 2 0 012 2v4h-2m-4 0H9"/></svg>`,Bouwjaar:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,Kilometerstand:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>`,Brandstof:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 22V5a2 2 0 012-2h8a2 2 0 012 2v17"/><path d="M15 10h2a2 2 0 012 2v3a2 2 0 002 2v0a2 2 0 002-2V9.83a2 2 0 00-.59-1.42L18 6"/></svg>`,Kleur:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12" r="2.5"/><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12a10 10 0 005.012 8.662"/></svg>`,"Tweede kleur":`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="13.5" cy="6.5" r="2.5"/><circle cx="17.5" cy="10.5" r="2.5"/><circle cx="8.5" cy="7.5" r="2.5"/><circle cx="6.5" cy="12" r="2.5"/><path d="M12 22c5.523 0 10-4.477 10-10S17.523 2 12 2 2 6.477 2 12a10 10 0 005.012 8.662"/></svg>`,Carrosserie:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 17m-2 0a2 2 0 104 0 2 2 0 10-4 0"/><path d="M17 17m-2 0a2 2 0 104 0 2 2 0 10-4 0"/><path d="M5 17H3v-6l2-5h9l4 5h1a2 2 0 012 2v4h-2m-4 0H9"/></svg>`,Vermogen:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M13 2L3 14h9l-1 8 10-12h-9l1-8z"/></svg>`,Cilinderinhoud:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M8 12h8"/><path d="M12 8v8"/></svg>`,Zitplaatsen:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M16 21v-2a4 4 0 00-4-4H6a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 00-3-3.87"/><path d="M16 3.13a4 4 0 010 7.75"/></svg>`,Deuren:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M9 3v18"/></svg>`,"APK tot":`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/></svg>`,"1e toelating":`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg>`,Kenteken:`<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M20.59 13.41l-7.17 7.17a2 2 0 01-2.83 0L2 12V2h10l8.59 8.59a2 2 0 010 2.82z"/><line x1="7" y1="7" x2="7.01" y2="7"/></svg>`},c=`-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif`,l=[`Inter`,`Roboto`,`Open Sans`,`Lato`,`Montserrat`,`Poppins`];function u(e){if(!e||e===`system`||!l.includes(e))return;let t=`eazy-gfont-`+e.replace(/\s/g,`-`).toLowerCase();if(document.getElementById(t))return;let n=document.createElement(`link`);n.id=t,n.rel=`stylesheet`,n.href=`https://fonts.googleapis.com/css2?family=${e.replace(/\s/g,`+`)}:wght@400;500;600;700&display=swap`,document.head.appendChild(n)}class d{constructor(){this.cars=[],this.settings={},this.companyInfo={},this.facets={merken:[],brandstoffen:[],prijs_max:null},this.pagination={},this.filters={search:``,merk:``,brandstof:``,prijs_max:``,sort:`nieuwste`,page:1},this.init()}async init(){let t=document.getElementById(r);if(t||(t=document.createElement(`div`),t.id=r,e.parentNode.insertBefore(t,e)),this.shadow=t.attachShadow({mode:`open`}),this.shadow.innerHTML=this.loadingHTML(),!await this.fetchCars()){this.shadow.innerHTML=this.errorHTML();return}this.loadFont(),this.renderShell()}async fetchCars(){try{let e=new URLSearchParams({api_key:t,page:this.filters.page});this.filters.search&&e.set(`search`,this.filters.search),this.filters.merk&&e.set(`merk`,this.filters.merk),this.filters.brandstof&&e.set(`brandstof`,this.filters.brandstof),this.filters.prijs_max&&e.set(`prijs_max`,this.filters.prijs_max),this.filters.sort&&this.filters.sort!==`nieuwste`&&e.set(`sort`,this.filters.sort);let r=await fetch(`${n}/api/embed/v1/cars?${e.toString()}`);if(!r.ok)throw Error(`HTTP ${r.status}`);let i=await r.json();return this.cars=i.cars?.data||[],this.settings=i.settings||{},this.companyInfo=i.company||{},this.facets=i.filters||this.facets,this.pagination=i.cars||{},!0}catch(e){return console.error(`[EazyAutomotive]`,e),!1}}async fetchCarDetail(e){try{let r=`${n}/api/embed/v1/cars/${e}?api_key=${encodeURIComponent(t)}`,i=await fetch(r);if(!i.ok)throw Error(`HTTP ${i.status}`);return(await i.json()).car}catch(e){return console.error(`[EazyAutomotive] Detail fetch error:`,e),null}}get s(){return this.settings}opt(e,t){return this.s[e]??t}get primaryColor(){return this.opt(`primary_color`,`#4f46e5`)}get fontStack(){let e=this.opt(`font_family`,`system`);return e===`system`?c:`'${e}', ${c}`}formatPrice(e){if(!e)return``;let t=a[this.opt(`currency`,`EUR`)]??`€`,n=e.replace(/^[€$£]\s*/,``);return t?`${t} ${n}`:n}loadFont(){u(this.opt(`font_family`,`system`))}get detailCustom(){return this.opt(`detail_custom`,!1)}detailOpt(e,t){return this.detailCustom?this.opt(e,t):t}getDetailVarsComment(){return``}getHoverCSS(){let e=this.opt(`hover_effect`,`lift`),t=this.primaryColor;switch(e){case`lift`:return`.eazy-card:hover { box-shadow: 0 12px 30px rgba(0,0,0,0.12); transform: translateY(-4px); }`;case`shadow`:return`.eazy-card:hover { box-shadow: 0 12px 35px rgba(0,0,0,0.18); }`;case`scale`:return`.eazy-card:hover { transform: scale(1.03); }`;case`glow`:return`.eazy-card:hover { box-shadow: 0 0 20px ${t}44; }`;case`none`:return``;default:return`.eazy-card:hover { box-shadow: 0 12px 30px rgba(0,0,0,0.12); transform: translateY(-4px); }`}}getStyles(){let e=this.opt(`columns`,3),t=this.opt(`card_bg_color`,`#ffffff`),n=this.opt(`card_border_radius`,12),r=this.opt(`card_padding`,16),a=this.opt(`card_border_color`,`#e5e7eb`),o=this.opt(`card_border_width`,1),s=i[this.opt(`card_shadow`,`none`)]||`none`,c=this.opt(`image_height`,200),l=this.opt(`title_size`,16),u=this.opt(`title_color`,`#111827`),d=this.opt(`price_size`,20),f=this.opt(`label_bg_color`,`#f3f4f6`),p=this.opt(`label_text_color`,`#4b5563`),m=this.opt(`label_radius`,4),h=this.opt(`label_padding_x`,8),g=this.opt(`label_padding_y`,3),_=this.opt(`label_gap`,6),v=this.opt(`label_style`,`badge`),y=this.opt(`card_layout`,`classic`)===`list`?Math.min(2,e):e,b=this.detailCustom,x=b?this.opt(`detail_bg_color`,t):t,S=b?this.opt(`detail_border_color`,a):a,C=b?this.opt(`detail_border_width`,o):o,w=b?this.opt(`detail_border_radius`,n):n,T=b?this.opt(`detail_padding`,r):r,E=b?this.opt(`detail_title_size`,24):24,D=b?this.opt(`detail_title_color`,u):u,O=this.opt(`detail_subtitle_color`,`#9ca3af`),k=b?this.opt(`detail_price_size`,24):24,A=b?this.opt(`detail_price_color`,this.primaryColor):this.primaryColor,j=this.opt(`detail_desc_color`,`#6b7280`),M=this.opt(`detail_desc_size`,14),N=b?this.opt(`detail_gallery_height`,350):350,P=b?this.opt(`detail_spec_columns`,2):2,F=this.opt(`detail_spec_bg_color`,`#f9fafb`),I=this.opt(`detail_spec_label_color`,`#6b7280`),L=this.opt(`detail_spec_value_color`,D),R=this.opt(`detail_spec_radius`,6),z=this.opt(`detail_spec_gap`,6),B=this.opt(`detail_badge_style`,`pill`),V=this.opt(`detail_badge_bg_color`,`#f3f4f6`),H=this.opt(`detail_badge_text_color`,A),U=this.opt(`detail_badge_radius`,4),W={none:`none`,sm:`0 4px 12px rgba(0,0,0,0.1)`,md:`0 10px 25px rgba(0,0,0,0.18)`,lg:`0 25px 50px rgba(0,0,0,0.25)`},G=W[this.opt(`detail_shadow`,`lg`)]||W.lg;return`
                 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
                 :host { display: block; font-family: ${this.fontStack}; }
                 .eazy-grid {
                     display: grid;
-                    grid-template-columns: repeat(${e}, 1fr);
+                    grid-template-columns: repeat(${y}, 1fr);
                     gap: 1.25rem;
                     padding: 1rem 0;
                 }
@@ -73,6 +73,21 @@
                     flex-shrink: 0;
                     display: ${v===`icon-text`?`inline-block`:`none`};
                 }
+                /* Layout: horizontale lijst */
+                .eazy-card[data-layout="list"] { display: flex; }
+                .eazy-card[data-layout="list"] .eazy-card-img { width: 42%; height: auto; align-self: stretch; object-fit: cover; }
+                .eazy-card[data-layout="list"] .eazy-no-img { width: 42%; height: auto; align-self: stretch; }
+                .eazy-card[data-layout="list"] .eazy-card-body { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+                /* Layout: magazine (tekst over de foto) */
+                .eazy-card[data-layout="overlay"] { position: relative; }
+                .eazy-card[data-layout="overlay"] .eazy-card-body {
+                    position: absolute; left: 0; right: 0; bottom: 0;
+                    padding-top: 3rem;
+                    background: linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.25) 65%, transparent);
+                }
+                .eazy-card[data-layout="overlay"] .eazy-card-title,
+                .eazy-card[data-layout="overlay"] .eazy-card-price { color: #ffffff; }
+                .eazy-card[data-layout="overlay"] .eazy-spec { color: #ffffff; background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.45); }
                 .eazy-powered {
                     text-align: center;
                     padding: 1rem;
@@ -103,15 +118,15 @@
                     to { opacity: 1; }
                 }
                 .eazy-modal {
-                    background: ${b};
-                    border-radius: ${C}px;
-                    border: ${S}px solid ${x};
+                    background: ${x};
+                    border-radius: ${w}px;
+                    border: ${C}px solid ${S};
                     max-width: 800px;
                     width: 100%;
                     max-height: 90vh;
                     overflow-y: auto;
                     position: relative;
-                    box-shadow: ${W};
+                    box-shadow: ${G};
                     font-family: ${this.fontStack};
                 }
                 .eazy-modal-close {
@@ -136,19 +151,19 @@
                 .eazy-modal-gallery {
                     position: relative;
                     width: 100%;
-                    height: ${M}px;
+                    height: ${N}px;
                     background: #f3f4f6;
                     overflow: hidden;
                 }
                 @media (max-width: 640px) {
-                    .eazy-modal-gallery { height: ${Math.round(M*.63)}px; }
+                    .eazy-modal-gallery { height: ${Math.round(N*.63)}px; }
                 }
                 .eazy-modal-gallery > img {
                     width: 100%;
                     height: 100%;
                     object-fit: cover;
                     display: block;
-                    border-radius: ${Math.max(C-1,0)}px ${Math.max(C-1,0)}px 0 0;
+                    border-radius: ${Math.max(w-1,0)}px ${Math.max(w-1,0)}px 0 0;
                 }
                 .eazy-modal-thumbs {
                     position: absolute;
@@ -175,36 +190,36 @@
                     opacity: 1;
                     border-color: #fff;
                 }
-                .eazy-modal-body { padding: ${w}px; }
+                .eazy-modal-body { padding: ${T}px; }
                 .eazy-modal-title {
-                    font-size: ${T}px;
+                    font-size: ${E}px;
                     font-weight: 700;
-                    color: ${E};
+                    color: ${D};
                     margin-bottom: 0.25rem;
                 }
                 .eazy-modal-subtitle {
                     font-size: 0.8125rem;
-                    color: ${D};
+                    color: ${O};
                     margin-bottom: 0.75rem;
                 }
                 .eazy-modal-price {
-                    font-size: ${O}px;
+                    font-size: ${k}px;
                     font-weight: 800;
-                    color: ${k};
+                    color: ${A};
                     margin-bottom: 1rem;
                 }
                 .eazy-modal-section-title {
                     font-size: 0.6875rem;
                     font-weight: 600;
-                    color: ${D};
+                    color: ${O};
                     text-transform: uppercase;
                     letter-spacing: 0.05em;
                     margin-bottom: 0.5rem;
                 }
                 .eazy-modal-specs {
                     display: grid;
-                    grid-template-columns: repeat(${N}, 1fr);
-                    gap: ${R}px;
+                    grid-template-columns: repeat(${P}, 1fr);
+                    gap: ${z}px;
                     margin-bottom: 1.5rem;
                 }
                 @media (max-width: 500px) {
@@ -215,24 +230,24 @@
                     align-items: center;
                     justify-content: space-between;
                     padding: 0.5rem 0.75rem;
-                    background: ${P};
-                    border-radius: ${L}px;
+                    background: ${F};
+                    border-radius: ${R}px;
                     font-size: 0.8125rem;
                 }
                 .eazy-modal-spec-label {
                     display: flex;
                     align-items: center;
                     gap: 6px;
-                    color: ${F};
+                    color: ${I};
                 }
                 .eazy-modal-spec-label svg {
                     flex-shrink: 0;
-                    color: ${F};
+                    color: ${I};
                 }
-                .eazy-modal-spec-value { color: ${I}; font-weight: 600; }
+                .eazy-modal-spec-value { color: ${L}; font-weight: 600; }
                 .eazy-modal-desc {
-                    color: ${A};
-                    font-size: ${j}px;
+                    color: ${j};
+                    font-size: ${M}px;
                     line-height: 1.6;
                     margin-bottom: 1.5rem;
                     white-space: pre-line;
@@ -248,10 +263,10 @@
                     align-items: center;
                     font-size: 0.8rem;
                     font-weight: 500;
-                    color: ${V};
-                    ${z===`pill`?`background: ${B}; padding: 0.3rem 0.75rem; border-radius: 9999px;`:``}
-                    ${z===`badge`?`background: ${B}; padding: 0.3rem 0.75rem; border-radius: ${H}px;`:``}
-                    ${z===`outline`?`background: transparent; border: 1px solid ${V}; padding: 0.3rem 0.75rem; border-radius: ${H}px;`:``}
+                    color: ${H};
+                    ${B===`pill`?`background: ${V}; padding: 0.3rem 0.75rem; border-radius: 9999px;`:``}
+                    ${B===`badge`?`background: ${V}; padding: 0.3rem 0.75rem; border-radius: ${U}px;`:``}
+                    ${B===`outline`?`background: transparent; border: 1px solid ${H}; padding: 0.3rem 0.75rem; border-radius: ${U}px;`:``}
                 }
                 .eazy-modal-loading {
                     display: flex;
@@ -316,19 +331,19 @@
                     <span class="eazy-page-info">Pagina ${e} van ${t}</span>
                     <button class="eazy-page-btn" id="eazy-next" ${e>=t?`disabled`:``}>Volgende</button>
                 </div>
-            `}skeletonHTML(){return`<div class="eazy-grid">${`<div class="eazy-skel"><div class="eazy-skel-img"></div><div class="eazy-skel-line" style="width:70%"></div><div class="eazy-skel-line" style="width:40%"></div><div class="eazy-skel-line" style="width:55%"></div></div>`.repeat(6)}</div>`}renderCard(e,t){let n=this.opt(`image_position`,`top`),r=e.image?`<img class="eazy-card-img" src="${this.escapeHtml(e.image)}" alt="${this.escapeHtml(e.title)}" loading="lazy">`:`<div class="eazy-no-img">Geen afbeelding</div>`,i=[];e.bouwjaar&&i.push({type:`year`,value:e.bouwjaar}),t.showFuel&&e.brandstof&&i.push({type:`fuel`,value:e.brandstof}),t.showKm&&e.km_stand&&i.push({type:`km`,value:e.km_stand.toLocaleString(`nl-NL`)+` km`}),e.kleur&&i.push({type:`color`,value:e.kleur});let a=`
+            `}skeletonHTML(){return`<div class="eazy-grid">${`<div class="eazy-skel"><div class="eazy-skel-img"></div><div class="eazy-skel-line" style="width:70%"></div><div class="eazy-skel-line" style="width:40%"></div><div class="eazy-skel-line" style="width:55%"></div></div>`.repeat(6)}</div>`}renderCard(e,t){let n=this.opt(`image_position`,`top`),r=this.opt(`card_layout`,`classic`),i=e.image?`<img class="eazy-card-img" src="${this.escapeHtml(e.image)}" alt="${this.escapeHtml(e.title)}" loading="lazy">`:`<div class="eazy-no-img">Geen afbeelding</div>`,a=[];e.bouwjaar&&a.push({type:`year`,value:e.bouwjaar}),t.showFuel&&e.brandstof&&a.push({type:`fuel`,value:e.brandstof}),t.showKm&&e.km_stand&&a.push({type:`km`,value:e.km_stand.toLocaleString(`nl-NL`)+` km`}),e.kleur&&a.push({type:`color`,value:e.kleur});let s=`
                 <div class="eazy-card-body">
                     <div class="eazy-card-title">${this.escapeHtml(e.title)}</div>
                     ${t.showPrice?`<div class="eazy-card-price">${this.escapeHtml(this.formatPrice(e.prijs))}</div>`:``}
-                    ${i.length>0?`
+                    ${a.length>0?`
                         <div class="eazy-card-specs">
-                            ${i.map(e=>`<span class="eazy-spec">${o[e.type]||``}${this.escapeHtml(String(e.value))}</span>`).join(``)}
+                            ${a.map(e=>`<span class="eazy-spec">${o[e.type]||``}${this.escapeHtml(String(e.value))}</span>`).join(``)}
                         </div>
                     `:``}
                 </div>
-            `;return`
-                <div class="eazy-card" data-car-id="${e.id}">
-                    ${n===`top`?r+a:a+r}
+            `,c=r===`classic`&&n===`bottom`?s+i:i+s;return`
+                <div class="eazy-card" data-layout="${r}" data-car-id="${e.id}">
+                    ${c}
                 </div>
             `}async openDetail(e){let t=document.createElement(`div`);t.className=`eazy-overlay`,t.innerHTML=`
                 <div class="eazy-modal">

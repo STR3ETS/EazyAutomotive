@@ -201,6 +201,8 @@
             const labelPadY = this.opt('label_padding_y', 3);
             const labelGap = this.opt('label_gap', 6);
             const labelStyle = this.opt('label_style', 'badge');
+            const cardLayout = this.opt('card_layout', 'classic');
+            const gridCols = cardLayout === 'list' ? Math.min(2, columns) : columns;
 
             // Detail page overrides (fall back to card values when detail_custom is off)
             const dc = this.detailCustom;
@@ -241,7 +243,7 @@
                 :host { display: block; font-family: ${this.fontStack}; }
                 .eazy-grid {
                     display: grid;
-                    grid-template-columns: repeat(${columns}, 1fr);
+                    grid-template-columns: repeat(${gridCols}, 1fr);
                     gap: 1.25rem;
                     padding: 1rem 0;
                 }
@@ -311,6 +313,21 @@
                     flex-shrink: 0;
                     display: ${labelStyle === 'icon-text' ? 'inline-block' : 'none'};
                 }
+                /* Layout: horizontale lijst */
+                .eazy-card[data-layout="list"] { display: flex; }
+                .eazy-card[data-layout="list"] .eazy-card-img { width: 42%; height: auto; align-self: stretch; object-fit: cover; }
+                .eazy-card[data-layout="list"] .eazy-no-img { width: 42%; height: auto; align-self: stretch; }
+                .eazy-card[data-layout="list"] .eazy-card-body { flex: 1; display: flex; flex-direction: column; justify-content: center; }
+                /* Layout: magazine (tekst over de foto) */
+                .eazy-card[data-layout="overlay"] { position: relative; }
+                .eazy-card[data-layout="overlay"] .eazy-card-body {
+                    position: absolute; left: 0; right: 0; bottom: 0;
+                    padding-top: 3rem;
+                    background: linear-gradient(to top, rgba(0,0,0,0.85), rgba(0,0,0,0.25) 65%, transparent);
+                }
+                .eazy-card[data-layout="overlay"] .eazy-card-title,
+                .eazy-card[data-layout="overlay"] .eazy-card-price { color: #ffffff; }
+                .eazy-card[data-layout="overlay"] .eazy-spec { color: #ffffff; background: rgba(255,255,255,0.18); border-color: rgba(255,255,255,0.45); }
                 .eazy-powered {
                     text-align: center;
                     padding: 1rem;
@@ -666,6 +683,7 @@
 
         renderCard(car, opts) {
             const imagePosition = this.opt('image_position', 'top');
+            const layout = this.opt('card_layout', 'classic');
 
             const imgHtml = car.image
                 ? `<img class="eazy-card-img" src="${this.escapeHtml(car.image)}" alt="${this.escapeHtml(car.title)}" loading="lazy">`
@@ -689,9 +707,15 @@
                 </div>
             `;
 
+            // In magazine- en lijst-layout staat de foto altijd eerst; alleen de
+            // klassieke layout volgt de foto-positie.
+            const inner = (layout === 'classic' && imagePosition === 'bottom')
+                ? bodyHtml + imgHtml
+                : imgHtml + bodyHtml;
+
             return `
-                <div class="eazy-card" data-car-id="${car.id}">
-                    ${imagePosition === 'top' ? imgHtml + bodyHtml : bodyHtml + imgHtml}
+                <div class="eazy-card" data-layout="${layout}" data-car-id="${car.id}">
+                    ${inner}
                 </div>
             `;
         }

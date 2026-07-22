@@ -24,12 +24,12 @@ class WidgetController extends Controller
      * Bewust markant verschillend in kleur, hoeken, schaduw en labelstijl.
      */
     public const THEMES = [
-        ['id' => 'modern', 'naam' => 'Strak modern', 'primary_color' => '#0F9B9F', 'card_bg_color' => '#ffffff', 'card_border_radius' => 14, 'card_shadow' => 'md', 'hover_effect' => 'lift', 'label_style' => 'pill', 'font_family' => 'Inter'],
-        ['id' => 'rond', 'naam' => 'Zacht & rond', 'primary_color' => '#7c6bf5', 'card_bg_color' => '#ffffff', 'card_border_radius' => 26, 'card_shadow' => 'lg', 'hover_effect' => 'scale', 'label_style' => 'badge', 'font_family' => 'Poppins'],
-        ['id' => 'strak', 'naam' => 'Strak minimal', 'primary_color' => '#111827', 'card_bg_color' => '#ffffff', 'card_border_radius' => 0, 'card_shadow' => 'none', 'hover_effect' => 'none', 'label_style' => 'outline', 'font_family' => 'system'],
-        ['id' => 'warm', 'naam' => 'Warm & zonnig', 'primary_color' => '#f97316', 'card_bg_color' => '#fff7ed', 'card_border_radius' => 18, 'card_shadow' => 'sm', 'hover_effect' => 'shadow', 'label_style' => 'pill', 'font_family' => 'Lato'],
-        ['id' => 'premium', 'naam' => 'Donker premium', 'primary_color' => '#2dd4bf', 'card_bg_color' => '#0f172a', 'card_border_radius' => 12, 'card_shadow' => 'lg', 'hover_effect' => 'glow', 'label_style' => 'pill', 'font_family' => 'Montserrat'],
-        ['id' => 'blauw', 'naam' => 'Fris blauw', 'primary_color' => '#2563eb', 'card_bg_color' => '#ffffff', 'card_border_radius' => 8, 'card_shadow' => 'md', 'hover_effect' => 'lift', 'label_style' => 'badge', 'font_family' => 'Roboto'],
+        ['id' => 'modern', 'naam' => 'Strak modern', 'card_layout' => 'classic', 'primary_color' => '#0F9B9F', 'card_bg_color' => '#ffffff', 'card_border_radius' => 14, 'card_shadow' => 'md', 'hover_effect' => 'lift', 'label_style' => 'pill', 'font_family' => 'Inter'],
+        ['id' => 'magazine', 'naam' => 'Magazine', 'card_layout' => 'overlay', 'primary_color' => '#7c6bf5', 'card_bg_color' => '#ffffff', 'card_border_radius' => 22, 'card_shadow' => 'lg', 'hover_effect' => 'scale', 'label_style' => 'pill', 'font_family' => 'Poppins'],
+        ['id' => 'lijst', 'naam' => 'Compacte lijst', 'card_layout' => 'list', 'primary_color' => '#111827', 'card_bg_color' => '#ffffff', 'card_border_radius' => 6, 'card_shadow' => 'sm', 'hover_effect' => 'shadow', 'label_style' => 'outline', 'font_family' => 'system'],
+        ['id' => 'warm', 'naam' => 'Warm & zonnig', 'card_layout' => 'classic', 'primary_color' => '#f97316', 'card_bg_color' => '#fff7ed', 'card_border_radius' => 18, 'card_shadow' => 'sm', 'hover_effect' => 'shadow', 'label_style' => 'pill', 'font_family' => 'Lato'],
+        ['id' => 'premium', 'naam' => 'Donker magazine', 'card_layout' => 'overlay', 'primary_color' => '#2dd4bf', 'card_bg_color' => '#0f172a', 'card_border_radius' => 14, 'card_shadow' => 'lg', 'hover_effect' => 'glow', 'label_style' => 'pill', 'font_family' => 'Montserrat'],
+        ['id' => 'zakelijk', 'naam' => 'Zakelijke lijst', 'card_layout' => 'list', 'primary_color' => '#2563eb', 'card_bg_color' => '#ffffff', 'card_border_radius' => 10, 'card_shadow' => 'md', 'hover_effect' => 'lift', 'label_style' => 'badge', 'font_family' => 'Roboto'],
     ];
 
     public function index(Request $request)
@@ -82,6 +82,7 @@ class WidgetController extends Controller
             'hover_effect' => 'nullable|in:lift,shadow,scale,glow,none',
             'font_family' => 'nullable|string|max:30',
             'label_style' => 'nullable|in:badge,outline,icon-text,pill',
+            'card_layout' => 'nullable|in:classic,overlay,list',
         ]);
 
         // Leesbare tekstkleuren afleiden uit de gekozen kaartachtergrond, zodat

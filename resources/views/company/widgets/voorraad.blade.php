@@ -10,6 +10,7 @@
         $shadow = $shadows[$val('card_shadow', 'none')] ?? 'none';
         $hover = $val('hover_effect', 'lift');
         $label = $val('label_style', 'badge');
+        $layout = $val('card_layout', 'classic');
         $font = $val('font_family', 'system');
         $fontStack = in_array($font, $googleFonts) ? "'{$font}',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif" : "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif";
         $rgb = sscanf($cardbg, '#%02x%02x%02x');
@@ -44,6 +45,13 @@
             @endif }
         .ctl-label { display:block; font-size:11px; font-weight:700; color:#215558; opacity:.8; text-transform:uppercase; letter-spacing:.04em; margin-bottom:6px; }
         .ctl-card { background:#fff; border:1px solid rgba(33,85,88,.1); border-radius:16px; padding:20px; }
+        .pv-grid[data-layout="list"] .pv-card { display:flex; }
+        .pv-grid[data-layout="list"] .pv-img { width:42%; height:auto !important; align-self:stretch; }
+        .pv-grid[data-layout="list"] .pv-body { flex:1; display:flex; flex-direction:column; justify-content:center; }
+        .pv-grid[data-layout="overlay"] .pv-card { position:relative; }
+        .pv-grid[data-layout="overlay"] .pv-body { position:absolute; left:0; right:0; bottom:0; padding-top:2rem; background:linear-gradient(to top, rgba(0,0,0,.85), rgba(0,0,0,.2) 65%, transparent); }
+        .pv-grid[data-layout="overlay"] .pv-title, .pv-grid[data-layout="overlay"] .pv-price { color:#fff !important; }
+        .pv-grid[data-layout="overlay"] .pv-label { color:#fff !important; background:rgba(255,255,255,.18) !important; border-color:rgba(255,255,255,.45) !important; }
     </style>
 
     <div class="py-8">
@@ -123,7 +131,7 @@
                             <div class="ctl-card">
                                 <span class="ctl-label">Voorbeeld</span>
                                 <div class="bg-[#f4faf9] rounded-xl p-3">
-                                    <div class="pv-grid" id="pvGrid">
+                                    <div class="pv-grid" id="pvGrid" data-layout="{{ $layout }}">
                                         @for($i=0;$i<3;$i++)
                                             <div class="pv-card">
                                                 <div class="pv-img" style="height:{{ $val('image_height',200) }}px">Foto</div>
@@ -173,7 +181,9 @@
     <script>
         function vfld(name) { return document.getElementById('voorraadForm').elements[name]; }
         function updatePreview() {
-            document.getElementById('pvGrid').style.gridTemplateColumns = 'repeat(' + Math.min(2, parseInt(vfld('columns').value, 10) || 2) + ', 1fr)';
+            const grid = document.getElementById('pvGrid');
+            const cols = grid.dataset.layout === 'list' ? 1 : Math.min(2, parseInt(vfld('columns').value, 10) || 2);
+            grid.style.gridTemplateColumns = 'repeat(' + cols + ', 1fr)';
             document.querySelectorAll('.pv-img').forEach(e => e.style.height = vfld('image_height').value + 'px');
             document.querySelectorAll('.pv-show-price').forEach(e => e.style.display = vfld('show_price').checked ? '' : 'none');
             document.querySelectorAll('.pv-show-km').forEach(e => e.style.display = vfld('show_km').checked ? '' : 'none');

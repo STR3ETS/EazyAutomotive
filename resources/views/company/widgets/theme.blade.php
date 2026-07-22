@@ -24,6 +24,16 @@
         .pv-root[data-label="outline"] .pv-label { border:1px solid var(--labelborder); padding:3px 8px; border-radius:6px; }
         .pv-root[data-label="icon-text"] .pv-label { padding:2px 0; }
         .pv-btn { margin-top:12px; display:inline-block; background:var(--p); color:#fff; font-size:12px; font-weight:700; padding:8px 14px; border-radius:9999px; font-family:var(--font); }
+        /* Layout-varianten in de preview */
+        .pv-root[data-layout="list"] .pv-grid { grid-template-columns:1fr; }
+        .pv-root[data-layout="list"] .pv-card { display:flex; }
+        .pv-root[data-layout="list"] .pv-img { width:42%; height:auto; align-self:stretch; }
+        .pv-root[data-layout="list"] .pv-body { flex:1; display:flex; flex-direction:column; justify-content:center; }
+        .pv-root[data-layout="overlay"] .pv-card { position:relative; }
+        .pv-root[data-layout="overlay"] .pv-body { position:absolute; left:0; right:0; bottom:0; padding-top:2rem; background:linear-gradient(to top, rgba(0,0,0,.85), rgba(0,0,0,.2) 65%, transparent); }
+        .pv-root[data-layout="overlay"] .pv-title, .pv-root[data-layout="overlay"] .pv-price { color:#fff; }
+        .pv-root[data-layout="overlay"] .pv-label { color:#fff; background:rgba(255,255,255,.18); border-color:rgba(255,255,255,.45); }
+        .pv-root[data-layout="list"] .pv-btn, .pv-root[data-layout="overlay"] .pv-btn { display:none; }
         .ctl-label { display:block; font-size:11px; font-weight:700; color:#215558; opacity:.8; text-transform:uppercase; letter-spacing:.04em; margin-bottom:6px; }
         .ctl-card { background:#fff; border:1px solid rgba(33,85,88,.1); border-radius:16px; padding:20px; }
     </style>
@@ -120,6 +130,20 @@
                         <div class="ctl-card">
                             <span class="ctl-label">Vorm &amp; stijl</span>
                             <div class="grid grid-cols-2 gap-4">
+                                <div class="col-span-2">
+                                    <label class="block text-xs font-semibold text-[#374151] mb-1.5">Kaartstijl</label>
+                                    <div class="grid grid-cols-3 gap-2">
+                                        @foreach(['classic'=>['Klassiek','fa-table-cells-large'],'overlay'=>['Magazine','fa-image'],'list'=>['Lijst','fa-list']] as $lk=>$lv)
+                                            <label class="cursor-pointer">
+                                                <input type="radio" name="card_layout" value="{{ $lk }}" @checked($val('card_layout','classic')===$lk) class="preview-input peer sr-only">
+                                                <span class="flex flex-col items-center gap-1.5 border border-[#215558]/10 rounded-xl py-3 text-[#215558] peer-checked:border-eazy peer-checked:bg-eazy-50/50 peer-checked:text-eazy transition">
+                                                    <i class="fa-solid {{ $lv[1] }} text-sm"></i>
+                                                    <span class="text-[11px] font-semibold">{{ $lv[0] }}</span>
+                                                </span>
+                                            </label>
+                                        @endforeach
+                                    </div>
+                                </div>
                                 <div class="col-span-2">
                                     <label class="flex items-center justify-between text-xs font-semibold text-[#374151] mb-1.5">Ronde hoeken <span class="text-eazy font-bold" id="rad_val">{{ $val('card_border_radius',12) }}px</span></label>
                                     <input type="range" name="card_border_radius" min="0" max="30" value="{{ $val('card_border_radius',12) }}" class="preview-input w-full accent-eazy" oninput="document.getElementById('rad_val').textContent=this.value+'px'">
@@ -218,11 +242,17 @@
             root.style.setProperty('--labelborder', light ? '#d1d5db' : 'rgba(255,255,255,.28)');
             root.dataset.hover = fld('hover_effect').value;
             root.dataset.label = fld('label_style').value;
+            var layoutEl = document.querySelector('#designForm input[name="card_layout"]:checked');
+            root.dataset.layout = layoutEl ? layoutEl.value : 'classic';
         }
 
         function applyTheme(t) {
             const set = { primary_color:t.primary_color, card_bg_color:t.card_bg_color, card_border_radius:t.card_border_radius, card_shadow:t.card_shadow, hover_effect:t.hover_effect, label_style:t.label_style, font_family:t.font_family };
             for (const k in set) { if (fld(k) != null && set[k] != null) fld(k).value = set[k]; }
+            if (t.card_layout) {
+                var lr = document.querySelector('#designForm input[name="card_layout"][value="' + t.card_layout + '"]');
+                if (lr) lr.checked = true;
+            }
             document.getElementById('rad_val').textContent = t.card_border_radius + 'px';
             updatePreview();
         }
