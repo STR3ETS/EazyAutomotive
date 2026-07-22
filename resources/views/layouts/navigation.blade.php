@@ -39,7 +39,6 @@
                     ['route' => 'publiceren', 'match' => 'publiceren*', 'icon' => 'fa-share-nodes', 'label' => 'Publiceren', 'tour' => 'nav-publish'],
                     ['route' => 'studio.index', 'match' => 'studio*', 'icon' => 'fa-clapperboard', 'label' => 'Video Studio', 'tour' => 'nav-studio'],
                     ['route' => 'ontwerpen', 'match' => 'ontwerpen', 'icon' => 'fa-palette', 'label' => 'Ontwerpen', 'tour' => 'nav-design'],
-                    ['route' => 'brandbook.index', 'match' => 'brandbook.*', 'icon' => 'fa-swatchbook', 'label' => 'Brandbook', 'tour' => 'nav-brandbook'],
                     ['route' => 'integratie', 'match' => 'integratie', 'icon' => 'fa-code', 'label' => 'Integratie', 'tour' => 'nav-embed'],
                 ]],
                 ['label' => 'Verkoop', 'items' => [
