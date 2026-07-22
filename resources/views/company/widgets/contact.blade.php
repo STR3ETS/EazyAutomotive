@@ -12,7 +12,7 @@
 
             <div class="ctl-info mb-5 flex items-start gap-3 bg-[#215558]/[0.04] border border-[#215558]/10 text-[#215558] px-5 py-3.5 rounded-xl">
                 <i class="fa-solid fa-palette text-lg mt-0.5 text-eazy"></i>
-                <p class="text-sm opacity-80">Kleur en lettertype neemt deze widget automatisch over van je <a href="{{ route('widgets.theme') }}" class="text-eazy font-semibold hover:underline">Huisstijl</a>, zodat alles bij elkaar past.</p>
+                <p class="text-sm opacity-80">Het uiterlijk (kleur, lettertype, hoeken en schaduw) neemt deze widget automatisch over van je <a href="{{ route('widgets.theme') }}" class="text-eazy font-semibold hover:underline">Huisstijl</a>, zodat alles bij elkaar past.</p>
             </div>
 
             <div class="bg-white rounded-2xl border border-[#215558]/10 p-6 mb-5">

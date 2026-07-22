@@ -12,6 +12,15 @@
     var GOOGLE_FONTS = ['Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Poppins'];
     var SYSTEM_FONT = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif";
 
+    // Kaart-schaduw uit de huisstijl. "none" is bewust een lichte schaduw, zodat
+    // een los formulier altijd netjes van de pagina komt.
+    var SHADOWS = { none: '0 2px 10px rgba(15,23,42,.05)', sm: '0 6px 18px rgba(15,23,42,.07)', md: '0 12px 30px rgba(15,23,42,.10)', lg: '0 20px 45px rgba(15,23,42,.16)' };
+    function isLightHex(hex) {
+        if (!/^#[0-9A-Fa-f]{6}$/.test(String(hex || ''))) { return true; }
+        var r = parseInt(hex.substr(1, 2), 16), g = parseInt(hex.substr(3, 2), 16), b = parseInt(hex.substr(5, 2), 16);
+        return (0.299 * r + 0.587 * g + 0.114 * b) > 175;
+    }
+
     var TYPES = {
         contact: { title: 'Neem contact op', intro: 'Stel je vraag, we reageren snel.', knop: 'Versturen' },
         inruil: { title: 'Auto inruilen', intro: 'Laat je gegevens achter, dan komen we met een inruilvoorstel.', knop: 'Inruilvoorstel aanvragen' },
@@ -48,11 +57,11 @@
         return "'" + name + "'," + SYSTEM_FONT;
     }
 
-    function styles(color, cardRadius, inputRadius, font) {
+    function styles(color, cardRadius, inputRadius, font, cardShadow, cardBg) {
         return '' +
             ':host{all:initial}' +
             '*{box-sizing:border-box;font-family:' + font + '}' +
-            '.ea-card{max-width:520px;background:#fff;border:1px solid rgba(15,23,42,.08);border-radius:' + cardRadius + 'px;padding:24px;box-shadow:0 10px 30px rgba(15,23,42,.06);color:#1f2937;animation:ea-cardin .25s ease}' +
+            '.ea-card{max-width:520px;background:' + cardBg + ';border:1px solid rgba(15,23,42,.08);border-radius:' + cardRadius + 'px;padding:24px;box-shadow:' + cardShadow + ';color:#1f2937;animation:ea-cardin .25s ease}' +
             '.ea-h{font-size:19px;font-weight:800;margin:0 0 4px;color:#111827}' +
             '.ea-sub{font-size:13px;color:#6b7280;margin:0 0 18px}' +
             '.ea-row{margin-bottom:13px}' +
@@ -154,8 +163,10 @@
         var cardRadius = (cfg.radius != null) ? Math.max(8, cfg.radius) : 18;
         var inputRadius = (cfg.radius != null) ? Math.min(cfg.radius, 14) : 10;
         var font = loadFont(cfg.font_family);
+        var cardShadow = SHADOWS[cfg.card_shadow] || SHADOWS.none;
+        var cardBg = isLightHex(cfg.card_bg_color) ? cfg.card_bg_color : '#fff';
 
-        shadow.innerHTML = '<style>' + styles(color, cardRadius, inputRadius, font) + '</style>' + formHtml(cfg);
+        shadow.innerHTML = '<style>' + styles(color, cardRadius, inputRadius, font, cardShadow, cardBg) + '</style>' + formHtml(cfg);
 
         var form = shadow.getElementById('ea-form');
         var errEl = shadow.getElementById('ea-err');
@@ -244,7 +255,7 @@
                 .then(function (r) { return r.json().then(function (j) { return { ok: r.ok, body: j }; }); })
                 .then(function (res) {
                     if (res.ok && res.body.ok) {
-                        shadow.innerHTML = '<style>' + styles(color, cardRadius, inputRadius, font) + '</style>' + successHtml(res.body.message || 'We nemen snel contact met je op.');
+                        shadow.innerHTML = '<style>' + styles(color, cardRadius, inputRadius, font, cardShadow, cardBg) + '</style>' + successHtml(res.body.message || 'We nemen snel contact met je op.');
                     } else {
                         var msg = res.body && res.body.errors
                             ? Object.values(res.body.errors)[0][0]

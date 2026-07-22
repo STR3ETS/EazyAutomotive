@@ -12,7 +12,7 @@
 
             <div class="mb-5 flex items-start gap-3 bg-[#215558]/[0.04] border border-[#215558]/10 text-[#215558] px-5 py-3.5 rounded-xl">
                 <i class="fa-solid fa-bolt text-lg mt-0.5 text-eazy"></i>
-                <p class="text-sm opacity-80">De indicatie komt uit je live marktdata-taxatie. Het is bewust een <span class="font-semibold">indicatie</span> (geen bod); de bezoeker ziet dat de uiteindelijke prijs afhangt van een inspectie. Kleur en lettertype volgen je <a href="{{ route('widgets.theme') }}" class="text-eazy font-semibold hover:underline">Huisstijl</a>.</p>
+                <p class="text-sm opacity-80">De indicatie komt uit je live marktdata-taxatie. Het is bewust een <span class="font-semibold">indicatie</span> (geen bod); de bezoeker ziet dat de uiteindelijke prijs afhangt van een inspectie. Het uiterlijk volgt je <a href="{{ route('widgets.theme') }}" class="text-eazy font-semibold hover:underline">Huisstijl</a>.</p>
             </div>
 
             <div class="bg-white rounded-2xl border border-[#215558]/10 p-6 mb-5">

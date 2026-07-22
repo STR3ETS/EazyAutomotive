@@ -10,6 +10,14 @@
     var GOOGLE_FONTS = ['Inter', 'Roboto', 'Open Sans', 'Lato', 'Montserrat', 'Poppins'];
     var SYSTEM_FONT = "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif";
 
+    // Kaart-schaduw uit de huisstijl. "none" is bewust een lichte schaduw.
+    var SHADOWS = { none: '0 2px 10px rgba(15,23,42,.05)', sm: '0 6px 18px rgba(15,23,42,.07)', md: '0 12px 30px rgba(15,23,42,.10)', lg: '0 20px 45px rgba(15,23,42,.16)' };
+    function isLightHex(hex) {
+        if (!/^#[0-9A-Fa-f]{6}$/.test(String(hex || ''))) { return true; }
+        var r = parseInt(hex.substr(1, 2), 16), g = parseInt(hex.substr(3, 2), 16), b = parseInt(hex.substr(5, 2), 16);
+        return (0.299 * r + 0.587 * g + 0.114 * b) > 175;
+    }
+
     if (!API_KEY || !BASE_URL) {
         console.error('[EazyAutomotive] taxatie: data-api-key en data-base-url zijn vereist.');
         return;
@@ -56,10 +64,12 @@
         var cardRadius = (CFG.radius != null) ? Math.max(8, CFG.radius) : 18;
         var inputRadius = (CFG.radius != null) ? Math.min(CFG.radius, 14) : 10;
         var font = CFG._font || SYSTEM_FONT;
+        var cardShadow = SHADOWS[CFG.card_shadow] || SHADOWS.none;
+        var cardBg = isLightHex(CFG.card_bg_color) ? CFG.card_bg_color : '#fff';
         return '' +
             ':host{all:initial}' +
             '*{box-sizing:border-box;font-family:' + font + '}' +
-            '.ea-card{max-width:520px;background:#fff;border:1px solid rgba(15,23,42,.08);border-radius:' + cardRadius + 'px;padding:24px;box-shadow:0 10px 30px rgba(15,23,42,.06);color:#1f2937;animation:ea-in .25s ease}' +
+            '.ea-card{max-width:520px;background:' + cardBg + ';border:1px solid rgba(15,23,42,.08);border-radius:' + cardRadius + 'px;padding:24px;box-shadow:' + cardShadow + ';color:#1f2937;animation:ea-in .25s ease}' +
             '.ea-badge{width:42px;height:42px;border-radius:13px;background:' + color + '1a;color:' + color + ';display:flex;align-items:center;justify-content:center;margin-bottom:12px}' +
             '.ea-h{font-size:19px;font-weight:800;margin:0 0 4px;color:#111827}' +
             '.ea-sub{font-size:13px;color:#6b7280;margin:0 0 18px}' +

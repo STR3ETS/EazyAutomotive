@@ -36,6 +36,8 @@ class TaxatieEmbedController extends Controller
             'primary_color' => $s['primary_color'] ?? '#0F9B9F',
             'font_family' => $s['font_family'] ?? null,
             'radius' => isset($s['card_border_radius']) ? (int) $s['card_border_radius'] : null,
+            'card_shadow' => $s['card_shadow'] ?? 'none',
+            'card_bg_color' => $s['card_bg_color'] ?? '#ffffff',
         ]);
     }
 
