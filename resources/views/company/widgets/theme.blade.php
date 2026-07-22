@@ -6,7 +6,7 @@
     @endphp
 
     <style>
-        .pv-root { --p:#0F9B9F; --cardbg:#fff; --radius:12px; --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; --shadow:none; }
+        .pv-root { --p:#0F9B9F; --cardbg:#fff; --radius:12px; --font:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif; --shadow:none; --title:#111827; --labelbg:#f3f4f6; --labeltext:#4b5563; --labelborder:#d1d5db; }
         .pv-grid { display:grid; grid-template-columns:repeat(2,1fr); gap:12px; }
         .pv-card { background:var(--cardbg); border:1px solid #eef1f4; border-radius:var(--radius); overflow:hidden; box-shadow:var(--shadow); transition:transform .18s, box-shadow .18s; font-family:var(--font); }
         .pv-root[data-hover="lift"] .pv-card:hover { transform:translateY(-4px); box-shadow:0 12px 30px rgba(0,0,0,.12); }
@@ -15,13 +15,13 @@
         .pv-root[data-hover="glow"] .pv-card:hover { box-shadow:0 0 20px var(--p); }
         .pv-img { height:120px; background:linear-gradient(135deg,#dfe7e9,#c4d3d6); display:flex; align-items:center; justify-content:center; color:#8aa1a4; font-size:11px; }
         .pv-body { padding:12px; }
-        .pv-title { font-size:13px; font-weight:700; color:#111827; font-family:var(--font); }
+        .pv-title { font-size:13px; font-weight:700; color:var(--title); font-family:var(--font); }
         .pv-price { font-size:17px; font-weight:800; color:var(--p); margin-top:2px; font-family:var(--font); }
         .pv-labels { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
-        .pv-label { font-size:11px; display:inline-flex; align-items:center; gap:4px; color:#4b5563; }
-        .pv-root[data-label="badge"] .pv-label { background:#f3f4f6; padding:3px 8px; border-radius:5px; }
-        .pv-root[data-label="pill"] .pv-label { background:#f3f4f6; padding:3px 10px; border-radius:9999px; }
-        .pv-root[data-label="outline"] .pv-label { border:1px solid #d1d5db; padding:3px 8px; border-radius:6px; }
+        .pv-label { font-size:11px; display:inline-flex; align-items:center; gap:4px; color:var(--labeltext); }
+        .pv-root[data-label="badge"] .pv-label { background:var(--labelbg); padding:3px 8px; border-radius:5px; }
+        .pv-root[data-label="pill"] .pv-label { background:var(--labelbg); padding:3px 10px; border-radius:9999px; }
+        .pv-root[data-label="outline"] .pv-label { border:1px solid var(--labelborder); padding:3px 8px; border-radius:6px; }
         .pv-root[data-label="icon-text"] .pv-label { padding:2px 0; }
         .pv-btn { margin-top:12px; display:inline-block; background:var(--p); color:#fff; font-size:12px; font-weight:700; padding:8px 14px; border-radius:9999px; font-family:var(--font); }
         .ctl-label { display:block; font-size:11px; font-weight:700; color:#215558; opacity:.8; text-transform:uppercase; letter-spacing:.04em; margin-bottom:6px; }
@@ -197,14 +197,25 @@
             return "'" + name + "',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif";
         }
         function fld(name) { return document.getElementById('designForm').elements[name]; }
+        function pvIsLight(hex) {
+            if (!/^#[0-9A-Fa-f]{6}$/.test(String(hex||''))) return true;
+            var r=parseInt(hex.substr(1,2),16), g=parseInt(hex.substr(3,2),16), b=parseInt(hex.substr(5,2),16);
+            return (0.299*r+0.587*g+0.114*b) > 150;
+        }
 
         function updatePreview() {
             const root = document.getElementById('pvRoot');
+            const bg = fld('card_bg_color').value;
+            const light = pvIsLight(bg);
             root.style.setProperty('--p', fld('primary_color').value);
-            root.style.setProperty('--cardbg', fld('card_bg_color').value);
+            root.style.setProperty('--cardbg', bg);
             root.style.setProperty('--radius', fld('card_border_radius').value + 'px');
             root.style.setProperty('--shadow', PV_SHADOWS[fld('card_shadow').value] || 'none');
             root.style.setProperty('--font', pvFont(fld('font_family').value));
+            root.style.setProperty('--title', light ? '#111827' : '#f8fafc');
+            root.style.setProperty('--labelbg', light ? '#f3f4f6' : 'rgba(255,255,255,.10)');
+            root.style.setProperty('--labeltext', light ? '#4b5563' : '#e5e7eb');
+            root.style.setProperty('--labelborder', light ? '#d1d5db' : 'rgba(255,255,255,.28)');
             root.dataset.hover = fld('hover_effect').value;
             root.dataset.label = fld('label_style').value;
         }

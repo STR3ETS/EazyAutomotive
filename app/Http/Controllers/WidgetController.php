@@ -19,14 +19,17 @@ use Illuminate\Http\Request;
  */
 class WidgetController extends Controller
 {
-    /** Kant-en-klare thema's; elk zet in één klik de belangrijkste stijlopties. */
+    /**
+     * Kant-en-klare thema's; elk zet in één klik de belangrijkste stijlopties.
+     * Bewust markant verschillend in kleur, hoeken, schaduw en labelstijl.
+     */
     public const THEMES = [
-        ['id' => 'modern', 'naam' => 'Strak modern', 'primary_color' => '#0F9B9F', 'card_border_radius' => 14, 'card_shadow' => 'md', 'hover_effect' => 'lift', 'label_style' => 'pill', 'font_family' => 'Inter', 'card_bg_color' => '#ffffff'],
-        ['id' => 'zacht', 'naam' => 'Zacht & rond', 'primary_color' => '#6366f1', 'card_border_radius' => 22, 'card_shadow' => 'lg', 'hover_effect' => 'scale', 'label_style' => 'badge', 'font_family' => 'Poppins', 'card_bg_color' => '#ffffff'],
-        ['id' => 'minimal', 'naam' => 'Minimalistisch', 'primary_color' => '#111827', 'card_border_radius' => 4, 'card_shadow' => 'none', 'hover_effect' => 'none', 'label_style' => 'outline', 'font_family' => 'system', 'card_bg_color' => '#ffffff'],
-        ['id' => 'warm', 'naam' => 'Warm', 'primary_color' => '#ea580c', 'card_border_radius' => 16, 'card_shadow' => 'sm', 'hover_effect' => 'shadow', 'label_style' => 'pill', 'font_family' => 'Lato', 'card_bg_color' => '#fffaf5'],
-        ['id' => 'zakelijk', 'naam' => 'Zakelijk blauw', 'primary_color' => '#2563eb', 'card_border_radius' => 8, 'card_shadow' => 'md', 'hover_effect' => 'lift', 'label_style' => 'badge', 'font_family' => 'Roboto', 'card_bg_color' => '#ffffff'],
-        ['id' => 'premium', 'naam' => 'Donker premium', 'primary_color' => '#0f766e', 'card_border_radius' => 12, 'card_shadow' => 'lg', 'hover_effect' => 'glow', 'label_style' => 'pill', 'font_family' => 'Montserrat', 'card_bg_color' => '#0b1220'],
+        ['id' => 'modern', 'naam' => 'Strak modern', 'primary_color' => '#0F9B9F', 'card_bg_color' => '#ffffff', 'card_border_radius' => 14, 'card_shadow' => 'md', 'hover_effect' => 'lift', 'label_style' => 'pill', 'font_family' => 'Inter'],
+        ['id' => 'rond', 'naam' => 'Zacht & rond', 'primary_color' => '#7c6bf5', 'card_bg_color' => '#ffffff', 'card_border_radius' => 26, 'card_shadow' => 'lg', 'hover_effect' => 'scale', 'label_style' => 'badge', 'font_family' => 'Poppins'],
+        ['id' => 'strak', 'naam' => 'Strak minimal', 'primary_color' => '#111827', 'card_bg_color' => '#ffffff', 'card_border_radius' => 0, 'card_shadow' => 'none', 'hover_effect' => 'none', 'label_style' => 'outline', 'font_family' => 'system'],
+        ['id' => 'warm', 'naam' => 'Warm & zonnig', 'primary_color' => '#f97316', 'card_bg_color' => '#fff7ed', 'card_border_radius' => 18, 'card_shadow' => 'sm', 'hover_effect' => 'shadow', 'label_style' => 'pill', 'font_family' => 'Lato'],
+        ['id' => 'premium', 'naam' => 'Donker premium', 'primary_color' => '#2dd4bf', 'card_bg_color' => '#0f172a', 'card_border_radius' => 12, 'card_shadow' => 'lg', 'hover_effect' => 'glow', 'label_style' => 'pill', 'font_family' => 'Montserrat'],
+        ['id' => 'blauw', 'naam' => 'Fris blauw', 'primary_color' => '#2563eb', 'card_bg_color' => '#ffffff', 'card_border_radius' => 8, 'card_shadow' => 'md', 'hover_effect' => 'lift', 'label_style' => 'badge', 'font_family' => 'Roboto'],
     ];
 
     public function index(Request $request)
@@ -81,9 +84,33 @@ class WidgetController extends Controller
             'label_style' => 'nullable|in:badge,outline,icon-text,pill',
         ]);
 
+        // Leesbare tekstkleuren afleiden uit de gekozen kaartachtergrond, zodat
+        // een donker thema wél leesbaar is (lichte tekst op donkere kaart).
+        $light = $this->isLightColor($validated['card_bg_color'] ?? '#ffffff');
+        $validated['title_color'] = $light ? '#111827' : '#f8fafc';
+        $validated['label_bg_color'] = $light ? '#f3f4f6' : '#1f2a37';
+        $validated['label_text_color'] = $light ? '#4b5563' : '#d1d5db';
+        $validated['card_border_color'] = $light ? '#e5e7eb' : '#243040';
+        $validated['detail_title_color'] = $validated['title_color'];
+        $validated['detail_desc_color'] = $light ? '#6b7280' : '#cbd5e1';
+
         $this->mergeSettings($request, $validated);
 
         return redirect()->route('widgets.theme')->with('success', 'Huisstijl opgeslagen! Dit geldt voor al je widgets.');
+    }
+
+    /** Is deze achtergrondkleur licht genoeg voor donkere tekst? */
+    private function isLightColor(string $hex): bool
+    {
+        if (! preg_match('/^#[0-9A-Fa-f]{6}$/', $hex)) {
+            return true;
+        }
+
+        $r = hexdec(substr($hex, 1, 2));
+        $g = hexdec(substr($hex, 3, 2));
+        $b = hexdec(substr($hex, 5, 2));
+
+        return (0.299 * $r + 0.587 * $g + 0.114 * $b) > 150;
     }
 
     /** Opslaan van de voorraadwidget: alleen layout en zichtbaarheid. */

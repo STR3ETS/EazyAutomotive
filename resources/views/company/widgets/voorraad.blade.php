@@ -12,6 +12,12 @@
         $label = $val('label_style', 'badge');
         $font = $val('font_family', 'system');
         $fontStack = in_array($font, $googleFonts) ? "'{$font}',-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif" : "-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,sans-serif";
+        $rgb = sscanf($cardbg, '#%02x%02x%02x');
+        $lightBg = $rgb ? (0.299 * $rgb[0] + 0.587 * $rgb[1] + 0.114 * $rgb[2]) > 150 : true;
+        $titleColor = $lightBg ? '#111827' : '#f8fafc';
+        $labelBg = $lightBg ? '#f3f4f6' : 'rgba(255,255,255,.10)';
+        $labelText = $lightBg ? '#4b5563' : '#e5e7eb';
+        $labelBorder = $lightBg ? '#d1d5db' : 'rgba(255,255,255,.28)';
     @endphp
 
     @if(in_array($font, $googleFonts))
@@ -28,13 +34,13 @@
         @endif
         .pv-img { background:linear-gradient(135deg,#dfe7e9,#c4d3d6); display:flex; align-items:center; justify-content:center; color:#8aa1a4; font-size:11px; }
         .pv-body { padding:12px; }
-        .pv-title { font-size:13px; font-weight:700; color:#111827; font-family:{{ $fontStack }}; }
+        .pv-title { font-size:13px; font-weight:700; color:{{ $titleColor }}; font-family:{{ $fontStack }}; }
         .pv-price { font-size:17px; font-weight:800; color:{{ $primary }}; margin-top:2px; font-family:{{ $fontStack }}; }
         .pv-labels { display:flex; flex-wrap:wrap; gap:6px; margin-top:10px; }
-        .pv-label { font-size:11px; display:inline-flex; align-items:center; gap:4px; color:#4b5563;
-            @if($label==='badge') background:#f3f4f6; padding:3px 8px; border-radius:5px;
-            @elseif($label==='pill') background:#f3f4f6; padding:3px 10px; border-radius:9999px;
-            @elseif($label==='outline') border:1px solid #d1d5db; padding:3px 8px; border-radius:6px;
+        .pv-label { font-size:11px; display:inline-flex; align-items:center; gap:4px; color:{{ $labelText }};
+            @if($label==='badge') background:{{ $labelBg }}; padding:3px 8px; border-radius:5px;
+            @elseif($label==='pill') background:{{ $labelBg }}; padding:3px 10px; border-radius:9999px;
+            @elseif($label==='outline') border:1px solid {{ $labelBorder }}; padding:3px 8px; border-radius:6px;
             @endif }
         .ctl-label { display:block; font-size:11px; font-weight:700; color:#215558; opacity:.8; text-transform:uppercase; letter-spacing:.04em; margin-bottom:6px; }
         .ctl-card { background:#fff; border:1px solid rgba(33,85,88,.1); border-radius:16px; padding:20px; }
