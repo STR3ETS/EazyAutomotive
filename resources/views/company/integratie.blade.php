@@ -187,6 +187,33 @@
                 </div>
             </div>
 
+            {{-- Inruil-taxatiewidget --}}
+            <div class="bg-white rounded-2xl border border-[#215558]/10 p-6 relative overflow-hidden mb-6">
+                <div class="flex items-center gap-3 mb-4 pb-4 border-b border-[#215558]/5">
+                    <div class="w-9 h-9 rounded-xl bg-eazy-50 flex items-center justify-center">
+                        <i class="fa-solid fa-right-left text-eazy text-sm"></i>
+                    </div>
+                    <div>
+                        <h3 class="text-sm font-bold text-[#215558]">Inruil-taxatiewidget</h3>
+                        <p class="text-xs text-[#215558] opacity-50">Bezoeker vult een kenteken in en krijgt direct een inruilindicatie</p>
+                    </div>
+                </div>
+                <p class="text-xs text-[#215558] opacity-60 mb-4 leading-relaxed">De bezoeker voert kenteken en kilometerstand in en ziet meteen een indicatieve inruilwaarde op basis van live marktdata. Laat hij zijn gegevens achter, dan komt het als inruil-lead met de taxatie binnen onder <a href="{{ route('leads.index') }}" class="text-eazy font-semibold underline">Leads</a>.</p>
+                <div class="relative">
+                    <pre class="bg-gray-900 text-green-400 rounded-xl p-4 text-xs overflow-x-auto leading-relaxed" id="taxatieCode">&lt;!-- EazyAutomotive Inruil-taxatiewidget --&gt;
+&lt;div id="eazy-taxatie"&gt;&lt;/div&gt;
+&lt;script
+  src="{{ url('/embed/v1/taxatie.js') }}"
+  data-api-key="{{ $company->api_key }}"
+  data-base-url="{{ url('/') }}"
+  defer&gt;
+&lt;/script&gt;</pre>
+                    <button onclick="copyTaxatieCode()" class="cursor-pointer absolute top-3 right-3 inline-flex items-center gap-1.5 px-3 py-1.5 bg-gray-700 text-gray-300 rounded-lg text-xs hover:bg-gray-600 transition" id="copyTaxatieBtn">
+                        <i class="fa-regular fa-copy"></i> Kopieer
+                    </button>
+                </div>
+            </div>
+
             {{-- API Key Section --}}
             <div class="bg-white rounded-2xl border border-[#215558]/10 p-6 relative overflow-hidden mb-6">
                 <div class="flex items-center gap-3 mb-4 pb-4 border-b border-[#215558]/5">
@@ -264,6 +291,14 @@
             const code = document.getElementById('leadCode').textContent;
             navigator.clipboard.writeText(code.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&'));
             const btn = document.getElementById('copyLeadBtn');
+            btn.innerHTML = '<i class="fa-solid fa-check"></i> Gekopieerd!';
+            setTimeout(() => btn.innerHTML = '<i class="fa-regular fa-copy"></i> Kopieer', 2000);
+        }
+
+        function copyTaxatieCode() {
+            const code = document.getElementById('taxatieCode').textContent;
+            navigator.clipboard.writeText(code.replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&amp;/g, '&'));
+            const btn = document.getElementById('copyTaxatieBtn');
             btn.innerHTML = '<i class="fa-solid fa-check"></i> Gekopieerd!';
             setTimeout(() => btn.innerHTML = '<i class="fa-regular fa-copy"></i> Kopieer', 2000);
         }

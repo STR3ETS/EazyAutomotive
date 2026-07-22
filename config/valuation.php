@@ -12,6 +12,11 @@ return [
     // Uitschakelen kan met MARKET_LIVE_LOOKUP=false.
     'live_lookup' => (bool) env('MARKET_LIVE_LOOKUP', true),
 
+    // Inruilindicatie voor de taxatie-widget: de marktwaarde is een VRAAGprijs
+    // (retail). Een inruilwaarde ligt daaronder. Dit is de factor van retail naar
+    // inruil (0.85 = inruil ligt ~15% onder de marktvraagprijs).
+    'inruil_factor' => (float) env('MARKET_INRUIL_FACTOR', 0.85),
+
     // Listings not refreshed within this window are pruned, so the data stays live
     // (sold or removed cars drop out).
     'freshness_days' => (int) env('MARKET_FRESHNESS_DAYS', 90),

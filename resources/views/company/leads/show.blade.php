@@ -69,6 +69,41 @@
                         @endif
                     </div>
 
+                    @if(!empty($lead->data['inruil']))
+                        @php $inr = $lead->data['inruil']; $vt = $inr['voertuig'] ?? []; $tx = $inr['taxatie'] ?? []; @endphp
+                        <div class="bg-white rounded-2xl border border-[#215558]/10 p-6">
+                            <h3 class="text-sm font-bold text-[#215558] mb-4 flex items-center gap-2"><i class="fa-solid fa-right-left text-eazy"></i> Inruilauto</h3>
+                            <dl class="space-y-3 text-sm">
+                                <div class="flex items-center justify-between py-1 border-b border-[#215558]/5">
+                                    <dt class="text-[#215558] opacity-50">Kenteken</dt>
+                                    <dd class="font-semibold text-[#215558] uppercase tracking-wider">{{ $inr['kenteken'] ?? '-' }}</dd>
+                                </div>
+                                <div class="flex items-center justify-between py-1 border-b border-[#215558]/5">
+                                    <dt class="text-[#215558] opacity-50">Voertuig</dt>
+                                    <dd class="font-semibold text-[#215558]">{{ trim(($vt['merk'] ?? '') . ' ' . ($vt['model'] ?? '')) ?: '-' }}@if(!empty($vt['bouwjaar'])) ({{ $vt['bouwjaar'] }})@endif</dd>
+                                </div>
+                                <div class="flex items-center justify-between py-1 {{ !empty($vt['brandstof']) ? 'border-b border-[#215558]/5' : '' }}">
+                                    <dt class="text-[#215558] opacity-50">Kilometerstand</dt>
+                                    <dd class="font-semibold text-[#215558]">{{ !empty($inr['kilometerstand']) ? number_format($inr['kilometerstand'], 0, ',', '.') . ' km' : 'onbekend' }}</dd>
+                                </div>
+                                @if(!empty($vt['brandstof']))
+                                    <div class="flex items-center justify-between py-1">
+                                        <dt class="text-[#215558] opacity-50">Brandstof</dt>
+                                        <dd class="font-semibold text-[#215558]">{{ $vt['brandstof'] }}</dd>
+                                    </div>
+                                @endif
+                            </dl>
+                            @if(!empty($tx['beschikbaar']))
+                                <div class="mt-4 p-4 rounded-xl bg-eazy-50 text-center">
+                                    <p class="text-[10px] font-bold uppercase tracking-wider text-eazy-dark mb-1">Indicatieve inruilwaarde</p>
+                                    <p class="text-2xl font-black text-[#215558]">&euro; {{ number_format($tx['midden'], 0, ',', '.') }}</p>
+                                    <p class="text-xs text-[#215558] opacity-60 mt-1">tussen &euro; {{ number_format($tx['onder'], 0, ',', '.') }} en &euro; {{ number_format($tx['boven'], 0, ',', '.') }}</p>
+                                    <p class="text-[10px] text-[#215558] opacity-40 mt-1">Bron: {{ ($tx['bron'] ?? '') === 'marktplaats' ? 'live marktdata' : ($tx['bron'] ?? 'schatting') }} &middot; betrouwbaarheid {{ $tx['vertrouwen'] ?? 'laag' }}</p>
+                                </div>
+                            @endif
+                        </div>
+                    @endif
+
                     <div class="flex items-center gap-2">
                         @if($lead->email)<a href="mailto:{{ $lead->email }}" class="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-eazy text-white rounded-full text-sm font-bold hover:bg-eazy-dark transition"><i class="fa-solid fa-envelope text-xs"></i> Mailen</a>@endif
                         @if($lead->telefoon)<a href="tel:{{ $lead->telefoon }}" class="cursor-pointer inline-flex items-center gap-2 px-4 py-2 bg-[#215558] text-white rounded-full text-sm font-bold hover:bg-eazy-darker transition"><i class="fa-solid fa-phone text-xs"></i> Bellen</a>@endif

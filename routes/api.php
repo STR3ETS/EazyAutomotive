@@ -3,6 +3,7 @@
 use App\Http\Controllers\Api\EmbedApiController;
 use App\Http\Controllers\Api\LeadEmbedController;
 use App\Http\Controllers\Api\ProefritEmbedController;
+use App\Http\Controllers\Api\TaxatieEmbedController;
 use Illuminate\Support\Facades\Route;
 
 // Public embed API - authenticated via API key header/query parameter
@@ -18,4 +19,9 @@ Route::prefix('embed/v1')->middleware('embed.api')->group(function () {
     // Contact / inruil / financiering form -> CRM lead
     Route::get('/lead/config', [LeadEmbedController::class, 'config']);
     Route::post('/lead', [LeadEmbedController::class, 'store'])->middleware('throttle:15,1');
+
+    // Inruil-taxatiewidget: kenteken -> live inruilindicatie -> lead
+    Route::get('/taxatie/config', [TaxatieEmbedController::class, 'config']);
+    Route::post('/taxatie', [TaxatieEmbedController::class, 'estimate'])->middleware('throttle:20,1');
+    Route::post('/taxatie/lead', [TaxatieEmbedController::class, 'lead'])->middleware('throttle:15,1');
 });
