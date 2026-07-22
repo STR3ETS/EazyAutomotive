@@ -123,23 +123,11 @@ class LiveMarketLookup
 
     /**
      * Zet RDW-modelnamen om naar wat op de Nederlandse markt gangbaar is, zodat
-     * de zoekopdracht op Marktplaats aanslaat. De RDW gebruikt vaak Duitse namen:
-     *   "3ER REIHE" -> "3-serie" (BMW), "C-KLASSE" -> "C-klasse" (Mercedes).
+     * de zoekopdracht op Marktplaats aanslaat (gedeeld met de weergave).
      */
     private function queryModel(?string $model): string
     {
-        $m = trim((string) $model);
-        if ($m === '') {
-            return '';
-        }
-        if (preg_match('/^(\d)\s*ER\s+REIHE\b/i', $m, $mm)) {
-            return $mm[1] . '-serie';
-        }
-        if (preg_match('/^([A-Za-z]{1,3})[\s-]*KLASSE\b/i', $m, $mm)) {
-            return strtoupper($mm[1]) . '-klasse';
-        }
-
-        return $m;
+        return \App\Services\RdwService::friendlyModel($model);
     }
 
     /**

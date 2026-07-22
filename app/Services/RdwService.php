@@ -69,6 +69,27 @@ class RdwService
     }
 
     /**
+     * Nette, in Nederland gangbare modelnaam. De RDW gebruikt vaak Duitse namen:
+     *   "3ER REIHE" -> "3-serie" (BMW), "C-KLASSE" -> "C-klasse" (Mercedes).
+     * Andere modelnamen blijven zoals de RDW ze levert.
+     */
+    public static function friendlyModel(?string $model): string
+    {
+        $m = trim((string) $model);
+        if ($m === '') {
+            return '';
+        }
+        if (preg_match('/^(\d)\s*ER\s+REIHE\b/i', $m, $mm)) {
+            return $mm[1] . '-serie';
+        }
+        if (preg_match('/^([A-Za-z]{1,3})[\s-]*KLASSE\b/i', $m, $mm)) {
+            return strtoupper($mm[1]) . '-klasse';
+        }
+
+        return $m;
+    }
+
+    /**
      * Map raw RDW data to our Car model fields.
      */
     public function mapToCarAttributes(array $rdwData): array

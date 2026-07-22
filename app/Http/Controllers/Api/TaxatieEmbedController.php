@@ -145,7 +145,7 @@ class TaxatieEmbedController extends Controller
         $voertuig = [
             'kenteken' => $attrs['kenteken'] ?? $this->rdw->normalizeKenteken($kenteken),
             'merk' => $attrs['merk'] ?? null,
-            'model' => $attrs['handelsbenaming'] ?? null,
+            'model' => RdwService::friendlyModel($attrs['handelsbenaming'] ?? '') ?: null,
             'bouwjaar' => $attrs['bouwjaar'] ?? null,
             'brandstof' => $attrs['brandstof_omschrijving'] ?? null,
         ];

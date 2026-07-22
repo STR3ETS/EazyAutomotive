@@ -52,7 +52,7 @@ class RdwReportService
             'kenteken' => strtoupper($plate),
             'kenteken_raw' => $plate,
             'opgehaald_op' => now()->format('d-m-Y H:i'),
-            'titel' => trim(($voertuig['merk'] ?? '') . ' ' . ($voertuig['handelsbenaming'] ?? '')) ?: 'Onbekend voertuig',
+            'titel' => trim(($voertuig['merk'] ?? '') . ' ' . RdwService::friendlyModel($voertuig['handelsbenaming'] ?? '')) ?: 'Onbekend voertuig',
             'kerngegevens' => $this->coreData($voertuig),
             'motor' => $this->engine($voertuig, $brandstof),
             'afmetingen' => $this->dimensions($voertuig, $assen),
@@ -100,7 +100,7 @@ class RdwReportService
     {
         return $this->clean([
             'Merk' => $v['merk'] ?? null,
-            'Model' => $v['handelsbenaming'] ?? null,
+            'Model' => RdwService::friendlyModel($v['handelsbenaming'] ?? '') ?: null,
             'Voertuigsoort' => $v['voertuigsoort'] ?? null,
             'Carrosserie' => $v['inrichting'] ?? null,
             'Voertuigcategorie' => $v['europese_voertuigcategorie'] ?? null,
