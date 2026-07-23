@@ -27,6 +27,17 @@
             <span>Dashboard</span>
         </a>
 
+        {{-- Inzichten: alleen eigenaar/beheerder (analytics-gebied) --}}
+        @if(Auth::user()->hasArea('analytics'))
+            @php $analyticsActive = request()->routeIs('analytics.*'); @endphp
+            <a href="{{ route('analytics.index') }}" @click="sidebarOpen = false" data-tour="nav-analytics"
+               class="flex items-center gap-3 px-3 py-2 mt-0.5 rounded-xl text-sm font-semibold transition-colors
+                      {{ $analyticsActive ? 'bg-eazy-50 text-eazy-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800' }}">
+                <span class="w-6 flex justify-center"><i class="fa-solid fa-chart-line text-sm {{ $analyticsActive ? 'text-eazy' : 'text-gray-400' }}"></i></span>
+                <span>Inzichten</span>
+            </a>
+        @endif
+
 
         @php
             $groups = [

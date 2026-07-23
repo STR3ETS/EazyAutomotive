@@ -23,7 +23,7 @@ use Illuminate\Database\Eloquent\SoftDeletes;
     'uitlaatemissieniveau', 'wam_verzekerd', 'export_indicator',
     'tellerstandoordeel', 'rdw_raw_data',
     'titel', 'beschrijving', 'prijs', 'prijs_type', 'kilometerstand',
-    'bouwjaar', 'status', 'is_featured', 'extra_opties', 'custom_fields',
+    'bouwjaar', 'status', 'sold_at', 'is_featured', 'extra_opties', 'custom_fields',
 ])]
 class Car extends Model
 {
@@ -35,6 +35,7 @@ class Car extends Model
             'datum_eerste_toelating' => 'date',
             'datum_eerste_tenaamstelling_in_nederland' => 'date',
             'vervaldatum_apk' => 'date',
+            'sold_at' => 'datetime',
             'wam_verzekerd' => 'boolean',
             'export_indicator' => 'boolean',
             'is_featured' => 'boolean',
@@ -42,6 +43,32 @@ class Car extends Model
             'extra_opties' => 'array',
             'custom_fields' => 'array',
         ];
+    }
+
+    /**
+     * Houd de verkoopdatum automatisch bij zodra de status naar 'sold' gaat
+     * (en wis hem als een auto weer uit verkocht wordt gehaald), zodat de
+     * doorlooptijd- en verkoop-analyses kloppen zonder dat elke plek die de
+     * status wijzigt daar rekening mee hoeft te houden.
+     */
+    protected static function booted(): void
+    {
+        $syncSoldAt = function (Car $car) {
+            if ($car->status === 'sold') {
+                if (! $car->sold_at) {
+                    $car->sold_at = now();
+                }
+            } elseif ($car->sold_at) {
+                $car->sold_at = null;
+            }
+        };
+
+        static::creating($syncSoldAt);
+        static::updating(function (Car $car) use ($syncSoldAt) {
+            if ($car->isDirty('status')) {
+                $syncSoldAt($car);
+            }
+        });
     }
 
     public function company(): BelongsTo

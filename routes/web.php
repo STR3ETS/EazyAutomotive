@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\AiAssistantController;
 use App\Http\Controllers\AiDesignController;
+use App\Http\Controllers\AnalyticsController;
 use App\Http\Controllers\CarCopyController;
 use App\Http\Controllers\CarController;
 use App\Http\Controllers\CarVideoController;
@@ -45,6 +46,9 @@ Route::prefix('feed/v1')->group(function () {
 Route::middleware(['auth', 'verified', 'company.ownership', 'role.area'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
+
+    // Inzichten / analytics (eigenaar & beheerder, afgedwongen via role.area)
+    Route::get('/inzichten', [AnalyticsController::class, 'index'])->name('analytics.index');
 
     // Cars CRUD
     Route::get('/cars/handmatig', [CarController::class, 'createManual'])->name('cars.manual');

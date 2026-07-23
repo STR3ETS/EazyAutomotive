@@ -11,6 +11,7 @@
         @php
             $pageTitle = collect([
                 'dashboard' => 'Dashboard',
+                'analytics.*' => 'Inzichten',
                 'cars.*' => "Auto's",
                 'onderzoek' => 'Onderzoek',
                 'ontwerpen' => 'Ontwerpen',

@@ -53,14 +53,15 @@ class Roles
         'verkoop' => 'Verkoop',
         'klanten' => 'Klanten',
         'administratie' => 'Administratie',
+        'analytics' => 'Inzichten',
         'team' => 'Team',
         'instellingen' => 'Instellingen',
     ];
 
     /** @var array<string,list<string>> role => granted areas */
     private const GRANTS = [
-        'owner' => ['voorraad', 'marketing', 'verkoop', 'klanten', 'administratie', 'team', 'instellingen'],
-        'admin' => ['voorraad', 'marketing', 'verkoop', 'klanten', 'administratie', 'team', 'instellingen'],
+        'owner' => ['voorraad', 'marketing', 'verkoop', 'klanten', 'administratie', 'analytics', 'team', 'instellingen'],
+        'admin' => ['voorraad', 'marketing', 'verkoop', 'klanten', 'administratie', 'analytics', 'team', 'instellingen'],
         'sales' => ['voorraad', 'marketing', 'verkoop', 'klanten'],
         'accountant' => ['administratie', 'klanten'],
     ];
@@ -93,6 +94,8 @@ class Roles
         'invoices' => 'administratie',
         'expenses' => 'administratie',
         'bookkeeping' => 'administratie',
+        // Inzichten
+        'analytics' => 'analytics',
         // Team & instellingen
         'team' => 'team',
         'settings' => 'instellingen',
