@@ -80,7 +80,7 @@
             </div>
         </div>
 
-        @unless(request()->routeIs('ai.page'))
+        @unless(request()->routeIs('dashboard'))
             <x-ai-assistant />
         @endunless
     </body>

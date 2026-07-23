@@ -14,12 +14,6 @@ class AiAssistantController extends Controller
 {
     public function __construct(private AiAgent $agent) {}
 
-    /** Volledige AI-collega werkplek (prominente pagina). */
-    public function page(Request $request)
-    {
-        return view('company.ai.index');
-    }
-
     public function send(Request $request)
     {
         $validated = $request->validate([

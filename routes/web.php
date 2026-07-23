@@ -163,7 +163,6 @@ Route::middleware(['auth', 'verified', 'company.ownership'])->group(function () 
     Route::post('/publiceren/unpublish/{publication}', [PublicerenController::class, 'unpublishCar'])->name('publiceren.unpublish');
 
     // AI-collega: chat + autonome acties met activiteitenlog/undo
-    Route::get('/ai', [AiAssistantController::class, 'page'])->name('ai.page');
     Route::post('/ai/chat', [AiAssistantController::class, 'send'])->name('ai.send');
     Route::post('/ai/activity/{activity}/undo', [AiAssistantController::class, 'undo'])->name('ai.undo');
 });

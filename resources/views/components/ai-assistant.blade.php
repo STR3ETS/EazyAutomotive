@@ -18,8 +18,8 @@
                 </svg>
             </div>
             <div class="flex-1 min-w-0">
-                <div class="text-sm font-bold leading-tight">AI-collega</div>
-                <div class="text-[11px] text-eazy-50">Vraag het, of laat het regelen</div>
+                <div class="text-sm font-bold leading-tight">{{ config('ai.name', 'Sam') }}</div>
+                <div class="text-[11px] text-eazy-50">je AI-collega</div>
             </div>
             <button type="button" @click="open = false" class="cursor-pointer w-7 h-7 flex items-center justify-center rounded-lg hover:bg-white/15 transition" aria-label="Sluiten">
                 <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
@@ -32,7 +32,7 @@
         <div x-ref="scroll" class="flex-1 overflow-y-auto px-4 py-4 space-y-3 bg-[#f4faf9]">
             <template x-if="messages.length === 0">
                 <div class="text-center text-xs text-muted py-6 px-2">
-                    <p class="font-semibold text-eazy-darker mb-1">Hoi! Ik ben je AI-collega.</p>
+                    <p class="font-semibold text-eazy-darker mb-1">Hoi! Ik ben {{ config('ai.name', 'Sam') }}, je AI-collega.</p>
                     <p>Probeer bijvoorbeeld: <span class="font-medium text-eazy-dark">"Voeg de auto met kenteken 12-ABC-3 toe"</span> of <span class="font-medium text-eazy-dark">"Hoeveel auto's staan er actief?"</span></p>
                 </div>
             </template>

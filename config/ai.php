@@ -4,6 +4,9 @@ return [
     // Anthropic API key (already present in .env as ANTHROPIC_API_KEY).
     'api_key' => env('ANTHROPIC_API_KEY'),
 
+    // De naam van de AI-collega (te wijzigen via AI_NAME in .env).
+    'name' => env('AI_NAME', 'Sam'),
+
     'models' => [
         // The reasoning/acting brain.
         'brain' => env('AI_MODEL_BRAIN', 'claude-opus-4-8'),
