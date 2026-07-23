@@ -10,6 +10,7 @@ use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FeedController;
 use App\Http\Controllers\LeadController;
 use App\Http\Controllers\OnboardingController;
+use App\Http\Controllers\ProactiveController;
 use App\Http\Controllers\ProefritController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\BedrijfsvoorraadController;
@@ -165,6 +166,9 @@ Route::middleware(['auth', 'verified', 'company.ownership'])->group(function () 
     // AI-collega: chat + autonome acties met activiteitenlog/undo
     Route::post('/ai/chat', [AiAssistantController::class, 'send'])->name('ai.send');
     Route::post('/ai/activity/{activity}/undo', [AiAssistantController::class, 'undo'])->name('ai.undo');
+    // Proactieve suggesties van de AI-collega (dashboard)
+    Route::post('/ai/suggestie/uitvoeren', [ProactiveController::class, 'act'])->name('proactive.act');
+    Route::post('/ai/suggestie/negeren', [ProactiveController::class, 'dismiss'])->name('proactive.dismiss');
 });
 
 // Profile routes (from Breeze)

@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Car;
 use App\Models\CarView;
+use App\Services\AI\SuggestionEngine;
 use Illuminate\Http\Request;
 
 class DashboardController extends Controller
@@ -35,6 +36,10 @@ class DashboardController extends Controller
             ->get();
 
         $user = $request->user();
+
+        // Proactieve suggesties van Sam (de AI-collega).
+        $suggestions = app(SuggestionEngine::class)->forCompany($companyId, $user->id);
+
         $showTutorial = is_null($user->onboarding_completed_at);
 
         if ($showTutorial) {
@@ -44,6 +49,6 @@ class DashboardController extends Controller
             $user->forceFill(['onboarding_completed_at' => now()])->save();
         }
 
-        return view('dashboard', compact('stats', 'recentCars', 'popularCars', 'showTutorial'));
+        return view('dashboard', compact('stats', 'recentCars', 'popularCars', 'showTutorial', 'suggestions'));
     }
 }

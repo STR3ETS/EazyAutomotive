@@ -110,6 +110,51 @@
                 </div>
             </div>
 
+            {{-- Sam denkt met je mee (proactieve suggesties) --}}
+            @if(!empty($suggestions))
+                <div class="mb-8" x-data="samSuggest({ actUrl: @js(route('proactive.act')), dismissUrl: @js(route('proactive.dismiss')), csrf: @js(csrf_token()), items: @js($suggestions) })">
+                    <div class="flex items-center gap-2 mb-3">
+                        <i class="fa-solid fa-lightbulb text-eazy"></i>
+                        <h2 class="text-sm font-black text-[#215558]">{{ config('ai.name', 'Sam') }} denkt met je mee</h2>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                        <template x-for="s in items" :key="s.key">
+                            <div class="bg-white rounded-2xl border border-[#215558]/10 p-4">
+                                <div class="flex items-start gap-3">
+                                    <div class="w-9 h-9 rounded-lg flex items-center justify-center shrink-0" :class="s.iconBg">
+                                        <i class="fa-solid text-xs" :class="[s.icon, s.iconColor]"></i>
+                                    </div>
+                                    <div class="flex-1 min-w-0">
+                                        <p class="text-sm font-bold text-[#215558]" x-text="s.titel"></p>
+                                        <p class="text-xs text-[#215558] opacity-60 mt-0.5 leading-relaxed" x-text="s.tekst"></p>
+
+                                        <template x-if="results[s.key]">
+                                            <p class="mt-2.5 text-xs font-semibold text-emerald-600"><i class="fa-solid fa-circle-check mr-1"></i><span x-text="results[s.key]"></span></p>
+                                        </template>
+
+                                        <template x-if="!results[s.key]">
+                                            <div class="flex items-center gap-2 mt-2.5">
+                                                <template x-if="s.actie.type === 'run'">
+                                                    <button type="button" @click="act(s)" :disabled="busy === s.key"
+                                                        class="cursor-pointer inline-flex items-center gap-1.5 px-3 py-1.5 bg-eazy text-white rounded-full text-xs font-bold hover:bg-eazy-dark disabled:opacity-50 transition">
+                                                        <i class="fa-solid text-[10px]" :class="busy === s.key ? 'fa-spinner fa-spin' : 'fa-wand-magic-sparkles'"></i>
+                                                        <span x-text="busy === s.key ? 'Bezig...' : s.actie.label"></span>
+                                                    </button>
+                                                </template>
+                                                <template x-if="s.actie.type === 'link'">
+                                                    <a :href="s.actie.url" class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-[#215558]/5 text-[#215558] rounded-full text-xs font-bold hover:bg-[#215558]/10 transition"><span x-text="s.actie.label"></span> <i class="fa-solid fa-arrow-right text-[9px]"></i></a>
+                                                </template>
+                                                <button type="button" @click="dismiss(s)" class="cursor-pointer text-xs text-[#215558]/40 hover:text-[#215558]/70 ml-auto">Negeren</button>
+                                            </div>
+                                        </template>
+                                    </div>
+                                </div>
+                            </div>
+                        </template>
+                    </div>
+                </div>
+            @endif
+
             {{-- Quick Actions --}}
             <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-14">
                 <a href="{{ route('cars.create') }}" data-tour="quick-add" class="cursor-pointer group bg-white rounded-2xl border border-[#215558]/10 p-4 relative overflow-hidden flex items-center gap-4 hover:border-eazy/30 transition-all">
@@ -315,6 +360,26 @@
                     } catch (e) {}
                 },
                 scrollDown() { this.$nextTick(() => { const el = this.$refs.scroll; if (el) el.scrollTop = el.scrollHeight; }); },
+            };
+        };
+
+        window.samSuggest = function (cfg) {
+            return {
+                items: cfg.items, busy: null, results: {},
+                async act(s) {
+                    if (this.busy) return;
+                    this.busy = s.key;
+                    try {
+                        const res = await fetch(cfg.actUrl, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': cfg.csrf }, body: JSON.stringify({ key: s.key }) });
+                        const data = await res.json().catch(() => ({}));
+                        this.results[s.key] = res.ok ? (data.message || 'Gedaan.') : (data.error || 'Er ging iets mis.');
+                    } catch (e) { this.results[s.key] = 'Kon de actie niet uitvoeren.'; }
+                    finally { this.busy = null; }
+                },
+                async dismiss(s) {
+                    this.items = this.items.filter(x => x.key !== s.key);
+                    try { await fetch(cfg.dismissUrl, { method: 'POST', headers: { 'Content-Type': 'application/json', 'Accept': 'application/json', 'X-CSRF-TOKEN': cfg.csrf }, body: JSON.stringify({ key: s.key }) }); } catch (e) {}
+                },
             };
         };
     </script>
