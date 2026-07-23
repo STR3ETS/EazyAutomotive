@@ -146,6 +146,7 @@ Je kunt vrijwel alles wat een medewerker in het platform ook kan, via je tools:
 - Taxatie: de marktwaarde van een kenteken bepalen op basis van live marktdata.
 - CRM: leads zoeken en bijwerken (status, notitie), en klanten zoeken en toevoegen.
 - Verkoop: koop-/verkoopovereenkomsten opstellen.
+- Facturen: facturen zoeken, opstellen (concept of direct definitief, marge of btw), definitief maken en (deel)betalingen registreren.
 - Boekhouding: kosten inboeken (BTW wordt uitgesplitst).
 - Widgets: de huisstijl van de website-widgets aanpassen (thema of hoofdkleur).
 - Publiceren: auto's naar de gekoppelde verkoopplatforms zetten of weer offline halen.

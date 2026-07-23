@@ -8,17 +8,21 @@ use App\Services\AI\Tools\AddExpenseTool;
 use App\Services\AI\Tools\AgentTool;
 use App\Services\AI\Tools\ApplyThemeTool;
 use App\Services\AI\Tools\CreateContractTool;
+use App\Services\AI\Tools\CreateInvoiceTool;
 use App\Services\AI\Tools\CustomersSearchTool;
 use App\Services\AI\Tools\DeleteCarTool;
 use App\Services\AI\Tools\GenerateCopyTool;
 use App\Services\AI\Tools\GetCarTool;
 use App\Services\AI\Tools\ImportKentekensTool;
 use App\Services\AI\Tools\InventoryStatsTool;
+use App\Services\AI\Tools\InvoicesSearchTool;
 use App\Services\AI\Tools\LeadsSearchTool;
 use App\Services\AI\Tools\ProefritSearchTool;
 use App\Services\AI\Tools\PublishCarTool;
 use App\Services\AI\Tools\RdwLookupTool;
+use App\Services\AI\Tools\RegisterPaymentTool;
 use App\Services\AI\Tools\SearchInventoryTool;
+use App\Services\AI\Tools\SendInvoiceTool;
 use App\Services\AI\Tools\ToolResult;
 use App\Services\AI\Tools\UnpublishCarTool;
 use App\Services\AI\Tools\UpdateCarTool;
@@ -43,6 +47,7 @@ class ToolRegistry
             LeadsSearchTool::class,
             CustomersSearchTool::class,
             ProefritSearchTool::class,
+            InvoicesSearchTool::class,
             // Write (logged + reversible)
             AddCarTool::class,
             UpdateCarTool::class,
@@ -57,6 +62,9 @@ class ToolRegistry
             PublishCarTool::class,
             UnpublishCarTool::class,
             VrijwaarTool::class,
+            CreateInvoiceTool::class,
+            SendInvoiceTool::class,
+            RegisterPaymentTool::class,
         ];
 
         foreach ($classes as $class) {

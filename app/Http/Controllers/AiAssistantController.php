@@ -114,6 +114,13 @@ class AiAssistantController extends Controller
                 'updated' => $record->forceFill($undo['before'] ?? [])->save(),    // undo wijziging => oude waarden terug
                 default => null,
             };
+
+            // Afgeleide status herberekenen: een teruggedraaide betaling betekent
+            // dat de betaalstatus van de bijbehorende factuur opnieuw moet.
+            if ($model === \App\Models\InvoicePayment::class && $record->invoice_id) {
+                \App\Models\Invoice::where('company_id', $user->company_id)
+                    ->find($record->invoice_id)?->syncPaymentStatus();
+            }
         }
 
         $activity->update(['undone_at' => now()]);
