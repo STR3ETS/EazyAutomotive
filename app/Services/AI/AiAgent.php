@@ -104,7 +104,30 @@ class AiAgent
             $messages[] = ['role' => 'user', 'content' => $resultBlocks];
         }
 
-        return ['reply' => $reply, 'activities' => $activities];
+        return ['reply' => $this->sanitizeReply($reply), 'activities' => $activities];
+    }
+
+    /**
+     * De chat toont platte tekst. Verwijder markdown-opmaak (die anders letterlijk
+     * als sterretjes/hekjes verschijnt) en garandeer de no-em-dash-regel.
+     */
+    private function sanitizeReply(string $text): string
+    {
+        // Markdown-opmaak weghalen: vet, cursief en kopjes.
+        $text = preg_replace('/\*\*(.+?)\*\*/us', '$1', $text);
+        $text = preg_replace('/__(.+?)__/us', '$1', $text);
+        $text = str_replace(['**', '__'], '', $text);
+        $text = preg_replace('/(?<=^|\n)\s{0,3}#{1,6}\s+/u', '', $text);
+
+        // Harde no-em-dash garantie: streepje tussen cijfers wordt een koppelstreep,
+        // elk ander lang streepje (leesteken) wordt een komma.
+        $dashes = '\x{2012}\x{2013}\x{2014}\x{2015}\x{2212}';
+        $text = preg_replace('/(?<=\d)\s*[' . $dashes . ']\s*(?=\d)/u', '-', $text);
+        $text = preg_replace('/\s*[' . $dashes . ']\s*/u', ', ', $text);
+        $text = preg_replace('/\s+,/u', ',', $text);
+        $text = preg_replace('/(,\s*){2,}/u', ', ', $text);
+
+        return trim((string) $text);
     }
 
     private function systemPrompt(string $companyName): string
@@ -130,6 +153,8 @@ Heb je een id nodig (auto, lead, klant), gebruik dan eerst een zoek-tool. Keten 
 
 Werkwijze:
 - Antwoord altijd in het Nederlands, kort en concreet. Geen overbodige inleidingen.
+- Schrijf in PLATTE TEKST zonder opmaak: geen sterretjes voor vet (**), geen kopjes (#), geen tabellen. Een simpele opsomming met gewone streepjes (-) mag.
+- Gebruik NOOIT lange streepjes (em-dash of en-dash). Gebruik alleen gewone komma's, punten en gewone koppelstreepjes.
 - Gebruik tools om echte gegevens op te halen of wijzigingen door te voeren. Verzin nooit gegevens of resultaten.
 - Bedragen toon en ontvang je in hele euro's (niet in centen).
 - Je werkt uitsluitend binnen dit bedrijf; je kunt niets van andere bedrijven zien of wijzigen.
