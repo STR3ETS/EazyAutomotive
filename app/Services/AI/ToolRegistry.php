@@ -12,14 +12,19 @@ use App\Services\AI\Tools\CustomersSearchTool;
 use App\Services\AI\Tools\DeleteCarTool;
 use App\Services\AI\Tools\GenerateCopyTool;
 use App\Services\AI\Tools\GetCarTool;
+use App\Services\AI\Tools\ImportKentekensTool;
 use App\Services\AI\Tools\InventoryStatsTool;
 use App\Services\AI\Tools\LeadsSearchTool;
+use App\Services\AI\Tools\ProefritSearchTool;
+use App\Services\AI\Tools\PublishCarTool;
 use App\Services\AI\Tools\RdwLookupTool;
 use App\Services\AI\Tools\SearchInventoryTool;
 use App\Services\AI\Tools\ToolResult;
+use App\Services\AI\Tools\UnpublishCarTool;
 use App\Services\AI\Tools\UpdateCarTool;
 use App\Services\AI\Tools\UpdateLeadTool;
 use App\Services\AI\Tools\ValuationTool;
+use App\Services\AI\Tools\VrijwaarTool;
 
 class ToolRegistry
 {
@@ -37,6 +42,7 @@ class ToolRegistry
             ValuationTool::class,
             LeadsSearchTool::class,
             CustomersSearchTool::class,
+            ProefritSearchTool::class,
             // Write (logged + reversible)
             AddCarTool::class,
             UpdateCarTool::class,
@@ -47,6 +53,10 @@ class ToolRegistry
             AddExpenseTool::class,
             CreateContractTool::class,
             ApplyThemeTool::class,
+            ImportKentekensTool::class,
+            PublishCarTool::class,
+            UnpublishCarTool::class,
+            VrijwaarTool::class,
         ];
 
         foreach ($classes as $class) {
