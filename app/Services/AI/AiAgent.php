@@ -4,6 +4,7 @@ namespace App\Services\AI;
 
 use Anthropic\Client;
 use App\Models\AiActivity;
+use App\Support\Roles;
 
 /**
  * Runs the autonomous tool-calling loop: ask Claude, execute any tool calls it
@@ -25,7 +26,7 @@ class AiAgent
 
         $messages = $history;
         $tools = $this->registry->definitions();
-        $system = $this->systemPrompt($companyName);
+        $system = $this->systemPrompt($companyName, $context->role);
 
         $reply = '';
         /** @var list<AiActivity> $activities */
@@ -130,10 +131,34 @@ class AiAgent
         return trim((string) $text);
     }
 
-    private function systemPrompt(string $companyName): string
+    /**
+     * Vertelt de assistent binnen welke gebieden de ingelogde gebruiker (en dus
+     * de assistent) mag handelen, zodat hij niets belooft wat de rol niet mag.
+     */
+    private function roleSection(?string $role): string
+    {
+        if ($role === null || $role === 'owner' || $role === 'admin') {
+            return '';
+        }
+
+        $areas = array_map(
+            fn (string $a) => Roles::AREAS[$a] ?? $a,
+            Roles::areasFor($role),
+        );
+        $lijst = implode(', ', $areas);
+        $rol = Roles::label($role);
+
+        return <<<TXT
+
+Belangrijk: de ingelogde gebruiker heeft de rol {$rol} en mag alleen bij deze gebieden: {$lijst}. Jij mag uitsluitend acties uitvoeren binnen die gebieden. Vraagt iemand iets daarbuiten (bijvoorbeeld facturen terwijl de rol daar geen recht op heeft), zeg dan kort dat de rol daar geen toegang toe heeft en verwijs naar een beheerder. Verzin nooit resultaten voor acties die je niet mag doen.
+TXT;
+    }
+
+    private function systemPrompt(string $companyName, ?string $role = null): string
     {
         $today = now()->toDateString();
         $name = (string) config('ai.name', 'Sam');
+        $roleSection = $this->roleSection($role);
 
         return <<<PROMPT
 Je bent {$name}, de AI-collega van EazyAutomotive, een platform voor autohandelaren. Je werkt voor het bedrijf "{$companyName}". Vandaag is het {$today}. Als iemand naar je naam vraagt, zeg dat je {$name} heet.
@@ -153,7 +178,7 @@ Je kunt vrijwel alles wat een medewerker in het platform ook kan, via je tools:
 - Import: meerdere auto's tegelijk toevoegen via een lijst kentekens.
 - Vrijwaring: een auto in bedrijfsvoorraad nemen (vereist de tenaamstellingscode van de gebruiker).
 - Proefritten: binnengekomen proefrit-aanvragen bekijken.
-
+{$roleSection}
 Heb je een id nodig (auto, lead, klant), gebruik dan eerst een zoek-tool. Keten tools aan elkaar om een taak volledig af te ronden (bijv. eerst klant toevoegen, dan de koopovereenkomst maken).
 
 Werkwijze:

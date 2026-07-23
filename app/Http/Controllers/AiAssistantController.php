@@ -56,6 +56,7 @@ class AiAssistantController extends Controller
             companyId: $user->company_id,
             userId: $user->id,
             conversationId: $conversation->id,
+            role: $user->role,
         );
 
         try {

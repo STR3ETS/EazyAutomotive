@@ -4,26 +4,33 @@ namespace App\Services\AI;
 
 use App\Models\Car;
 use App\Models\Lead;
+use App\Support\Roles;
 use Illuminate\Support\Facades\Cache;
 
 /**
  * De proactieve laag van de AI-collega: scant de eigen voorraad en leads en
  * levert concrete suggestiekaarten voor het dashboard. Regel-gebaseerd (snel en
- * gratis, geen model-call), altijd bedrijf-gescoped. Weggeklikte suggesties
- * blijven een paar dagen verborgen.
+ * gratis, geen model-call), altijd bedrijf-gescoped. Suggesties worden ook op de
+ * rol gefilterd: je krijgt alleen kaarten voor gebieden waar je bij mag.
+ * Weggeklikte suggesties blijven een paar dagen verborgen.
  */
 class SuggestionEngine
 {
     /** @return array<int, array<string,mixed>> */
-    public function forCompany(int $companyId, int $userId): array
+    public function forCompany(int $companyId, int $userId, ?string $role = null): array
     {
         $dismissed = Cache::get($this->cacheKey($userId), []);
 
         $out = [];
         foreach ($this->build($companyId) as $s) {
-            if (! in_array($s['key'], $dismissed, true)) {
-                $out[] = $s;
+            if (in_array($s['key'], $dismissed, true)) {
+                continue;
             }
+            // Rol-grens: alleen suggesties in een gebied waar de gebruiker bij mag.
+            if ($role !== null && ! Roles::roleHasArea($role, $s['area'])) {
+                continue;
+            }
+            $out[] = $s;
         }
 
         return array_slice($out, 0, 5);
@@ -49,7 +56,7 @@ class SuggestionEngine
 
         $drafts = Car::where('company_id', $companyId)->where('status', 'draft')->count();
         if ($drafts > 0) {
-            $out[] = $this->card('activeer_concepten', 'fa-circle-play', 'bg-blue-50', 'text-blue-500',
+            $out[] = $this->card('activeer_concepten', 'voorraad', 'fa-circle-play', 'bg-blue-50', 'text-blue-500',
                 "{$drafts} auto's staan nog in concept",
                 'Ze zijn nog niet zichtbaar op je website. Zal ik ze activeren?',
                 ['type' => 'run', 'label' => 'Activeren']);
@@ -57,7 +64,7 @@ class SuggestionEngine
 
         $noDesc = (clone $active())->where(fn ($q) => $q->whereNull('beschrijving')->orWhere('beschrijving', ''))->count();
         if ($noDesc > 0) {
-            $out[] = $this->card('schrijf_teksten', 'fa-pen-nib', 'bg-eazy-50', 'text-eazy',
+            $out[] = $this->card('schrijf_teksten', 'voorraad', 'fa-pen-nib', 'bg-eazy-50', 'text-eazy',
                 "{$noDesc} actieve auto's hebben geen advertentietekst",
                 'Ik kan er automatisch een pakkende, SEO-vriendelijke tekst voor schrijven.',
                 ['type' => 'run', 'label' => 'Schrijf teksten']);
@@ -65,7 +72,7 @@ class SuggestionEngine
 
         $noImg = (clone $active())->doesntHave('images')->count();
         if ($noImg > 0) {
-            $out[] = $this->card('geen_fotos', 'fa-image', 'bg-amber-50', 'text-amber-500',
+            $out[] = $this->card('geen_fotos', 'voorraad', 'fa-image', 'bg-amber-50', 'text-amber-500',
                 "{$noImg} actieve auto's hebben nog geen foto's",
                 "Auto's met foto's krijgen veel meer weergaven. Voeg ze toe bij de auto.",
                 ['type' => 'link', 'label' => 'Bekijk voorraad', 'url' => route('cars.index')]);
@@ -73,7 +80,7 @@ class SuggestionEngine
 
         $noPrice = (clone $active())->where(fn ($q) => $q->whereNull('prijs')->orWhere('prijs', 0))->count();
         if ($noPrice > 0) {
-            $out[] = $this->card('geen_prijs', 'fa-tag', 'bg-amber-50', 'text-amber-500',
+            $out[] = $this->card('geen_prijs', 'voorraad', 'fa-tag', 'bg-amber-50', 'text-amber-500',
                 "{$noPrice} auto's staan online zonder prijs",
                 'Een prijs (of "op aanvraag") geeft kopers meer vertrouwen.',
                 ['type' => 'link', 'label' => 'Bekijk voorraad', 'url' => route('cars.index')]);
@@ -81,7 +88,7 @@ class SuggestionEngine
 
         $newLeads = Lead::where('company_id', $companyId)->where('status', 'nieuw')->count();
         if ($newLeads > 0) {
-            $out[] = $this->card('nieuwe_leads', 'fa-inbox', 'bg-indigo-50', 'text-indigo-500',
+            $out[] = $this->card('nieuwe_leads', 'verkoop', 'fa-inbox', 'bg-indigo-50', 'text-indigo-500',
                 "{$newLeads} nieuwe leads wachten op opvolging",
                 'Snel reageren geeft de grootste kans op een deal.',
                 ['type' => 'link', 'label' => 'Naar leads', 'url' => route('leads.index')]);
@@ -89,7 +96,7 @@ class SuggestionEngine
 
         $stale = (clone $active())->where('created_at', '<', now()->subDays(60))->count();
         if ($stale > 0) {
-            $out[] = $this->card('lang_te_koop', 'fa-hourglass-half', 'bg-red-50', 'text-red-400',
+            $out[] = $this->card('lang_te_koop', 'voorraad', 'fa-hourglass-half', 'bg-red-50', 'text-red-400',
                 "{$stale} auto's staan al 60+ dagen te koop",
                 'Overweeg een scherpere prijs, nieuwe foto\'s of extra promotie.',
                 ['type' => 'link', 'label' => 'Bekijk voorraad', 'url' => route('cars.index')]);
@@ -99,8 +106,8 @@ class SuggestionEngine
     }
 
     /** @param array<string,mixed> $actie */
-    private function card(string $key, string $icon, string $iconBg, string $iconColor, string $titel, string $tekst, array $actie): array
+    private function card(string $key, string $area, string $icon, string $iconBg, string $iconColor, string $titel, string $tekst, array $actie): array
     {
-        return compact('key', 'icon', 'iconBg', 'iconColor', 'titel', 'tekst', 'actie');
+        return compact('key', 'area', 'icon', 'iconBg', 'iconColor', 'titel', 'tekst', 'actie');
     }
 }

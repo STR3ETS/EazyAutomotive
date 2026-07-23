@@ -105,6 +105,16 @@ class ToolRegistry
             return ToolResult::error("Onbekende tool: {$name}");
         }
 
+        // Rol-grens: de assistent mag alleen handelen binnen de gebieden waar de
+        // ingelogde gebruiker ook bij mag (net als in de interface).
+        $area = \App\Support\Roles::areaForTool($name);
+        if ($area !== null && ! $context->allowsArea($area)) {
+            $rol = \App\Support\Roles::label($context->role);
+            $gebied = \App\Support\Roles::AREAS[$area] ?? $area;
+
+            return ToolResult::error("Geen toegang: deze actie valt onder {$gebied} en jouw rol ({$rol}) heeft daar geen rechten voor. Vraag een beheerder om toegang.");
+        }
+
         try {
             return $tool->handle($input, $context);
         } catch (\Throwable $e) {

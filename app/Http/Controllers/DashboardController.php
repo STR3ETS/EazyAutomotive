@@ -37,8 +37,8 @@ class DashboardController extends Controller
 
         $user = $request->user();
 
-        // Proactieve suggesties van Sam (de AI-collega).
-        $suggestions = app(SuggestionEngine::class)->forCompany($companyId, $user->id);
+        // Proactieve suggesties van Sam (de AI-collega), gefilterd op de rol.
+        $suggestions = app(SuggestionEngine::class)->forCompany($companyId, $user->id, $user->role);
 
         $showTutorial = is_null($user->onboarding_completed_at);
 

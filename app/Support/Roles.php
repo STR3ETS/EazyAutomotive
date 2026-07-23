@@ -98,6 +98,51 @@ class Roles
         'settings' => 'instellingen',
     ];
 
+    /**
+     * AI-collega tools mapped to a functional area, so the assistant is bound by
+     * the same role permissions as the human. Tools not listed are open to all.
+     *
+     * @var array<string,string>
+     */
+    private const TOOL_AREAS = [
+        // Voorraad
+        'zoek_voorraad' => 'voorraad',
+        'bekijk_auto' => 'voorraad',
+        'voorraad_statistieken' => 'voorraad',
+        'rdw_opzoeken' => 'voorraad',
+        'taxeer_kenteken' => 'voorraad',
+        'voeg_auto_toe' => 'voorraad',
+        'wijzig_auto' => 'voorraad',
+        'verwijder_auto' => 'voorraad',
+        'genereer_advertentietekst' => 'voorraad',
+        'importeer_kentekens' => 'voorraad',
+        'vrijwaar_auto' => 'voorraad',
+        // Marketing
+        'pas_huisstijl_toe' => 'marketing',
+        'publiceer_auto' => 'marketing',
+        'depubliceer_auto' => 'marketing',
+        // Verkoop
+        'zoek_leads' => 'verkoop',
+        'wijzig_lead' => 'verkoop',
+        'zoek_proefritten' => 'verkoop',
+        'maak_koopovereenkomst' => 'verkoop',
+        // Klanten
+        'zoek_klanten' => 'klanten',
+        'voeg_klant_toe' => 'klanten',
+        // Administratie
+        'voeg_kosten_toe' => 'administratie',
+        'zoek_facturen' => 'administratie',
+        'maak_factuur' => 'administratie',
+        'verstuur_factuur' => 'administratie',
+        'registreer_betaling' => 'administratie',
+    ];
+
+    /** Which area an AI tool belongs to, or null when it is open to every role. */
+    public static function areaForTool(string $toolName): ?string
+    {
+        return self::TOOL_AREAS[$toolName] ?? null;
+    }
+
     /** The roles an owner/admin may hand out (never owner). */
     public static function assignableRoles(): array
     {

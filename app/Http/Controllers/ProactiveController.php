@@ -15,10 +15,23 @@ class ProactiveController extends Controller
 {
     public function __construct(private SuggestionEngine $engine) {}
 
+    /** Elke uitvoerbare suggestie hoort bij een gebied (rol-grens). */
+    private const ACTION_AREAS = [
+        'activeer_concepten' => 'voorraad',
+        'schrijf_teksten' => 'voorraad',
+    ];
+
     public function act(Request $request)
     {
         $data = $request->validate(['key' => 'required|string|max:50']);
-        $companyId = $request->user()->company_id;
+        $user = $request->user();
+        $companyId = $user->company_id;
+
+        // Rol-grens: alleen uitvoeren als de gebruiker bij dit gebied mag.
+        $area = self::ACTION_AREAS[$data['key']] ?? null;
+        if ($area !== null && ! $user->hasArea($area)) {
+            return response()->json(['error' => 'Je rol heeft geen toegang tot deze actie.'], 403);
+        }
 
         $message = match ($data['key']) {
             'activeer_concepten' => $this->activateDrafts($companyId),
