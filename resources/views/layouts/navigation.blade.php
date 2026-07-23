@@ -27,6 +27,18 @@
             <span>Dashboard</span>
         </a>
 
+        {{-- AI-collega: prominent, kan alles in het platform --}}
+        @php $aiActive = request()->routeIs('ai.page'); @endphp
+        <a href="{{ route('ai.page') }}" @click="sidebarOpen = false" data-tour="nav-ai"
+           class="mt-1 flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-bold transition-all
+                  {{ $aiActive ? 'bg-gradient-to-br from-eazy-dark to-eazy-darker text-white shadow-md shadow-eazy/20' : 'bg-eazy-50/60 text-eazy-700 hover:bg-eazy-50' }}">
+            <span class="w-6 flex justify-center">
+                <svg viewBox="0 0 24 24" class="w-4 h-4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 3a2 2 0 0 1 2 2c0 .74-.4 1.39-1 1.73V8h1a4 4 0 0 1 4 4v1.27c.6.34 1 .99 1 1.73a2 2 0 1 1-2.73-1.86A2 2 0 0 0 16 12h-1v2h-2v-2H9a2 2 0 0 0-1 3.73A2 2 0 1 1 5 14c0-.74.4-1.39 1-1.73V12a4 4 0 0 1 4-4h1V6.73c-.6-.34-1-.99-1-1.73a2 2 0 0 1 2-2z"/></svg>
+            </span>
+            <span>AI-collega</span>
+            <span class="ml-auto text-[9px] font-black uppercase tracking-wide px-1.5 py-0.5 rounded-full {{ $aiActive ? 'bg-white/20 text-white' : 'bg-eazy text-white' }}">Nieuw</span>
+        </a>
+
         @php
             $groups = [
                 ['label' => 'Voorraad', 'items' => [

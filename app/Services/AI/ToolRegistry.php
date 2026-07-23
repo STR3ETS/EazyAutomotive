@@ -3,14 +3,23 @@
 namespace App\Services\AI;
 
 use App\Services\AI\Tools\AddCarTool;
+use App\Services\AI\Tools\AddCustomerTool;
+use App\Services\AI\Tools\AddExpenseTool;
 use App\Services\AI\Tools\AgentTool;
+use App\Services\AI\Tools\ApplyThemeTool;
+use App\Services\AI\Tools\CreateContractTool;
+use App\Services\AI\Tools\CustomersSearchTool;
 use App\Services\AI\Tools\DeleteCarTool;
+use App\Services\AI\Tools\GenerateCopyTool;
 use App\Services\AI\Tools\GetCarTool;
 use App\Services\AI\Tools\InventoryStatsTool;
+use App\Services\AI\Tools\LeadsSearchTool;
 use App\Services\AI\Tools\RdwLookupTool;
 use App\Services\AI\Tools\SearchInventoryTool;
 use App\Services\AI\Tools\ToolResult;
 use App\Services\AI\Tools\UpdateCarTool;
+use App\Services\AI\Tools\UpdateLeadTool;
+use App\Services\AI\Tools\ValuationTool;
 
 class ToolRegistry
 {
@@ -25,10 +34,19 @@ class ToolRegistry
             GetCarTool::class,
             InventoryStatsTool::class,
             RdwLookupTool::class,
+            ValuationTool::class,
+            LeadsSearchTool::class,
+            CustomersSearchTool::class,
             // Write (logged + reversible)
             AddCarTool::class,
             UpdateCarTool::class,
             DeleteCarTool::class,
+            GenerateCopyTool::class,
+            UpdateLeadTool::class,
+            AddCustomerTool::class,
+            AddExpenseTool::class,
+            CreateContractTool::class,
+            ApplyThemeTool::class,
         ];
 
         foreach ($classes as $class) {

@@ -5,14 +5,20 @@ namespace App\Http\Controllers;
 use App\Models\AiActivity;
 use App\Models\AiConversation;
 use App\Models\AiMessage;
-use App\Models\Car;
 use App\Services\AI\AgentContext;
 use App\Services\AI\AiAgent;
+use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Http\Request;
 
 class AiAssistantController extends Controller
 {
     public function __construct(private AiAgent $agent) {}
+
+    /** Volledige AI-collega werkplek (prominente pagina). */
+    public function page(Request $request)
+    {
+        return view('company.ai.index');
+    }
 
     public function send(Request $request)
     {
@@ -89,18 +95,29 @@ class AiAssistantController extends Controller
         }
 
         $undo = $activity->undo_data ?? [];
+        $model = $undo['model'] ?? null;
 
-        if (($undo['model'] ?? null) === Car::class && isset($undo['id'])) {
-            $car = Car::withTrashed()->where('company_id', $user->company_id)->find($undo['id']);
+        // Generiek terugdraaien voor elk model dat de AI muteert, altijd binnen
+        // het eigen bedrijf. Zacht verwijderde records worden meegenomen.
+        if (is_string($model) && class_exists($model) && isset($undo['id'])) {
+            $soft = in_array(SoftDeletes::class, class_uses_recursive($model), true);
+            $record = ($soft ? $model::withTrashed() : $model::query())->find($undo['id']);
 
-            if (! $car) {
+            if (! $record) {
                 return response()->json(['error' => 'Het betreffende item bestaat niet meer.'], 422);
             }
 
+            // Strikte bedrijfsscope: Company is het bedrijf zelf, andere modellen
+            // hebben een company_id.
+            $ownsIt = $model === \App\Models\Company::class
+                ? ((int) $record->id === (int) $user->company_id)
+                : ((int) ($record->company_id ?? 0) === (int) $user->company_id);
+            abort_unless($ownsIt, 403);
+
             match ($undo['type'] ?? null) {
-                'created' => $car->delete(),                                   // undo toevoegen => verwijderen
-                'deleted' => $car->restore(),                                 // undo verwijderen => herstellen
-                'updated' => $car->forceFill($undo['before'] ?? [])->save(),  // undo wijziging => oude waarden terug
+                'created' => $record->delete(),                                    // undo toevoegen => verwijderen
+                'deleted' => $soft ? $record->restore() : null,                    // undo verwijderen => herstellen
+                'updated' => $record->forceFill($undo['before'] ?? [])->save(),    // undo wijziging => oude waarden terug
                 default => null,
             };
         }
