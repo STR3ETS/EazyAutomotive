@@ -22,6 +22,7 @@ use App\Http\Controllers\KoopovereenkomstController;
 use App\Http\Controllers\PublicerenController;
 use App\Http\Controllers\RdwLookupController;
 use App\Http\Controllers\StudioVideoController;
+use App\Http\Controllers\TeamController;
 use App\Http\Controllers\VoertuigRapportController;
 use App\Http\Controllers\VoorraadImportController;
 use App\Http\Controllers\WidgetController;
@@ -40,8 +41,8 @@ Route::prefix('feed/v1')->group(function () {
         ->name('feed.platform');
 });
 
-// Authenticated routes with company ownership check
-Route::middleware(['auth', 'verified', 'company.ownership'])->group(function () {
+// Authenticated routes with company ownership + function-based role access
+Route::middleware(['auth', 'verified', 'company.ownership', 'role.area'])->group(function () {
     // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
@@ -88,6 +89,13 @@ Route::middleware(['auth', 'verified', 'company.ownership'])->group(function () 
     Route::get('/settings', [CompanySettingsController::class, 'edit'])->name('settings.edit');
     Route::put('/settings', [CompanySettingsController::class, 'update'])->name('settings.update');
     Route::post('/settings/regenerate-api-key', [CompanySettingsController::class, 'regenerateApiKey'])->name('settings.regenerate-key');
+
+    // Team & rollen (alleen eigenaar/beheerder, afgedwongen via role.area)
+    Route::get('/team', [TeamController::class, 'index'])->name('team.index');
+    Route::post('/team/uitnodigen', [TeamController::class, 'invite'])->name('team.invite');
+    Route::put('/team/{user}/rol', [TeamController::class, 'updateRole'])->name('team.role');
+    Route::delete('/team/{user}', [TeamController::class, 'destroy'])->name('team.destroy');
+    Route::delete('/team/uitnodiging/{invitation}', [TeamController::class, 'cancelInvite'])->name('team.invite.cancel');
 
     // Widgets: ontwerp + insluitcode per widget (vervangt Ontwerpen + Integratie)
     Route::get('/widgets', [WidgetController::class, 'index'])->name('widgets.index');
@@ -180,5 +188,9 @@ Route::middleware('auth')->group(function () {
     // First-login tutorial completion
     Route::post('/onboarding/complete', [OnboardingController::class, 'complete'])->name('onboarding.complete');
 });
+
+// Teamuitnodiging accepteren (openbaar, via token in de link)
+Route::get('/uitnodiging/{token}', [\App\Http\Controllers\Auth\InvitationController::class, 'show'])->name('invitation.show');
+Route::post('/uitnodiging/{token}', [\App\Http\Controllers\Auth\InvitationController::class, 'store'])->name('invitation.accept');
 
 require __DIR__.'/auth.php';

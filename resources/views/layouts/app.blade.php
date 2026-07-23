@@ -21,6 +21,7 @@
                 'studio.*' => 'Video Studio',
                 'invoices.*' => 'Facturen',
                 'customers.*' => 'Klanten',
+                'team.*' => 'Team',
                 'settings.*' => 'Instellingen',
                 'profile.*' => 'Profiel',
             ])->first(fn ($label, $pattern) => request()->routeIs($pattern));

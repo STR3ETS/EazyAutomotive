@@ -55,8 +55,17 @@
             ];
         @endphp
 
+        @php $user = Auth::user(); @endphp
         @foreach($groups as $group)
-            @php $groupActive = collect($group['items'])->contains(fn ($i) => request()->routeIs($i['match'])); @endphp
+            @php
+                // Toon per rol alleen de onderdelen (gebieden) waar de gebruiker bij mag.
+                $items = array_values(array_filter($group['items'], function ($i) use ($user) {
+                    $area = \App\Support\Roles::areaForRoute($i['route']);
+                    return $area === null || $user->hasArea($area);
+                }));
+            @endphp
+            @continue(empty($items))
+            @php $groupActive = collect($items)->contains(fn ($i) => request()->routeIs($i['match'])); @endphp
             <div x-data="{ open: {{ $groupActive ? 'true' : 'false' }} }" class="mt-3">
                 <button type="button" @click="open = !open"
                     class="cursor-pointer w-full flex items-center justify-between px-3 py-1 text-[10px] font-bold uppercase tracking-wider text-gray-400 hover:text-gray-600 transition-colors">
@@ -64,7 +73,7 @@
                     <i class="fa-solid fa-chevron-down text-[9px] transition-transform duration-200" :class="{ '-rotate-90': !open }"></i>
                 </button>
                 <div x-show="open" x-transition.opacity.duration.150ms class="mt-1 space-y-0.5" @unless($groupActive) style="display:none" @endunless>
-                    @foreach($group['items'] as $item)
+                    @foreach($items as $item)
                         @php $active = request()->routeIs($item['match']); @endphp
                         <a href="{{ route($item['route']) }}" @click="sidebarOpen = false" data-tour="{{ $item['tour'] }}"
                            class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold transition-colors
@@ -77,16 +86,24 @@
             </div>
         @endforeach
 
-        {{-- Instellingen: standalone onderaan --}}
-        @php $setActive = request()->routeIs('settings.*'); @endphp
-        <div class="mt-3 pt-3 border-t border-gray-100">
-            <a href="{{ route('settings.edit') }}" @click="sidebarOpen = false" data-tour="nav-settings"
-               class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold transition-colors
-                      {{ $setActive ? 'bg-eazy-50 text-eazy-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800' }}">
-                <span class="w-6 flex justify-center"><i class="fa-solid fa-gear text-sm {{ $setActive ? 'text-eazy' : 'text-gray-400' }}"></i></span>
-                <span>Instellingen</span>
-            </a>
-        </div>
+        {{-- Team & Instellingen: alleen voor eigenaar/beheerder --}}
+        @if($user->canManageTeam())
+            @php $teamActive = request()->routeIs('team.*'); $setActive = request()->routeIs('settings.*'); @endphp
+            <div class="mt-3 pt-3 border-t border-gray-100 space-y-0.5">
+                <a href="{{ route('team.index') }}" @click="sidebarOpen = false" data-tour="nav-team"
+                   class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold transition-colors
+                          {{ $teamActive ? 'bg-eazy-50 text-eazy-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800' }}">
+                    <span class="w-6 flex justify-center"><i class="fa-solid fa-user-group text-sm {{ $teamActive ? 'text-eazy' : 'text-gray-400' }}"></i></span>
+                    <span>Team</span>
+                </a>
+                <a href="{{ route('settings.edit') }}" @click="sidebarOpen = false" data-tour="nav-settings"
+                   class="flex items-center gap-3 px-3 py-2 rounded-xl text-sm font-semibold transition-colors
+                          {{ $setActive ? 'bg-eazy-50 text-eazy-700' : 'text-gray-500 hover:bg-gray-50 hover:text-gray-800' }}">
+                    <span class="w-6 flex justify-center"><i class="fa-solid fa-gear text-sm {{ $setActive ? 'text-eazy' : 'text-gray-400' }}"></i></span>
+                    <span>Instellingen</span>
+                </a>
+            </div>
+        @endif
     </nav>
 
     {{-- User section --}}
@@ -98,7 +115,7 @@
             </div>
             <div class="flex-1 min-w-0">
                 <div class="text-sm font-semibold text-gray-800 truncate">{{ Auth::user()->name }}</div>
-                <div class="text-xs text-gray-400 truncate">{{ Auth::user()->company?->name }}</div>
+                <div class="text-xs text-gray-400 truncate">{{ Auth::user()->company?->name }} &middot; {{ Auth::user()->roleLabel() }}</div>
             </div>
         </div>
 

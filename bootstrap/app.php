@@ -14,6 +14,7 @@ return Application::configure(basePath: dirname(__DIR__))
     ->withMiddleware(function (Middleware $middleware): void {
         $middleware->alias([
             'company.ownership' => \App\Http\Middleware\EnsureCompanyOwnership::class,
+            'role.area' => \App\Http\Middleware\EnsureAreaAccess::class,
             'embed.api' => \App\Http\Middleware\ValidateEmbedApiKey::class,
         ]);
     })
